@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+
+{% block page_name %}{{ escape(push_info['user']) }} \ {{ escape(push_info['title']) }}{% end %}
+
+{% block content %}
+<div id="form-anchor">&nbsp;
+<form id="push-info-form" class="popup-form" action="/editpush" method="POST">
+<div class="form-wrapper">
+	
+	<h2>Edit Push</h2>
+
+	<label for="push-title">Title</label>
+	<input name="push-title" id="push-title" value="{{ escape(push_info['title']) }}" />
+
+	<label for="push-branch">Branch</label>
+	<input name="push-branch" id="push-branch" value="{{ escape(push_info['branch']) }}" />
+
+	<input type="hidden" name="id" value="{{ int(push_info['id']) }}" />
+
+	{% if not push_info['user'] == current_user %}
+	<p id="update-notice">Updating this push will transfer its ownership to you.</p>
+	{% end %}
+
+	<div class="buttons">
+		<input type="submit" id="push-create" name="push-submit" value="Update Push" />
+		<input type="reset" id="push-cancel" name="push-cancel" value="Cancel" />
+	</div>
+</div>
+</form>
+</div>
+<!-- ========= PUSH INFO ========== -->
+<ul id="push-info" class="push-info standalone" push="{{ int(push_info['id']) }}" pushmaster="{{ escape(push_info['user']) }}" branch="{{ escape(push_info['branch']) }}">
+	<li><span class="label">Pushmaster</span><span class="value">{{ escape(push_info['user']) }}</span></li>
+	<li><span class="label">Branch</span><span class="value">{{ escape(push_info['branch']) }}</span></li>
+{% if push_info['state'] == 'accepting' %}
+	<li><span class="label">Buildbot Runs</span><span class="value"><a href="http://{{ escape(Settings['buildbot']['servername']) }}/branch/{{ escape(push_info['branch']) }}">url</a></span></li>
+{% end %}
+	<li><span class="label">State</span><span class="value"><ul class="tags">
+			<li class="tag-{{ escape(push_info['state']) }}">{{ escape(push_info['state']) }}</li>
+		</ul></span></li>
+	<li><span class="label">Push Type</span><span class="value"><ul class="tags">
+			<li class="tag-{{ escape(push_info['pushtype']) }}">{{ escape(push_info['pushtype']) }}</li>
+		</ul></span></li>
+	<li><span class="label">Created</span><span class="value">{{ datetime.datetime.fromtimestamp(push_info['created']).strftime("%x %X") }}</span></li>
+{% if not push_info['created'] == push_info['modified'] %}
+	<li><span class="label">Modified</span><span class="value">{{ datetime.datetime.fromtimestamp(push_info['modified']).strftime("%x %X") }}</span></li>
+{% end %}
+</ul>
+<!-- ========= BUTTON BAR ========== -->
+<ul id="action-buttons">
+	<li><button id="expand-all-requests">Expand All</button></li>
+	<li><button id="collapse-all-requests">Collapse All</button></li>
+	&mdash;
+	{% if current_user in (push_info['extra_pings'] or []) %}
+	<li><button id="ping-me" action="unset">Don't Ping Me</button></li>
+	{% else %}
+	<li><button id="ping-me" action="set">Ping Me</button></li>
+	{% end %}
+	{% if push_info['user'] == current_user or override %}
+		&mdash;
+		<li><button id="edit-push">Edit Push</button></li>
+		{% if push_info['state'] == 'accepting' %}
+		<li><button id="discard-push">Discard Push</button></li>
+		&mdash;
+		<li><button id="add-selected-requests">Add Selected</button></li>
+		<li><button id="remove-selected-requests">Remove Selected</button></li>
+		<li><button id="rebuild-deploy-branch">Rebuild Deploy Branch</button></li>
+		&mdash;
+		<li><button id="deploy-to-stage">Added &rarr; Stage</button></li>
+		<li><button id="deploy-to-prod">Stage &rarr; Prod</button></li>
+		<li><button id="merge-to-master">Prod &rarr; master</button></li>
+		&mdash;
+		<li><button id="message-all">Message All</button></li>
+		<li><button id="show-checklist">Push Checklist</button></li>
+		{% end %}
+	{% else %}
+		{% if push_info['state'] == 'accepting' %}
+		&mdash; <li><button id="edit-push">Takeover Push</button></li>
+		{% end %}
+	{% end %}
+</ul>
+<!-- ======== PUSH STATES ========= -->
+{% if push_info['state'] == 'accepting' %}
+{% for (section,sect_title) in [('blessed', 'Deployed to Prod'), ('verified', 'Verified on Stage'),	('staged', 'Deployed to Stage'), ('added', 'Added to Deploy Branch')] %}
+<h3 class="status-header" section="{{section}}">{{ sect_title }} <span class="item-count"></span>
+	{% if push_info['user'] == current_user or override %}<button class="message-people">msg</button>{% end %}</h3>
+<ul id="{{ section }}-items" class="push-items push-items-section items-in-push">
+	{% for request in sorted(push_contents.get(section, []), key=lambda x: x['user']) %}
+	<li {% if request['user'] == current_user %}class="mine"{% end %}>
+		{{ modules.Request(request, pushmaster=(push_info['user'] == current_user or override), push_buttons=True) }}
+	</li>
+	{% end %}
+</ul>
+{% end %}
+<!-- ========= PICKME ITEMS =========== -->
+<h3 class="status-header" section="pickme">Pick me, pick me! <span class="item-count"></span>
+	{% if push_info['user'] == current_user or override %}<button class="message-people">msg</button>{% end %}</h3>
+<ul id="pickme-items" class="push-items push-items-section">
+	{% for request in sorted(push_contents.get('pickme', []), key=lambda x: x['created']) %}
+	<li {% if request['user'] == current_user %}class="mine"{% end %}>
+		{{ modules.Request(request, pushmaster=(push_info['user'] == current_user or override), push_buttons=True, show_ago=True) }}
+	</li>
+	{% end %}
+</ul>
+<!-- ========= REQUESTED ITEMS  ========== -->
+<h3 class="status-header" section="requested">Open Requests <span class="item-count"></span>
+	{% if push_info['user'] == current_user or override %}<button class="message-people">msg</button>{% end %}</h3>
+<ul id="requested-items" class="push-items push-items-section">
+<p class="smalltext">Beginning with the oldest requests:</p>
+	{% for request in sorted(available_requests, key=lambda x: x['created']) %}
+	<li {% if request['user'] == current_user %}class="mine"{% end %}>
+		{{ modules.Request(request, pushmaster=(push_info['user'] == current_user or override), push_buttons=True, show_ago=True) }}
+	</li>
+	{% end %}
+</ul>
+{% else %}
+<!-- ========= ITEMS THAT WERE INCLUDED [CLOSED PUSH] ========== -->
+<h3 class="status-header">Included Requests ({{ len(push_contents.get('all', [])) }})</h3>
+<ul id="added-items" class="push-items push-items-section">
+	{% for request in push_contents.get('all', []) %}
+	<li {% if request['user'] == current_user %}class="mine"{% end %}>
+		{{ modules.Request(request) }}
+	</li>
+	{% end %}
+</ul>
+{% end %}
+<div id="dialog-prototypes" style="display: none;">
+<!-- "Run a command" dialog -->
+	<div id="run-a-command">
+		<pre id="command-to-run">&nbsp;</pre>
+		<p class="directions">
+			Wait for it to complete, then
+			<button id="command-done">Continue</button>
+		</p>
+		<p class="mininote">
+			(If it fails, click the X or press Esc.)
+		</p>
+	</div>
+<!-- "Comment on a request" dialog -->
+	<div id="comment-on-request">
+		<textarea id="comment-input-area"></textarea>
+		<p class="directions">
+			Enter your comment here, then
+			<button id="submit-request-comment">Submit</button>
+		</p>
+	</div>
+<!-- "Check in multiple requests" dialog -->
+	<div id="merge-requests">
+		<div class="command" id="merge-branches-command">&nbsp;</div>
+		<p class="dialog-note">(Triple-click above to easily select the entire command for copying.)</p>
+		<p class="directions">
+			Once the command completes, click <button id="done-merging">here</button>
+		</p>
+	</div>
+<!-- Push checklist dialog -->
+	<div id="push-checklist">
+		<h4>Before Staging</h4>
+		<ul id="checklist-before-staging">
+			<li><input type="checkbox" /> Foo</li>
+			<li><input type="checkbox" /> Foo</li>
+		</ul>
+		<h4>Before Blessing</h4>
+		<ul id="checklist-before-blessing">
+			<li><input type="checkbox" /> Foo</li>
+			<li><input type="checkbox" /> Foo</li>
+		</ul>
+		<h4>After Live</h4>
+		<ul id="checklist-after-live">
+			<li><input type="checkbox" /> Foo</li>
+			<li><input type="checkbox" /> Foo</li>
+		</ul>
+	</div>
+<!-- Messaging dialog -->
+	<div id="send-message-prompt">
+		<input id="send-message-contents" />
+		<p class="directions">
+			Enter the message you wish to send here, then
+			<button id="send-message">Send</button>
+		</p>
+	</div>
+</div>
+{% end %}
+
+{% block scripts %}
+<script type="text/javascript" src="{{ static_url('js/push.js') }}"></script>
+{% end %}

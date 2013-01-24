@@ -1,0 +1,16 @@
+{% if items_by_target.get(target, []) %}
+<h4>{{ title }}</h4>
+<ul id="checklist-{{ target }}">
+{% for item in items_by_target.get(target, []) %}
+	<li><input type="checkbox" class="checklist-item" id="checklist-{{ item['id'] }}"{% if item['complete'] %} checked{% end %}
+			checklistid="{{ item['id'] }}"{% if not pushmaster %} disabled="true"{% end %}>
+		<label for="checklist-{{ item['id'] }}">
+		{% if reminders[item['type']].has_key(target) %}
+			{{ reminders[item['type']][target] % {'pushee': item['user']} }}
+			- "{{ item['title'][:20]+'...' if len(item['title']) > 20 else item['title'] }}"
+		{% end %}
+		</label>
+	</li>
+{% end %}
+</ul>
+{% end %}

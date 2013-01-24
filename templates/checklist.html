@@ -1,0 +1,13 @@
+{% if not any(items_by_target.values()) %}
+	(No checklist items for this push.)
+{% else %}
+	{% module Template('checklist/category.html', pushmaster=pushmaster, items_by_target=items_by_target, reminders=checklist_reminders, title='Before Staging - Do In Stage', target='stage') %}
+	{% module Template('checklist/category.html', pushmaster=pushmaster, items_by_target=items_by_target, reminders=checklist_reminders, title='After Staging - Do In Stage',  target='post-stage') %}
+	{% module Template('checklist/category.html', pushmaster=pushmaster, items_by_target=items_by_target, reminders=checklist_reminders, title='Before Blessing - Do In Prod', target='prod') %}
+	{% module Template('checklist/category.html', pushmaster=pushmaster, items_by_target=items_by_target, reminders=checklist_reminders, title='After Blessing - Do In Prod',  target='post-prod') %}
+	{% module Template('checklist/category.html', pushmaster=pushmaster, items_by_target=items_by_target, reminders=checklist_reminders, title='Before Certifying - Do In Dev', target='verify') %}
+	{% module Template('checklist/category.html', pushmaster=pushmaster, items_by_target=items_by_target, reminders=checklist_reminders, title='After Certifying - Do In Prod',  target='post-verify-prod') %}
+	{% module Template('checklist/category.html', pushmaster=pushmaster, items_by_target=items_by_target, reminders=checklist_reminders, title='After Certifying - Do In Dev',  target='post-verify') %}
+	{% module Template('checklist/category.html', pushmaster=pushmaster, items_by_target=items_by_target, reminders=checklist_reminders, title='After Certifying - Do In Stage',  target='post-verify-stage') %}
+{% end %}
+<input type="hidden" name="checklist-count" id="checklist-count" value="{{ item_count }}" />

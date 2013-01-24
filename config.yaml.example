@@ -1,0 +1,106 @@
+# Application specific settings
+main_app:
+    servername: "pushmanager.example.com"
+    port: 443
+    redir_port: 80
+    ssl_certfile: "/path/to/file.pem"
+    ssl_keyfile: "/path/to/file.key"
+
+api_app:
+    servername: "pushmanager.example.com"
+    port: 8843
+
+# Database connection string
+db_uri: "mysql://user:password@host/database"
+
+# effective user name/id
+username: "www-data"
+
+# Where to write out log files
+log_path: "/var/log/pushmanager"
+
+# Mappings between usernames and email addresses (for those
+# which aren't identical).
+aliases:
+    "johndoe@example.com": "jdoe@example.com"
+
+# Used for tornado's secure cookies
+cookie_secret: "changethis"
+
+# LDAP is the default (and for now only) authentication mechanism.
+auth_ldap:
+    url: "ldap://ldap.example.com:389"
+    domain: "example.com"
+    cert_file: "/path/to/file.crt"
+
+# IRC channels to report to
+irc:
+    nickname: "pushhamster"
+    channel: "push"
+
+mail:
+    default_domain: "example.com"
+    from: "no-reply+pushmaster-spam@example.com"
+    # Email address to send copies of all outgoing email to
+    notifyall:
+        - "push-updates@example.com"
+
+# Credentials for XMPP notifications
+xmpp:
+    default_domain: "example.com"
+    username: "someone@example.com"
+    password: "abc123"
+
+# ReviewBoard instance
+reviewboard:
+    servername: reviewboard.mydomain.com
+    username: example
+    password: foobar
+
+# Buildbot manager instance
+buildbot:
+    servername: buildbot.mydomain.com
+
+trac:
+    servername: trac.example.com
+
+git:
+    servername: "git.example.com"
+    gitweb_servername: "gitweb.example.com"
+    main_repository: "main-repository"
+    dev_repositories_dir: "devs"
+    # A background worker tries to verify the given branch in a push
+    # request by checking the SHA of the branch in the repository and
+    # in DB - to see if there was already a request for the
+    # change. Push requests with certain tags just modify the workflow
+    # and are not associated with a git branch. We do not need to
+    # verify the branch for those requests.
+    exclude_from_verification:
+        - "l10n-only"
+
+# Pushmanager can POST to a given URL with the data below. This
+# preliminary support for webhooks is used for an internal Yelp tool
+# that associates two entities with one another (e.g. linking a ticket
+# with a code review).
+#
+# {
+#   'reason': '',
+#   'left_type': '',
+#   'left_token': '',
+#   'right_type': '',
+#   'right_token': '',
+#}
+web_hooks:
+    service_name: "Events"
+    post_url: "https://eventhub.example.com/add_event"
+    get_request_url: "https://eventhub.example.com/event_with_id"
+
+
+# Pushmanager has a javascript bookmarklet to make verifiying a set of
+# urls manually. This is generally the last step after a successful
+# push.
+verify_urls:
+    - 'www.example.com/page1/'
+    - 'm.example.com/'
+    - 'www.example.com/search?q=thing'
+

@@ -1,0 +1,5 @@
+*.py[co]
+.*.swp
+app.*.log
+app.*.pid
+/config.yaml

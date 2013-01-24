@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block page_name %}{{ escape(page_title) }}{% end %}
+
+{% block content %}
+<ul id="action-buttons">
+	<li>{{ modules.NewRequestDialog() }}</li>
+	{% if show_count %}
+		<li><span class="request-count">{{ len(list(requests)) }} requests</span></li>
+	{% end %}
+</ul>
+<ul id="requests">
+{% for request in requests %}
+	<li class="request" requestid="{{ int(request['id']) }}">
+		<div class="{{ escape(' '.join(['request-endcap'] + ['state-' + request['state']])) }}">&nbsp;</div>
+		{{ modules.Request(request, edit_buttons=(request['state'] not in ('live', 'discarded')), show_state_inline=True, show_ago=True) }}
+	</li>
+{% end %}
+</ul>
+{% end %}

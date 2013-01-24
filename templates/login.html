@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block page_name %}Login{% end %}
+
+{% block content %}
+{% if errors %}
+<p class="error">{{ errors }}</p>
+{% end %}
+<form id="site-login-form" action="/login" method="POST">
+{% if next_url %}<input type="hidden" name="next" value="{{ escape(next_url) }}" />{% end %}
+<label for="username">Username:</label>
+<input name="username" id="username" />
+<label for="password">Password:</label>
+<input name="password" id="password" type="password" />
+<input type="submit" value="Login" />
+</form>
+{% end %}
+
+{% block scripts %}
+<script type="text/javascript">
+$(function() {
+	$('#username').focus();
+});
+</script>
+{% end %}

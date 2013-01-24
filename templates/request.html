@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block page_name %}{{ escape(page_title) }}{% end %}
+
+{% block content %}
+<ul id="action-buttons">
+	<li>{{ modules.NewRequestDialog() }}</li>
+</ul>
+{{ modules.Request(req, expand=True, edit_buttons=(req['state'] not in ('live', 'discarded')), show_state_inline=True, show_ago=True) }}
+{% end %}

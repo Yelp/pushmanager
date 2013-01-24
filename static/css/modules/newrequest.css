@@ -1,0 +1,46 @@
+#request-info-form {
+	position: absolute;
+	top: 20px;
+	right: 20px;
+	bottom: 20px;
+	left: 20px;
+}
+
+#request-info-form > fieldset {
+	position: absolute;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+}
+
+#request-info-form input,
+#request-info-form textarea {
+	display: block;
+	width: 99%;
+	margin-bottom: 10px;
+}
+
+#request-info-form textarea {
+	height: 100px;
+	font-family: monospace;
+}
+
+#request-info-form #request-form-comments,
+#request-info-form #request-form-description {
+	position: relative;
+}
+
+#request-info-form input[type=submit] {
+	width: 150px;
+	float: right;
+}
+
+#request-info-form label {
+	display: block;
+	margin-top: 10px;
+}
+
+#request-info-form #request-not-yours-notice {
+	float: left;
+}

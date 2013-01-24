@@ -1,0 +1,35 @@
+{% for request in requests %}
+<li>
+<img src="{{ static_url('img/button_expand.gif') }}" class="push-item-expander" height="19" width="19" />
+<ul class="request-info inline">
+<li><span class="label">From</span>
+	<span class="value">{{ escape(request['user']) }}</span></li>
+<li class="push-item-title">{{ escape(request['title']) }}</li>
+{% if request['tags'] %}
+<li><span class="label">Tags</span>
+	<span class="value"><ul class="tags">
+	{% for tag in request['tags'].split(',') %}<li class="tag-{{ escape(tag) }}">{{ escape(tag) }}</li>{% end %}
+	</ul></span></li>
+{% end %}
+</ul>
+<div class="push-item-extended">
+<ul class="request-info">
+	{% if request['reviewid'] %}
+	<li><span class="label">Review #</span>
+		<span class="value"><a href="http://{{ Settings['reviewboard']['servername'] }}/r/{{ int(request['reviewid']) }}">
+			{{ int(request['reviewid']) }}
+			</a></span></li>
+	{% end %}
+	<li><span class="label">Repo</span><span class="value">{{ escape(request['repo']) }}</span></li>
+	<li><span class="label">Branch</span><span class="value">{{ escape(request['branch']) }}</span></li>
+	<li><span class="label">Created</span><span class="value">{{ datetime.datetime.fromtimestamp(request['created']).strftime("%x %X") }}</span></li>
+	{% if not request['created'] == request['modified'] %}
+	<li><span class="label">Modified</span><span class="value">{{ datetime.datetime.fromtimestamp(request['modified']).strftime("%x %X") }}</span></li>
+	{% end %}
+	{% if request['comments'] %}
+		<div class="request-comments">{{ escape(request['comments']).replace('\n', '<br />') }}</div>
+	{% end %}
+</ul>
+</div>
+</li>
+{% end %}

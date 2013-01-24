@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block page_name %}Users{% end %}
+
+{% block content %}
+<ul class="user-list">
+{% for (letter, users) in sorted(users_by_alpha.iteritems()) %}
+	<li><span class="letter-header">{{ escape(letter.upper()) }}</span><ul>
+	{% for u in users %}
+		<li><a href="/requests?user={{ escape(u) }}">{{ escape(u) }}</a></li>
+	{% end %}
+	</ul></li>
+{% end %}
+</ul>
+{% end %}
