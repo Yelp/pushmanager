@@ -1,11 +1,11 @@
 (function(){
     Settings = window.Settings;
-    var domainName = Settings['verify_urls']['domain_name'];
-    var urls = Settings['verify_urls']['urls'];
+    var domainName = Settings['check_sites_bookmarklet']['domain_name'];
+    var urls = Settings['check_sites_bookmarklet']['urls'];
     // Substitutions define strings that need to be replaced for
     // non-production environments. Example object for this:
     // {'some_prod_id': 'some_dev_id'}
-    var substitutions = Settings['verify_urls']['substitutions'] || {};
+    var substitutions = Settings['check_sites_bookmarklet']['substitutions'] || {};
 
     var prod = 'prod';
 
@@ -24,7 +24,6 @@
         if (env !== prod) {
 
             $.each(substitutions, function(prodString, devString) {
-		    console.log(prodString);
                 if (url.match(prodString)) {
                     url = url.replace(prodString, devString);
                 }

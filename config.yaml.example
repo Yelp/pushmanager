@@ -99,7 +99,7 @@ web_hooks:
 # Pushmanager has a javascript bookmarklet to make verifiying a set of
 # urls manually. This is generally the last step after a successful
 # push.
-verify_urls:
+check_sites_bookmarklet:
     domain_name: "example.com"
     urls:
         - 'www.example.com/page1/'
