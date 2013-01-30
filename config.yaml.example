@@ -105,6 +105,7 @@ check_sites_bookmarklet:
         - 'www.example.com/page1/'
         - 'm.example.com/'
         - 'www.example.com/search?q=thing'
+        - 'www.example.com/search?id=production_id'
     substitutions:
         - 'production_id' : 'non_production_id'
 
