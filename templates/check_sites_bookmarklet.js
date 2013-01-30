@@ -1,17 +1,40 @@
 (function(){
-	Settings = window.Settings;
-    var urls = Settings['verify_urls'];
+    Settings = window.Settings;
+    var domainName = Settings['verify_urls']['domain_name'];
+    var urls = Settings['verify_urls']['urls'];
+    // Substitutions define strings that need to be replaced for
+    // non-production environments. Example object for this:
+    // {'some_prod_id': 'some_dev_id'}
+    var substitutions = Settings['verify_urls']['substitutions'] || {};
 
     var prod = 'prod';
 
     var env = window.prompt('Which environment would you like to test? e.g.: prod, stagea, stageb.', prod);
 
+    // If env is false, the user hit 'cancel', and let's abort.
+    if (!env) {
+        return;
+    }
+
     for (var i=0; i < urls.length; ++i) {
         var url = urls[i];
+
+        // We assume all URLs are encoded against a prod environment.
+        // If not, we modify the URL with what we assume to be a testing sub-domain.  e.g.: foo.com -> stage.foo.com
         if (env !== prod) {
-            url = env + url;
+
+            $.each(substitutions, function(prodString, devString) {
+		    console.log(prodString);
+                if (url.match(prodString)) {
+                    url = url.replace(prodString, devString);
+                }
+            });
+
+            url = url.replace(domainName, env + '.' + domainName);
         }
-		url = 'http://' + url;
-        window.open(url, url, 'resizable=yes,scrollbars=yes,status=yes');
+
+        url = 'http://' + url;
+
+        window.open(url, url, 'resizable=yes,menubar=yes,toolbar=yes,scrollbars=yes,status=yes,location=yes');
     }
 })();

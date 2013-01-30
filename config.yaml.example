@@ -100,7 +100,11 @@ web_hooks:
 # urls manually. This is generally the last step after a successful
 # push.
 verify_urls:
-    - 'www.example.com/page1/'
-    - 'm.example.com/'
-    - 'www.example.com/search?q=thing'
+    domain_name: "example.com"
+    urls:
+        - 'www.example.com/page1/'
+        - 'm.example.com/'
+        - 'www.example.com/search?q=thing'
+    substitutions:
+        - 'production_id' : 'non_production_id'
 
