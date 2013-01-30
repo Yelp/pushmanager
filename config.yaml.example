@@ -100,7 +100,7 @@ web_hooks:
 # urls manually. This is generally the last step after a successful
 # push.
 check_sites_bookmarklet:
-    domain_name: "example.com"
+    domain_name: "example"
     urls:
         - 'www.example.com/page1/'
         - 'm.example.com/'
