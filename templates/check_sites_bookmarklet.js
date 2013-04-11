@@ -3,9 +3,11 @@
 
     var domainName = Settings['check_sites_bookmarklet']['domain_name'];
     var urls = Settings['check_sites_bookmarklet']['urls'];
-    // Substitutions define strings that need to be replaced for
+    // 'substitutions' defines strings that need to be replaced for
     // non-production environments. Example object for this:
-    // {'some_prod_id': 'some_dev_id'}
+    // {'prod_id': 'dev_id'}
+	// The example above will replace 'prod_id' with 'dev_id' in the
+	// given list of urls.
     var substitutions = Settings['check_sites_bookmarklet']['substitutions'] || {};
 
     var prod = 'prod';

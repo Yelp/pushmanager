@@ -46,6 +46,7 @@ JSSettings = {
         'main_repository': None,
     },
     'verify_urls': None,
+    'check_sites_bookmarklet': None,
 }
 
 dict_copy_keys(to_dict=JSSettings, from_dict=Settings)
