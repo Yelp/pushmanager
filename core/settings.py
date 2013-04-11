@@ -45,7 +45,6 @@ JSSettings = {
     'git': {
         'main_repository': None,
     },
-    'verify_urls': None,
     'check_sites_bookmarklet': None,
 }
 
