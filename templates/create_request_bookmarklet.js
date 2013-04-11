@@ -1,5 +1,5 @@
 (function() {
-	Settings = window.Settings;
+    Settings = {{ JSSettings_json }};
 
     var ticketNumberToURL = function(bug) {
         return 'https://' + Settings['trac']['servername'] + '/ticket/' + bug.match(/\d+/)[0];

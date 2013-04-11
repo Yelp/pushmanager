@@ -39,6 +39,12 @@ JSSettings = {
     'reviewboard': {
         'servername': None,
     },
+    'trac': {
+        'servername': None,
+    },
+    'git': {
+        'main_repository': None,
+    },
     'verify_urls': None,
 }
 

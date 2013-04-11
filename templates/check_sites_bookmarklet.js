@@ -1,5 +1,6 @@
 (function(){
-    Settings = window.Settings;
+    Settings = {{ JSSettings_json }};
+
     var domainName = Settings['check_sites_bookmarklet']['domain_name'];
     var urls = Settings['check_sites_bookmarklet']['urls'];
     // Substitutions define strings that need to be replaced for
