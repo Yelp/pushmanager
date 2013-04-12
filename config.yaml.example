@@ -35,7 +35,8 @@ auth_ldap:
 
 # IRC channels to report to
 irc:
-    nickname: "pushhamster"
+    # nickname can be parameterized with syntax like a python format string
+    nickname: "pushhamster|{pushmaster}"
     channel: "push"
 
 mail:
