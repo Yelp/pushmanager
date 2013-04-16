@@ -2,6 +2,7 @@ from contextlib import nested
 import mock
 
 from core import db
+from core.mail import MailQueue
 from core.util import get_servlet_urlspec
 import servlets.newpush
 from servlets.newpush import NewPushServlet
@@ -23,6 +24,7 @@ class NewPushServletTest(T.TestCase, T.ServletTestMixin):
             mock.patch.dict(db.Settings, T.MockedSettings),
             mock.patch.object(NewPushServlet, "get_current_user", return_value = "jblack"),
             mock.patch.object(NewPushServlet, "redirect"),
+            mock.patch.object(MailQueue, "enqueue_user_email"),
         ):
             with mock.patch("%s.servlets.newpush.subprocess.call" % __name__) as mocked_call:
                 title = "BestPushInTheWorld"
@@ -52,7 +54,10 @@ class NewPushServletTest(T.TestCase, T.ServletTestMixin):
                 # Verify that we have a valid call to
                 # subprocess.call. Getting the arguments involves ugly
                 # mock magic
-                call = mocked_call.call_args
-                args = call[0][0]
-                last_arg = args[-1]
-                T.assert_in("regular push starting! https://", last_arg)
+                mocked_call.assert_called_once_with([
+                    '/nail/sys/bin/nodebot',
+                    '-i',
+                    mock.ANY, # nickname
+                    mock.ANY, # channel
+                    mock.ANY, # msg
+                ])
