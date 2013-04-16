@@ -2,6 +2,7 @@ import subprocess
 import time
 
 import core.db as db
+from core.mail import MailQueue
 from core.settings import Settings
 from core.requesthandler import RequestHandler
 import core.util
@@ -11,6 +12,27 @@ class NewPushServlet(RequestHandler):
 
     def _arg(self, key):
         return core.util.get_str_arg(self.request, key, '')
+
+    def send_notifications(self, people, pushurl):
+        pushmanager_servername = Settings['main_app']['servername']
+        pushmanager_url = "https://%s%s" % (pushmanager_servername, pushurl)
+
+        if people:
+            msg = '%s: %s push starting! %s' % (', '.join(people), self.pushtype, pushmanager_url)
+            XMPPQueue.enqueue_user_xmpp(people, 'Push starting! %s' % pushmanager_url)
+        elif self.pushtype == 'morning':
+            msg = 'Morning push opened. %s' % pushmanager_servername
+
+        subprocess.call([
+            '/nail/sys/bin/nodebot',
+            '-i',
+            Settings['irc']['nickname'],
+            Settings['irc']['channel'],
+            msg
+        ])
+
+        subject = "New push notification"
+        MailQueue.enqueue_user_email(people, msg, subject)
 
     def post(self):
         if not self.current_user:
@@ -45,23 +67,6 @@ class NewPushServlet(RequestHandler):
         else:
             people = set(x['user'] for x in select_results)
 
-        pushmanager_servername = Settings['main_app']['servername']
-        pushmanager_url = "https://%s%s" % (pushmanager_servername, pushurl)
-        if people:
-            subprocess.call([
-                '/nail/sys/bin/nodebot',
-                '-i',
-                Settings['irc']['nickname'],
-                Settings['irc']['channel'],
-                '%s: %s push starting! %s' % (', '.join(people), self.pushtype, pushmanager_url),
-            ])
-            XMPPQueue.enqueue_user_xmpp(people, 'Push starting! %s' % pushmanager_url)
-        elif self.pushtype == 'morning':
-            subprocess.call([
-                '/nail/sys/bin/nodebot',
-                '-i',
-                Settings['irc']['nickname'],
-                Settings['irc']['channel'],
-                'Morning push opened. %s' % (pushmanager_servername,),
-            ])
+        self.send_notifications(people, pushurl)
+
         return self.redirect(pushurl)
