@@ -10,6 +10,8 @@ from core.xmppclient import XMPPQueue
 
 def send_notifications(people, pushtype, pushurl):
     pushmanager_servername = Settings['main_app']['servername']
+    pushmanager_servername = pushmanager_servername.rstrip('/')
+    pushurl = pushurl.lstrip('/')
     pushmanager_url = "https://%s/%s" % (pushmanager_servername, pushurl)
 
     if people:
@@ -18,7 +20,7 @@ def send_notifications(people, pushtype, pushurl):
     elif pushtype == 'morning':
         msg = 'Morning push opened. %s' % pushmanager_servername
     else:
-        msg = 'push starting. %s' % pushurl
+        msg = 'push starting. %s' % pushmanager_url
 
     subprocess.call([
         '/nail/sys/bin/nodebot',
