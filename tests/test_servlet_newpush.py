@@ -1,12 +1,17 @@
 from contextlib import nested
+from contextlib import contextmanager
+
 import mock
+import testing as T
 
 from core import db
+from core.settings import Settings
 from core.mail import MailQueue
 from core.util import get_servlet_urlspec
+from core.xmppclient import XMPPQueue
 import servlets.newpush
 from servlets.newpush import NewPushServlet
-import testing as T
+from servlets.newpush import send_notifications
 
 class NewPushServletTest(T.TestCase, T.ServletTestMixin):
 
@@ -61,3 +66,63 @@ class NewPushServletTest(T.TestCase, T.ServletTestMixin):
                     mock.ANY, # channel
                     mock.ANY, # msg
                 ])
+
+class NotificationsTestCase(T.TestCase):
+
+    @contextmanager
+    def mocked_notifications(self):
+        with mock.patch("%s.servlets.newpush.subprocess.call" % __name__) as mocked_call:
+            with mock.patch.object(MailQueue, "enqueue_user_email") as mocked_mail:
+                with mock.patch.object(XMPPQueue, "enqueue_user_xmpp") as mocked_xmpp:
+                    yield mocked_call, mocked_mail, mocked_xmpp
+
+    def test_send_notifications(self):
+        """New push sends notifications via IRC, XMPP and emails."""
+        self.people = ["fake_user1", "fake_user2"]
+        self.pushurl = "fake_push_url"
+        self.pushtype = "fake_puth_type"
+
+        with self.mocked_notifications() as (mocked_call, mocked_mail, mocked_xmpp):
+            send_notifications(self.people, self.pushtype, self.pushurl)
+
+            url = "https://%s/%s" % (Settings['main_app']['servername'], self.pushurl)
+            msg = "%s: %s push starting! %s" % (', '.join(self.people), self.pushtype, url)
+            mocked_call.assert_called_once_with([
+                '/nail/sys/bin/nodebot',
+                '-i',
+                Settings['irc']['nickname'],
+                Settings['irc']['channel'],
+                msg
+            ])
+            mocked_mail.assert_called_once_with(
+                Settings['mail']['notifyall'],
+                msg,
+                mock.ANY, # subject
+            )
+            mocked_xmpp.assert_called_once_with(
+                self.people,
+                "Push starting! %s" % url
+            )
+
+    def test_send_notifications_empty_user_list(self):
+        """If there is no pending push request we'll only send IRC and
+        email notifications, but not XMPP messages."""
+        self.people = []
+        self.pushurl = "fake_push_url"
+        self.pushtype = "fake_puth_type"
+
+        with self.mocked_notifications() as (mocked_call, mocked_mail, mocked_xmpp):
+            send_notifications(self.people, self.pushtype, self.pushurl)
+            mocked_call.assert_called_once_with([
+                '/nail/sys/bin/nodebot',
+                '-i',
+                Settings['irc']['nickname'],
+                Settings['irc']['channel'],
+                mock.ANY, # msg
+            ])
+            mocked_mail.assert_called_once_with(
+                Settings['mail']['notifyall'],
+                mock.ANY, # msg
+                mock.ANY, # subject
+            )
+            T.assert_is(mocked_xmpp.called, False)
