@@ -10,7 +10,7 @@ from core.xmppclient import XMPPQueue
 
 def send_notifications(people, pushtype, pushurl):
     pushmanager_servername = Settings['main_app']['servername']
-    pushmanager_url = "https://%s%s" % (pushmanager_servername, pushurl)
+    pushmanager_url = "https://%s/%s" % (pushmanager_servername, pushurl)
 
     if people:
         msg = '%s: %s push starting! %s' % (', '.join(people), pushtype, pushmanager_url)

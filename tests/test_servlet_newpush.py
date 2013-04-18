@@ -84,21 +84,24 @@ class NotificationsTestCase(T.TestCase):
 
         with self.mocked_notifications() as (mocked_call, mocked_mail, mocked_xmpp):
             send_notifications(self.people, self.pushtype, self.pushurl)
+
+            url = "https://%s/%s" % (Settings['main_app']['servername'], self.pushurl)
+            msg = "%s: %s push starting! %s" % (', '.join(self.people), self.pushtype, url)
             mocked_call.assert_called_once_with([
                 '/nail/sys/bin/nodebot',
                 '-i',
-                mock.ANY, # nickname
-                mock.ANY, # channel
-                mock.ANY, # msg
+                Settings['irc']['nickname'],
+                Settings['irc']['channel'],
+                msg
             ])
             mocked_mail.assert_called_once_with(
                 Settings['mail']['notifyall'],
-                mock.ANY, # msg
+                msg,
                 mock.ANY, # subject
             )
             mocked_xmpp.assert_called_once_with(
                 self.people,
-                mock.ANY, # msg
+                "Push starting! %s" % url
             )
 
     def test_send_notifications_empty_user_list(self):
@@ -113,8 +116,8 @@ class NotificationsTestCase(T.TestCase):
             mocked_call.assert_called_once_with([
                 '/nail/sys/bin/nodebot',
                 '-i',
-                mock.ANY, # nickname
-                mock.ANY, # channel
+                Settings['irc']['nickname'],
+                Settings['irc']['channel'],
                 mock.ANY, # msg
             ])
             mocked_mail.assert_called_once_with(
@@ -122,3 +125,4 @@ class NotificationsTestCase(T.TestCase):
                 mock.ANY, # msg
                 mock.ANY, # subject
             )
+            T.assert_is(mocked_xmpp.called, False)
