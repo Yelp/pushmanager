@@ -5,6 +5,7 @@ import mock
 import testing as T
 
 from core import db
+from core.settings import Settings
 from core.mail import MailQueue
 from core.util import get_servlet_urlspec
 from core.xmppclient import XMPPQueue
@@ -91,7 +92,7 @@ class NotificationsTestCase(T.TestCase):
                 mock.ANY, # msg
             ])
             mocked_mail.assert_called_once_with(
-                self.people,
+                Settings['mail']['notifyall'],
                 mock.ANY, # msg
                 mock.ANY, # subject
             )
@@ -117,7 +118,7 @@ class NotificationsTestCase(T.TestCase):
                 mock.ANY, # msg
             ])
             mocked_mail.assert_called_once_with(
-                self.people,
+                Settings['mail']['notifyall'],
                 mock.ANY, # msg
                 mock.ANY, # subject
             )
