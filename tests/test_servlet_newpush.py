@@ -79,13 +79,13 @@ class NotificationsTestCase(T.TestCase):
     def test_send_notifications(self):
         """New push sends notifications via IRC, XMPP and emails."""
         self.people = ["fake_user1", "fake_user2"]
-        self.pushurl = "fake_push_url"
+        self.pushurl = "/fake_push_url?id=123"
         self.pushtype = "fake_puth_type"
 
         with self.mocked_notifications() as (mocked_call, mocked_mail, mocked_xmpp):
             send_notifications(self.people, self.pushtype, self.pushurl)
 
-            url = "https://%s/%s" % (Settings['main_app']['servername'], self.pushurl)
+            url = "https://%s%s" % (Settings['main_app']['servername'], self.pushurl)
             msg = "%s: %s push starting! %s" % (', '.join(self.people), self.pushtype, url)
             mocked_call.assert_called_once_with([
                 '/nail/sys/bin/nodebot',
