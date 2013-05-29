@@ -76,7 +76,7 @@ class CoreGitTest(T.TestCase):
           "main_repository": "main_repository", 
           "dev_repositories_dir": "dev_directory"
         }
-	with mock.patch.dict(Settings, T.MockedSettings):
+        with mock.patch.dict(Settings, T.MockedSettings):
             T.assert_equal(core.git.GitQueue._get_repository_uri("main_repository"),
               "git://example/main_repository")
             T.assert_equal(core.git.GitQueue._get_repository_uri("second_repository"),
