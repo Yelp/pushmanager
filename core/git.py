@@ -53,13 +53,23 @@ class GitQueue(object):
         cls.worker_thread.start()
 
     @classmethod
+    def _get_repository_uri(cls, repository):
+        scheme = Settings['git']['scheme']
+        netloc = Settings['git']['servername']
+        if Settings['git']['auth']:
+            netloc = '%s@%s' % (Settings['git']['auth'], netloc)
+        if Settings['git']['port']:
+            netloc = '%s:%s' % (netloc, Settings['git']['port'])
+        if repository == Settings['git']['main_repository']:
+            repository = '%s://%s/%s' % (Settings['git']['scheme'], netloc, Settings['git']['main_repository'])
+        else:
+            repository = '%s://%s/%s/%s' % (Settings['git']['scheme'], netloc, Settings['git']['dev_repositories_dir'], repository)
+        return repository
+
+    @classmethod
     def _get_branch_sha_from_repo(cls, req):
         user_to_notify = req['user']
-        repository = req['repo']
-        if repository == Settings['git']['main_repository']:
-            repository = 'git://%s/%s' % (Settings['git']['servername'], Settings['git']['main_repository'])
-        else:
-            repository = 'git://%s/%s/%s' % (Settings['git']['servername'], Settings['git']['dev_repositories_dir'], repository)
+        repository = self._get_repository_uri(req['repo'])
         ls_remote = GitCommand('ls-remote', '-h', repository, req['branch'])
         rc, stdout, stderr = ls_remote.run()
         stdout = stdout.strip()
