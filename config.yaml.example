@@ -66,6 +66,9 @@ trac:
     servername: trac.example.com
 
 git:
+    scheme: "git"
+    auth: ""
+    port: ""
     servername: "git.example.com"
     gitweb_servername: "gitweb.example.com"
     main_repository: "main-repository"
