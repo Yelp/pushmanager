@@ -7,6 +7,7 @@ import os
 import mock
 
 from core import db
+from core.settings import Settings
 import core.git
 import testing as T
 
@@ -24,7 +25,7 @@ class CoreGitTest(T.TestCase):
             db.init_db()
 
     @T.setup
-    def setup_fake_request(self):
+    def setup_fake_request_and_settings(self):
         self.fake_request = {
             'id': 1,
             'title': 'Test Push Request Title',
@@ -37,6 +38,14 @@ class CoreGitTest(T.TestCase):
             'branch': 'super_safe_fix',
             'comments': 'No comment',
             'description': 'I approve this fix!',
+        }
+        self.fake_settings = {
+          'scheme': 'git',
+          'auth': '',
+          'port': '',
+          'servername': 'example',
+          'main_repository': 'main_repository', 
+          'dev_repositories_dir': 'dev_directory'
         }
 
     @T.class_teardown
@@ -65,6 +74,32 @@ class CoreGitTest(T.TestCase):
         ):
             core.git.GitQueue.update_request(req['id'])
             yield
+
+    def test_get_repository_uri_basic(self):
+        T.MockedSettings["git"] = self.fake_settings
+        with mock.patch.dict(Settings, T.MockedSettings):
+            T.assert_equal(core.git.GitQueue._get_repository_uri("main_repository"),
+              "git://example/main_repository")
+            T.assert_equal(core.git.GitQueue._get_repository_uri("second_repository"),
+              "git://example/dev_directory/second_repository")
+
+    def test_get_repository_uri_with_auth(self):
+        T.MockedSettings["git"] = self.fake_settings
+        T.MockedSettings["git"]["auth"] = "myuser:mypass"
+        with mock.patch.dict(Settings, T.MockedSettings):
+            T.assert_equal(core.git.GitQueue._get_repository_uri("main_repository"),
+              "git://myuser:mypass@example/main_repository")
+            T.assert_equal(core.git.GitQueue._get_repository_uri("second_repository"),
+              "git://myuser:mypass@example/dev_directory/second_repository")
+
+    def test_get_repository_uri_with_port(self):
+        T.MockedSettings["git"] = self.fake_settings
+        T.MockedSettings["git"]["port"] = "0"
+        with mock.patch.dict(Settings, T.MockedSettings):
+            T.assert_equal(core.git.GitQueue._get_repository_uri("main_repository"),
+              "git://example:0/main_repository")
+            T.assert_equal(core.git.GitQueue._get_repository_uri("second_repository"),
+              "git://example:0/dev_directory/second_repository")
 
     def test_process_queue_successful(self):
         """Update the request with its sha"""
