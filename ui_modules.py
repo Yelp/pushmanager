@@ -68,13 +68,6 @@ class Request(UIModule):
         if 'buildbot' in tags:
             tags['buildbot'] = "http://%s/rev/%s" % (Settings['buildbot']['servername'], request['revision'])
 
-        if 'plans' in tags:
-            tags['plans'] = "https://%s/?p=%s.git;a=history;f=pushplans;hb=refs/heads/%s" % (
-                Settings['git']['gitweb_servername'],
-                repo,
-                request['branch']
-            )
-
         if 'pushplans' in tags:
             tags['pushplans'] = "https://%s/?p=%s.git;a=history;f=pushplans;hb=refs/heads/%s" % (
                 Settings['git']['gitweb_servername'],
