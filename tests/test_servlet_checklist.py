@@ -142,6 +142,38 @@ class ChecklistServletTest(T.TestCase, T.ServletTestMixin, T.FakeDataMixin):
             T.assert_in("for testuser1", response.body)
             T.assert_in("After Certifying - Do In Stage", response.body)
 
+    def test_checklist_pushplans_tag(self):
+        with fake_checklist_request():
+            # insert fake data from FakeDataMixin
+            fake_pushid = 2
+            self.insert_pushes()
+            self.insert_requests()
+            test1_request = self.get_requests_by_user('testuser1')[0]
+            self.insert_pushcontent(test1_request['id'], fake_pushid)
+
+            # insert fake checklist data
+            checklist_queries = [
+                db.push_checklist.insert({
+                    'request': test1_request['id'],
+                    'type': 'pushplans',
+                    'target': 'prod'
+                }),
+                db.push_checklist.insert({
+                    'request': test1_request['id'],
+                    'type': 'pushplans-cleanup',
+                    'target': 'post-verify-stage'
+                }),
+            ]
+            db.execute_transaction_cb(checklist_queries, on_db_return)
+
+            uri = "/checklist?id=%d" % fake_pushid
+            response = self.fetch(uri)
+            T.assert_equal(response.error, None)
+            T.assert_not_in("No checklist items for this push", response.body)
+            T.assert_not_in("multiple requests", response.body)
+            T.assert_in("for testuser1", response.body)
+            T.assert_in("After Certifying - Do In Stage", response.body)
+
 
     def test_hoods_checklists(self):
         with fake_checklist_request():
