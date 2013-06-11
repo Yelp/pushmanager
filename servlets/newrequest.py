@@ -83,6 +83,8 @@ class NewRequestServlet(RequestHandler):
 
         if 'plans' in self.tag_list:
             necessary_checklist_types.add('plans')
+        if 'pushplans' in self.tag_list:
+            necessary_checklist_types.add('pushplans')
         if 'search-backend' in self.tag_list:
             necessary_checklist_types.add('search')
         if 'hoods' in self.tag_list:
@@ -94,11 +96,14 @@ class NewRequestServlet(RequestHandler):
         # Different types of checklist items need to happen at different points.
         targets_by_type = {
             'plans' : ('stage', 'prod'),
+            'pushplans' : ('stage', 'prod'),
             'search' : ('post-stage', 'prod', 'post-prod', 'post-verify'),
             'hoods' : ('stage', 'post-stage', 'prod'),
             # We need to append checklist items to clean up after
             # plans & search checklist items.
             'plans-cleanup' : ('post-verify-stage',),
+            # push plans & search checklist items.
+            'pushplans-cleanup' : ('post-verify-stage',),
             'search-cleanup': ('post-verify-prod',),
             'hoods-cleanup' : ('post-verify-stage',),
         }
