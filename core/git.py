@@ -69,7 +69,7 @@ class GitQueue(object):
     @classmethod
     def _get_branch_sha_from_repo(cls, req):
         user_to_notify = req['user']
-        repository = self._get_repository_uri(req['repo'])
+        repository = cls._get_repository_uri(req['repo'])
         ls_remote = GitCommand('ls-remote', '-h', repository, req['branch'])
         rc, stdout, stderr = ls_remote.run()
         stdout = stdout.strip()
