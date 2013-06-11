@@ -16,6 +16,12 @@ def UnsignedInteger():
     else:
         return Integer
 
+
+class DatabaseError(Exception):
+	def __init__(self, *args, **kwargs):
+		Exception.__init__(self, 'A database error has occured')
+
+
 class PushCheckList(Base):
     __tablename__ = "push_checklist"
 
