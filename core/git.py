@@ -78,7 +78,6 @@ class GitQueue(object):
             'title': req['title'],
             'repo': req['repo'],
             'branch': req['branch'],
-            'repository': repository,
             'stderr': stderr,
         }
         if rc:
@@ -92,7 +91,7 @@ class GitQueue(object):
                     <em>%(repo)s/%(branch)s</em>
                 </p>
                 <p>
-                    Attempting to query the specified repository (%(repository)s) failed with
+                    Attempting to query the specified repository failed with
                     the following error(s):
                 </p>
                 <pre>
@@ -105,7 +104,6 @@ class GitQueue(object):
                 """)
             msg %= EscapedDict(query_details)
             subject = '[push error] %s - %s' % (req['user'], req['title'])
-            #MailQueue.enqueue_user_email([request_info['user']], msg, subject)
             MailQueue.enqueue_user_email([user_to_notify], msg, subject)
             return None
 
