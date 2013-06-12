@@ -124,7 +124,7 @@ class GitQueue(object):
                     <em>%(repo)s/%(branch)s</em>
                 </p>
                 <p>
-                    The specified branch (%(branch)s) was not found in the repository (%(repository)s).
+                    The specified branch (%(branch)s) was not found in the repository.
                 </p>
                 <p>
                     Regards,<br/>
