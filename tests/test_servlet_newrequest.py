@@ -7,7 +7,7 @@ from core.util import get_servlet_urlspec
 from servlets.newrequest import NewRequestServlet
 import testing as T
 
-class NewRequestServletTest(T.TestCase, T.ServletTestMixin):
+class NewRequestServletTest(T.TestCase, T.ServletTestMixin, T.FakeDataMixin):
 
     def get_handlers(self):
         return [get_servlet_urlspec(NewRequestServlet)]
@@ -33,14 +33,13 @@ class NewRequestServletTest(T.TestCase, T.ServletTestMixin):
             num_results_before = len(results)
 
             request = {
-                'title': 'Test Push Request Title',
-                'user': 'testuser',
-                'tags': 'super-safe,logs',
-                'reviewid': 1,
-                'repo': 'testuser',
-                'branch': 'super_safe_fix',
-                'comments': 'No comment',
-                'description': 'I approve this fix!',
+                'request-title': 'Test Push Request Title',
+                'request-tags': 'super-safe,logs',
+                'request-review': 1,
+                'request-repo': 'testuser',
+                'request-branch': 'super_safe_fix',
+                'request-comments': 'No comment',
+                'request-description': 'I approve this fix!',
             }
 
             response = self.fetch(
@@ -55,3 +54,12 @@ class NewRequestServletTest(T.TestCase, T.ServletTestMixin):
             num_results_after = len(results)
 
             T.assert_equal(num_results_after, num_results_before + 1)
+
+            last_req = self.get_requests()[-1]
+            T.assert_equal(len(results), last_req['id'])
+            T.assert_equal('testuser', last_req['user'])
+            T.assert_equal(request['request-repo'], last_req['repo'])
+            T.assert_equal(request['request-branch'], last_req['branch'])
+            T.assert_equal(request['request-tags'], last_req['tags'])
+            T.assert_equal(request['request-comments'], last_req['comments'])
+            T.assert_equal(request['request-description'], last_req['description'])
