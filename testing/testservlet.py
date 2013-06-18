@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import logging
 import os
 
@@ -6,6 +7,7 @@ import tornado.web
 from tornado.testing import AsyncHTTPTestCase
 
 from core import db
+from testify.utils import turtle
 import ui_modules
 import testing as T
 
@@ -35,6 +37,25 @@ class AsyncTestCase(AsyncHTTPTestCase):
             autoescape = None,
         )
         return app
+
+
+class TemplateTestCase(T.TestCase):
+    """Bare minimum setup to render and test templates"""
+    __test__ = False
+
+    @T.setup
+    def setup_servlet(self):
+        application = turtle.Turtle()
+        application.settings = {
+            'static_path': os.path.join(os.path.dirname(__file__), "../static"),
+            'template_path': os.path.join(os.path.dirname(__file__), "../templates"),
+            'cookie_secret': 'cookie_secret',
+        }
+        request = turtle.Turtle()
+        self.servlet = self.create_servlet(application, request)
+
+    def create_servlet(self, application, request):
+        raise NotImplementedError()
 
 
 class ServletTestMixin(AsyncTestCase):
