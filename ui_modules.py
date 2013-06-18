@@ -75,6 +75,13 @@ class Request(UIModule):
                 request['branch']
             )
 
+        if 'pushplans' in tags:
+            tags['pushplans'] = "https://%s/?p=%s.git;a=history;f=pushplans;hb=refs/heads/%s" % (
+                Settings['git']['gitweb_servername'],
+                repo,
+                request['branch']
+            )
+
         return sorted(tags.iteritems())
 
 class NewRequestDialog(UIModule):
