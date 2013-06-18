@@ -17,8 +17,8 @@ class RenameTagTest(T.TestCase, T.FakeDataMixin):
         [1, 0, 'search', 0, 'stage'],
         [2, 0, 'search', 0, 'prod'],
         [3, 0, 'search-cleanup', 0, 'post-stage-verify'],
-        [4, 0, 'plans', 0, 'stage'],
-        [5, 0, 'plans-cleanup', 0, 'prod']
+        [4, 0, 'pushplans', 0, 'stage'],
+        [5, 0, 'pushplans-cleanup', 0, 'prod']
     ]
 
     @T.setup_teardown
