@@ -63,3 +63,7 @@ class NewRequestServletTest(T.TestCase, T.ServletTestMixin, T.FakeDataMixin):
             T.assert_equal(request['request-tags'], last_req['tags'])
             T.assert_equal(request['request-comments'], last_req['comments'])
             T.assert_equal(request['request-description'], last_req['description'])
+
+
+if __name__ == '__main__':
+	T.run()
