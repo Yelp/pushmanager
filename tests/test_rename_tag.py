@@ -5,7 +5,6 @@ import os
 from mock import patch
 
 from core import db
-from core.db import DatabaseError
 from tools import rename_tag
 import testing as T
 
@@ -25,7 +24,7 @@ class RenameTagTest(T.TestCase, T.FakeDataMixin):
 
 	def check_db_results(self, success, db_results):
 		if not success:
-			raise DatabaseError()
+			raise db.DatabaseError()
 
 	def verify_database_state(self, data, success, db_results):
 		self.check_db_results(success, db_results)

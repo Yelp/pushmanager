@@ -73,9 +73,5 @@ def check_db_results(success, db_results):
 		raise db.DatabaseError()
 
 
-def help():
-	print "%s <oldtag> <newtag>" % sys.argv[0]
-
-
 if __name__ == '__main__':
 	sys.exit(main())
