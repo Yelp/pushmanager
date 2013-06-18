@@ -8,6 +8,7 @@ from testify.__init__ import *
 from mocksettings import MockedSettings
 from testservlet import AsyncTestCase
 from testservlet import ServletTestMixin
+from testservlet import TemplateTestCase
 from testdb import *
 
 
@@ -15,5 +16,6 @@ __all__ = [
     AsyncTestCase,
     MockedSettings,
     testify,
-    ServletTestMixin
+    ServletTestMixin,
+    TemplateTestCase
 ]
