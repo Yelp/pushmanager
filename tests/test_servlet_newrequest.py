@@ -164,8 +164,8 @@ class NewRequestChecklistTest(T.TestCase, NewRequestChecklistMixin):
         tag = ['random_tag']
         self.assert_checklist_for_tags(tag)
 
-    def test_plans_with_cleanup(self):
-        tag = ['plans']
+    def test_pushplans_with_cleanup(self):
+        tag = ['pushplans']
         self.assert_checklist_for_tags(tag)
 
     def test_search_with_cleanup(self):
@@ -176,16 +176,16 @@ class NewRequestChecklistTest(T.TestCase, NewRequestChecklistMixin):
         tag = ['hoods']
         self.assert_checklist_for_tags(tag)
 
-    def test_plans_search_hoods_with_cleanup(self):
-        tags = ['plans', 'search-backend', 'hoods']
+    def test_pushplans_search_hoods_with_cleanup(self):
+        tags = ['pushplans', 'search-backend', 'hoods']
         self.assert_checklist_for_tags(tags)
 
 
 class EditRequestChecklistTest(T.TestCase, NewRequestChecklistMixin):
     """Verify corresponding checklists with existing requests"""
 
-    def test_plans_no_change(self):
-        tag = ['plans']
+    def test_pushplans_no_change(self):
+        tag = ['pushplans']
         orig_reqid = self.assert_checklist_for_tags(tag)
         new_reqid = self.assert_checklist_for_tags(tag, orig_reqid)
         T.assert_equal(orig_reqid, new_reqid)
@@ -202,11 +202,11 @@ class EditRequestChecklistTest(T.TestCase, NewRequestChecklistMixin):
         new_reqid = self.assert_checklist_for_tags(tag, orig_reqid)
         T.assert_equal(orig_reqid, new_reqid)
 
-    def test_plans_and_hoods(self):
+    def test_pushplans_and_hoods(self):
         tag = ['hoods']
         orig_reqid = self.assert_checklist_for_tags(tag)
 
-        tags = ['plans', 'hoods']
+        tags = ['pushplans', 'hoods']
         new_reqid = self.assert_checklist_for_tags(tags, orig_reqid)
 
         T.assert_equal(orig_reqid, new_reqid)
@@ -220,25 +220,25 @@ class EditRequestChecklistTest(T.TestCase, NewRequestChecklistMixin):
 
         T.assert_equal(orig_reqid, new_reqid)
 
-    def test_plans_and_search(self):
-        tag = ['plans']
+    def test_pushplans_and_search(self):
+        tag = ['pushplans']
         orig_reqid = self.assert_checklist_for_tags(tag)
 
-        tags = ['plans', 'search-backend']
+        tags = ['pushplans', 'search-backend']
         new_reqid = self.assert_checklist_for_tags(tags, orig_reqid)
 
         T.assert_equal(orig_reqid, new_reqid)
 
-    def test_plans_search_and_hoods(self):
-        tag = ['plans']
+    def test_pushplans_search_and_hoods(self):
+        tag = ['pushplans']
         orig_reqid = self.assert_checklist_for_tags(tag)
 
-        tags = ['plans', 'search-backend']
+        tags = ['pushplans', 'search-backend']
         new_reqid = self.assert_checklist_for_tags(tags, orig_reqid)
 
         T.assert_equal(orig_reqid, new_reqid)
 
-        tags = ['plans', 'search-backend', 'hoods']
+        tags = ['pushplans', 'search-backend', 'hoods']
         new_reqid = self.assert_checklist_for_tags(tags, orig_reqid)
 
         T.assert_equal(orig_reqid, new_reqid)

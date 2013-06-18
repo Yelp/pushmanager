@@ -110,7 +110,7 @@ class ChecklistServletTest(T.TestCase, T.ServletTestMixin, T.FakeDataMixin):
             T.assert_in("for testuser1", response.body)
             T.assert_in("After Certifying - Do In Prod", response.body)
 
-    def test_checklist_plans_tag(self):
+    def test_checklist_pushplans_tag(self):
         with fake_checklist_request():
             # insert fake data from FakeDataMixin
             fake_pushid = 2
@@ -123,12 +123,12 @@ class ChecklistServletTest(T.TestCase, T.ServletTestMixin, T.FakeDataMixin):
             checklist_queries = [
                 db.push_checklist.insert({
                     'request': test1_request['id'],
-                    'type': 'plans',
+                    'type': 'pushplans',
                     'target': 'prod'
                 }),
                 db.push_checklist.insert({
                     'request': test1_request['id'],
-                    'type': 'plans-cleanup',
+                    'type': 'pushplans-cleanup',
                     'target': 'post-verify-stage'
                 }),
             ]
