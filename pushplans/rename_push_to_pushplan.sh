@@ -2,7 +2,7 @@
 ############################################################
 # Convert plans to pushplans
 #
-# Run as PYTHONPATH=. sh pushplans/rename_push_to_pushplan.py
+# Run as sh pushplans/rename_push_to_pushplan.sh
 # from pushmanager root
 ############################################################
 SCRIPT=$(readlink -f $0)
