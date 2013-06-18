@@ -66,6 +66,7 @@ CREATE TABLE push_requests (
 	comments VARCHAR,
 	reviewid INTEGER,
 	description VARCHAR,
+	watchers VARCHAR,
 	PRIMARY KEY (id)
 );
 INSERT INTO "push_requests" VALUES(1,
@@ -82,7 +83,8 @@ INSERT INTO "push_requests" VALUES(1,
        NULL,
        'Ship it! from someone.
 
-This branch fixes stuff.'
+This branch fixes stuff.',
+       NULL
 );
 INSERT INTO "push_requests" VALUES(2,
        'bmetin',
@@ -96,7 +98,8 @@ INSERT INTO "push_requests" VALUES(2,
        'More fixes for important things',
        '',
        123,
-       'no comment'
+       'no comment',
+       NULL
 );
 INSERT INTO "push_requests" VALUES(3,
        'otheruser',
@@ -110,7 +113,8 @@ INSERT INTO "push_requests" VALUES(3,
        '',
        '',
        456,
-       ''
+       '',
+       NULL
 );
 CREATE TABLE push_checklist (
 	id INTEGER NOT NULL,

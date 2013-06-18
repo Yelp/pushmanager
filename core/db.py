@@ -89,6 +89,7 @@ class PushRequests(Base):
     comments = Column(String)
     reviewid = Column(Integer, nullable=True)
     description = Column(String)
+    watchers = Column(String, nullable=True)
 
 
 push_checklist = PushCheckList.__table__

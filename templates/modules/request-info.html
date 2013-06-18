@@ -1,6 +1,6 @@
 <ul class="request-info-inline">
 
-	<li><span class="value">{{ escape(request['user']) }}</span></li>
+	<li><span class="value">{{ escape(request['user']) }}{% if request['watchers'] %} ({{ escape(request['watchers']) }}){% end %}</span></li>
 
 	{% if show_ago %}
 	<li><span class="value timeago">

@@ -4,6 +4,7 @@
 	repo="{{ escape(request['repo']) }}"
 	branch="{{ escape(request['branch']) }}"
 	user="{{ escape(request['user']) }}"
+	{% if request['watchers'] %}watchers="{{ escape(request['watchers']) }}"{% end %}
 	reviewid="{{ escape(str(request['reviewid'] or '')) }}"
 	request_title="{{ escape(request['title']) }}"
 	revision="{{ escape(request['revision']) }}"
