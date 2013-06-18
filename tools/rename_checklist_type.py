@@ -21,50 +21,50 @@ import core.db as db
 
 
 def main():
-	usage = 'usage: %prog <oldtag> <newtag>'
-	parser = OptionParser(usage)
-	(_, args) = parser.parse_args()
+    usage = 'usage: %prog <oldtag> <newtag>'
+    parser = OptionParser(usage)
+    (_, args) = parser.parse_args()
 
-	if len(args) == 2:
-		db.init_db()
-		convert_checklist(args[0], args[1])
-		db.finalize_db()
-	else:
-		parser.error('Incorrect number of arguments')
+    if len(args) == 2:
+        db.init_db()
+        convert_checklist(args[0], args[1])
+        db.finalize_db()
+    else:
+        parser.error('Incorrect number of arguments')
 
 def convert_checklist(old, new):
-	print 'Renaming %s to %s in checklist types' % (old, new)
+    print 'Renaming %s to %s in checklist types' % (old, new)
 
-	cb = partial(convert_checklist_callback, old, new)
+    cb = partial(convert_checklist_callback, old, new)
 
-	cselect_query = db.push_checklist.select()
-	db.execute_transaction_cb([cselect_query], cb)
+    cselect_query = db.push_checklist.select()
+    db.execute_transaction_cb([cselect_query], cb)
 
 
 def convert_checklist_callback(old, new, success, db_results):
-	check_db_results(success, db_results)
+    check_db_results(success, db_results)
 
-	checklists = db_results[0].fetchall()
+    checklists = db_results[0].fetchall()
 
-	convert = {
-		old: new,
-		'%s-cleanup' % old: '%s-cleanup' % new
-	}
-	
-	update_queries = []
-	for checklist in checklists:
-		if checklist['type'] in convert.keys():
-			update_query = db.push_checklist.update().where(
-				db.push_checklist.c.id == checklist.id
-				).values({'type': convert[checklist['type']]})
-			update_queries.append(update_query)
+    convert = {
+        old: new,
+        '%s-cleanup' % old: '%s-cleanup' % new
+    }
+    
+    update_queries = []
+    for checklist in checklists:
+        if checklist['type'] in convert.keys():
+            update_query = db.push_checklist.update().where(
+                db.push_checklist.c.id == checklist.id
+                ).values({'type': convert[checklist['type']]})
+            update_queries.append(update_query)
 
-	db.execute_transaction_cb(update_queries, check_db_results)
+    db.execute_transaction_cb(update_queries, check_db_results)
 
 def check_db_results(success, db_results):
-	if not success:
-		raise db.DatabaseError()
+    if not success:
+        raise db.DatabaseError()
 
 
 if __name__ == '__main__':
-	sys.exit(main())
+    sys.exit(main())
