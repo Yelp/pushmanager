@@ -1,0 +1,42 @@
+import testing as T
+
+class NewRequestTemplateTest(T.TemplateTestCase):
+
+    authenticated = True
+    newrequest_page = 'modules/newrequest.html'
+
+    form_elements = ['title', 'tags', 'review', 'repo', 'branch', 'description', 'comments', 'watchers']
+
+    def test_request_form_labels(self):
+        tree = self.render_etree(self.newrequest_page)
+
+        for_attr = ['request-form-%s' % elem for elem in self.form_elements]
+
+        found_labels = []
+        for label in tree.iter('label'):
+            found_labels.append(label.attrib['for'])
+
+        T.assert_sorted_equal(for_attr, found_labels)
+
+    def test_request_form_input(self):
+        tree = self.render_etree(self.newrequest_page)
+
+        id_attr = ['request-form-%s' % elem for elem in self.form_elements]
+        name_attr = ['request-%s' % elem for elem in self.form_elements]
+
+        found_id = []
+        found_name = []
+        for field in tree.iter('input'):
+            if 'type' not in field.attrib:  # ignore hidden/submit
+                found_id.append(field.attrib['id'])
+                found_name.append(field.attrib['name'])
+
+        for textarea in tree.iter('textarea'):
+            found_id.append(textarea.attrib['id'])
+            found_name.append(textarea.attrib['name'])
+
+        T.assert_sorted_equal(id_attr, found_id)
+        T.assert_sorted_equal(name_attr, found_name)
+
+if __name__ == '__main__':
+    T.run()
