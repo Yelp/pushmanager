@@ -57,6 +57,35 @@ class RequestTemplateTest(T.TemplateTestCase):
 
         T.assert_equal(1, len(found_ul))
 
+    def test_request_info_user_title(self):
+        request = {
+            'id': 0,
+            'repo': 'non-existent',
+            'branch': 'non-existent',
+            'user': 'testuser',
+            'reviewid': 0,
+            'title': 'some title',
+            'revision': '0' * 40,
+            'state': 'requested',
+            'created': 'nodate',
+            'modified': 'nodate',
+            'description': 'nondescript',
+            'comments': 'nocomment',
+            'watchers': 'watcher1, watcher2',
+        }
+
+        tree = self.render_etree(self.request_info_page,
+            request=request,
+            show_ago=False,
+            tags=None,
+            show_state_inline=False)
+
+        # user names are listed in the first li of the list
+        # <ul><li><span>title</span></li> ... </ul>
+        title = list(tree.iter('li'))[0][0].text
+
+        T.assert_equal(title, '%s (%s)' % (request['user'], request['watchers']))
+
 
 if __name__ == '__main__':
     T.run()
