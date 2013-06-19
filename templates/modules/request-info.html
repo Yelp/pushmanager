@@ -1,0 +1,35 @@
+<ul class="request-info-inline">
+
+	<li><span class="value">{{ escape(request['user']) }}</span></li>
+
+	{% if show_ago %}
+	<li><span class="value timeago">
+		{% if request['state'] in ('discarded', 'live') %}
+			{{ pretty_date(int(request['modified'])) }}
+		{% else %}
+			{{ pretty_date(int(request['created'])) }}
+		{% end %}
+	</span></li>
+	{% end %}
+
+	<li class="request-item-title">{{ escape(request['title']) }}</li>
+
+	{% if tags %}
+	<li><span class="value"><ul class="tags">
+		{% for (tag, tag_url) in tags %}<li class="tag-{{ escape(tag) }}">
+			{% if tag_url %}<a href="{{ escape(tag_url) }}">{{ escape(tag) }}</a>{% else %}{{ escape(tag) }}{% end %}
+		</li>{% end %}
+	</ul></span></li>
+	{% end %}
+
+	{% if show_state_inline %}
+	<li><span class="value">
+	{% if request['state'] in ('added','staged','verified', 'blessed', 'live') %}
+		<a href="/pushbyrequest?id={{ int(request['id']) }}"><em>{{ escape(request['state']) }}</em></a>
+	{% else %}
+		<em>{{ escape(request['state']) }}</em>
+	{% end %}
+	</span></li>
+	{% end %}
+
+</ul>
