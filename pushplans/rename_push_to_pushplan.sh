@@ -2,16 +2,19 @@
 ############################################################
 # Convert plans to pushplans
 #
-# Run as sh pushplans/rename_push_to_pushplan.sh
-# from pushmanager root
+# Run:
+#     sh pushplans/rename_push_to_pushplan.sh
+# from the production pushmanager root such that the
+# production config.yaml is present and readable
 ############################################################
 SCRIPT=$(readlink -f $0)
 SCRIPT_DIR=$(dirname $SCRIPT)
-echo $SCRIPT_DIR
 
-python -u "${SCRIPT_DIR}/../tools/rename_tag.py" plans pushplans
-python -u "${SCRIPT_DIR}/../tools/rename_checklist_type.py" plans pushplans
+[ ! -r config.yaml ] && echo "No readable config.yaml present in the current directory" && exit 1
+
+PYTHONPATH=. python -u "${SCRIPT_DIR}/../tools/rename_tag.py" plans pushplans
+PYTHONPATH=. python -u "${SCRIPT_DIR}/../tools/rename_checklist_type.py" plans pushplans
 
 # Revert steps if needed
-#python -u "${SCRIPT_DIR}/../tools/rename_tag.py" pushplans plans
-#python -u "${SCRIPT_DIR}/../tools/rename_checklist_type.py" pushplans plans
+#PYTHONPATH=. python -u "${SCRIPT_DIR}/../tools/rename_tag.py" pushplans plans
+#PYTHONPATH=. python -u "${SCRIPT_DIR}/../tools/rename_checklist_type.py" pushplans plans
