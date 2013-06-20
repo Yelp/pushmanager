@@ -47,6 +47,7 @@ from servlets.userlist import UserListServlet
 from servlets.verifyrequest import VerifyRequestServlet
 
 import ui_modules
+import ui_methods
 
 class NullRequestHandler(RequestHandler):
     def get(self): pass
@@ -169,6 +170,7 @@ class PushManagerApp(Application):
             login_url = "/login",
             cookie_secret = Settings['cookie_secret'],
             ui_modules = ui_modules,
+            ui_methods = ui_methods,
             autoescape = None,
         )
 
