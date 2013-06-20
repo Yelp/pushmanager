@@ -9,7 +9,7 @@
 	<button class="pushmaster-delay-request">Delay</button>
 	{% end %}
 
-	{% if pushmaster or request['user'] == current_user %}
+	{% if authorized_to_manage_request(request, current_user, pushmaster) %}
 	<button class="verify-request">Verify</button>
 	<button class="pickme-request">Pick me!</button>
 	<button class="unpickme-request">Don't pick me!</button>

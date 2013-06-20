@@ -172,6 +172,19 @@ class RequestTemplateTest(T.TemplateTestCase):
             self.pushmaster_button_classes + self.push_button_classes,
             self.pushmaster_button_text + self.push_button_text)
 
+    def test_request_push_buttons_as_watchers(self):
+        kwargs = dict(self.basic_kwargs)
+        kwargs['push_buttons'] = True
+
+        request = dict(self.basic_request)
+        request['watchers'] = 'watcher1'
+
+        tree = self.render_module_request_with_users(request, 'testuser', 'watcher1', **kwargs)
+        self.assert_request_buttons(
+            tree,
+            self.push_button_classes,
+            self.push_button_text)
+
     def test_request_edit_buttons_as_random_user(self):
         kwargs = dict(self.basic_kwargs)
         kwargs['edit_buttons'] = True
@@ -192,6 +205,16 @@ class RequestTemplateTest(T.TemplateTestCase):
         kwargs['pushmaster'] = True
 
         tree = self.render_module_request_with_users(self.basic_request, 'testuser', 'notuser', **kwargs)
+        self.assert_request_buttons(tree, self.edit_button_classes, self.requester_edit_button_text)
+
+    def test_request_edit_buttons_as_watchers(self):
+        kwargs = dict(self.basic_kwargs)
+        kwargs['edit_buttons'] = True
+
+        request = dict(self.basic_request)
+        request['watchers'] = 'watcher1'
+
+        tree = self.render_module_request_with_users(request, 'testuser', 'watcher1', **kwargs)
         self.assert_request_buttons(tree, self.edit_button_classes, self.edit_button_text)
 
 
