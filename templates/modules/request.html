@@ -12,39 +12,7 @@
 
 <img src="{{ static_url('img/button_expand.gif') }}" class="request-item-expander" height="19" width="19" expand="{{ 'yes' if expand else 'no' }}" />
 
-{% if push_buttons %}
-<span class="push-request-buttons">
-
-	{% if pushmaster %}
-	<input type="checkbox" class="request-multi-select" />
-	<button class="add-request">Add</button>
-	<button class="remove-request">Remove</button>
-	<button class="comment-request">Comment</button>
-	<button class="pushmaster-delay-request">Delay</button>
-	{% end %}
-
-	<button class="verify-request">Verify</button>
-	<button class="pickme-request">Pick me!</button>
-	<button class="unpickme-request">Don't pick me!</button>
-</span>
-{% elif edit_buttons %}
-<span class="edit-request-buttons">
-	<button class="edit-request">Edit</button>
-	{% if request['user'] == current_user %}
-
-		{% if request['state'] == 'requested' %}
-		<button class="delay-request">Delay</button>
-		{% elif request['state'] == 'delayed' %}
-		<button class="undelay-request">Un-Delay</button>
-		{% end %}
-
-		{% if request['state'] in ('requested', 'delayed') %}
-		<button class="discard-request">Discard</button>
-		{% end %}
-
-	{% end %}
-</span>
-{% end %}
+{% include "request-buttons.html" %}
 
 {% include "request-info.html" %}
 
