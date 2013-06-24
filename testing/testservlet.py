@@ -1,3 +1,4 @@
+from contextlib import contextmanager
 import logging
 import os
 import types
@@ -74,6 +75,13 @@ class TemplateTestCase(T.TestCase):
         rendered_page = ''.join(self.servlet._write_buffer)
         tree = etree.HTML(rendered_page)
         return tree
+
+    @contextmanager
+    def no_ui_modules(self):
+        modules = mock.Mock()
+        modules.Request = mock.Mock()
+        with mock.patch.dict(self.servlet.ui, modules=modules):
+            yield
 
     # The following methods are lifted from tornado.web.Application
     def _load_ui_methods(self, application, methods):
