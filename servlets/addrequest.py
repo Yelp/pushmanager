@@ -13,9 +13,13 @@ class AddRequestServlet(RequestHandler):
         self.pushid = core.util.get_int_arg(self.request, 'push')
         self.request_ids = self.request.arguments.get('request', [])
 
-        insert_queries = [
-            db.push_pushcontents.insert({'request':int(i), 'push':self.pushid}).prefix_with('IGNORE')
-            for i in self.request_ids]
+        insert_queries = []
+        for i in self.request_ids:
+            if Settings["db_uri"].startswith("sqlite"):
+                query = db.push_pushcontents.insert({'request':int(i), 'push':self.pushid}).prefix_with('OR IGNORE')
+            else:
+                query = db.push_pushcontents.insert({'request':int(i), 'push':self.pushid}).prefix_with('IGNORE')
+            insert_queries.append(query)
         update_query = db.push_requests.update().where(
             db.push_requests.c.id.in_(self.request_ids)).values({'state':'added'})
         request_query = db.push_requests.select().where(
