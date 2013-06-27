@@ -16,7 +16,7 @@
 	{% if push_info['user'] == current_user or override %}<button class="message-people">msg</button>{% end %}</h3>
 <ul id="pickme-items" class="push-items push-items-section">
 	{% for request in sorted(push_contents.get('pickme', []), key=lambda x: x['created']) %}
-	<li {% if authorized_to_manage_request(request, current_user) %}class="mine"{% end %}>
+	<li {% if authorized_to_manage_request(request, current_user) %}class="mine"{% end %} {% if push_info['user'] == current_user or override %}class="pushmaster"{% end %}>
 		{{ modules.Request(request, pushmaster=(push_info['user'] == current_user or override), push_buttons=True, show_ago=True) }}
 	</li>
 	{% end %}

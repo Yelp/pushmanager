@@ -585,6 +585,7 @@ ul.user-list li li {
 #pickme-items .add-request,
 #pickme-items .pushmaster-delay-request,
 #pickme-items .mine .unpickme-request,
+#pickme-items .pushmaster .unpickme-request,
 #added-items .remove-request,
 #staged-items .remove-request,
 #staged-items .verify-request,
