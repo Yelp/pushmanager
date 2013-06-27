@@ -137,7 +137,14 @@ class APIServlet(RequestHandler):
         self.check_db_results(success, db_results)
 
         push_results, last_push_results = db_results
-        push_results = [util.push_to_jsonable(result) for result in push_results]
+
+        def accepting_first(current, previous):
+            # swap only if current push is accepting and previous push not accepting
+            if current['state'] == 'accepting' and previous['state'] != 'accepting':
+                return -1
+            return 0
+
+        push_results = sorted([util.push_to_jsonable(result) for result in push_results], cmp=accepting_first)
         return self._xjson([push_results, last_push_results.first()[0]])
 
     def _api_PUSHCONTENTS(self):
