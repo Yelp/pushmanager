@@ -9,6 +9,7 @@ class PushTemplateTest(T.TemplateTestCase):
     push_status_page = 'push-status.html'
 
     accepting_push_sections = ['blessed', 'verified', 'staged', 'added', 'pickme', 'requested']
+    now = time.time()
 
     now = time.time()
 
@@ -49,6 +50,24 @@ class PushTemplateTest(T.TemplateTestCase):
             'comments': 'nocomment',
             'watchers': None,
             }
+
+    basic_request = {
+            'id': 0,
+            'repo': 'non-existent',
+            'branch': 'non-existent',
+            'user': 'testuser',
+            'reviewid': 0,
+            'title': 'some title',
+            'tags': None,
+            'revision': '0' * 40,
+            'state': 'requested',
+            'created': now,
+            'modified': now,
+            'description': 'nondescript',
+            'comments': 'nocomment',
+            'watchers': None,
+            }
+
 
     def test_include_push_status_when_accepting(self):
         tree = self.render_etree(
@@ -216,6 +235,19 @@ class PushTemplateTest(T.TemplateTestCase):
         T.assert_exactly_one(
                 *[mock.attrib['name'] for mock in tree.iter('mock')],
                 truthy_fxn=lambda name: name == 'mock.NewRequestDialog()')
+
+    def test_include_edit_push(self):
+        tree = self.render_etree(
+            self.push_page,
+            push_info=self.basic_push,
+            **self.basic_kwargs)
+
+        found_form = []
+        for form in tree.iter('form'):
+            if form.attrib['id'] ==  'push-info-form':
+                found_form.append(form)
+
+        T.assert_equal(len(found_form), 1)
 
 
 if __name__ == '__main__':
