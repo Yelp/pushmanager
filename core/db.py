@@ -169,3 +169,9 @@ def execute_transaction_cb(queries, callback_fn, condition=None):
     finally:
         callback_fn(success, results)
         conn.close()
+
+def add_ignore_clause(query):
+    if Settings["db_uri"].startswith("sqlite"):
+        return query.prefix_with('OR IGNORE')
+    else:
+        return query.prefix_with('IGNORE')
