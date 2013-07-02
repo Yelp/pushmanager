@@ -8,6 +8,7 @@ class PushTemplateTest(T.TemplateTestCase):
     push_page = 'push.html'
 
     accepting_push_sections = ['blessed', 'verified', 'staged', 'added', 'pickme', 'requested']
+    now = time.time()
 
     basic_push = {
             'id': 0,
@@ -15,9 +16,9 @@ class PushTemplateTest(T.TemplateTestCase):
             'title': 'fake_push',
             'branch': 'deploy-fake-branch',
             'state': 'accepting',
-            'pushtype': 'Normal',
-            'created': 23423423,
-            'modified': 2342432423,
+            'pushtype': 'Regular',
+            'created': now,
+            'modified': now,
             'extra_pings': None,
         }
 
@@ -28,6 +29,24 @@ class PushTemplateTest(T.TemplateTestCase):
             'fullrepo': 'not/a/repo',
             'override': False
             }
+
+    basic_request = {
+            'id': 0,
+            'repo': 'non-existent',
+            'branch': 'non-existent',
+            'user': 'testuser',
+            'reviewid': 0,
+            'title': 'some title',
+            'tags': None,
+            'revision': '0' * 40,
+            'state': 'requested',
+            'created': now,
+            'modified': now,
+            'description': 'nondescript',
+            'comments': 'nocomment',
+            'watchers': None,
+            }
+
 
     def test_include_push_status_when_accepting(self):
         tree = self.render_etree(
@@ -59,6 +78,18 @@ class PushTemplateTest(T.TemplateTestCase):
 
         T.assert_equal(1, len(found_h3))
 
+    def test_include_edit_push(self):
+        tree = self.render_etree(
+            self.push_page,
+            push_info=self.basic_push,
+            **self.basic_kwargs)
+
+        found_form = []
+        for form in tree.iter('form'):
+            if form.attrib['id'] ==  'push-info-form':
+                found_form.append(form)
+
+        T.assert_equal(len(found_form), 1)
 
 if __name__ == '__main__':
     T.run()
