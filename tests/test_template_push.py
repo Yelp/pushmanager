@@ -6,6 +6,7 @@ class PushTemplateTest(T.TemplateTestCase):
 
     authenticated = True
     push_page = 'push.html'
+    edit_push_page = 'edit-push.html'
 
     accepting_push_sections = ['blessed', 'verified', 'staged', 'added', 'pickme', 'requested']
     now = time.time()
@@ -15,6 +16,7 @@ class PushTemplateTest(T.TemplateTestCase):
             'user': 'pushmaster',
             'title': 'fake_push',
             'branch': 'deploy-fake-branch',
+            'stageenv': '',
             'state': 'accepting',
             'pushtype': 'Regular',
             'created': now,
@@ -90,6 +92,30 @@ class PushTemplateTest(T.TemplateTestCase):
                 found_form.append(form)
 
         T.assert_equal(len(found_form), 1)
+
+
+    def test_edit_push_fields(self):
+        tree = self.render_etree(
+            self.edit_push_page,
+            push_info=self.basic_push,
+            **self.basic_kwargs)
+        labels = ['push-title', 'push-branch', 'push-stageenv']
+        inputs = ['push-title', 'push-branch', 'push-stageenv', 'id' ,'push-submit', 'push-cancel']
+
+        found_labels = []
+        for label in tree.iter('label'):
+            T.assert_in(label.attrib['for'], labels)
+            found_labels.append(label)
+
+        T.assert_equal(len(found_labels), len(labels))
+
+        found_inputs = []
+        for input in tree.iter('input'):
+            T.assert_in(input.attrib['name'], inputs)
+            found_inputs.append(input)
+
+        T.assert_equal(len(found_inputs), len(inputs))
+
 
 if __name__ == '__main__':
     T.run()

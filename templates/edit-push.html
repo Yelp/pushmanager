@@ -9,6 +9,9 @@
 	<label for="push-branch">Branch</label>
 	<input name="push-branch" id="push-branch" value="{{ escape(push_info['branch']) }}" />
 
+	<label for="push-stageenv">Stage Environment</label>
+	<input name="push-stageenv" id="push-stageenv" value="{% if push_info['stageenv'] %}{{ escape(push_info['stageenv']) }}{% end %}" />
+
 	<input type="hidden" name="id" value="{{ int(push_info['id']) }}" />
 
 	{% if not push_info['user'] == current_user %}
