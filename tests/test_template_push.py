@@ -243,7 +243,7 @@ class PushTemplateTest(T.TemplateTestCase):
     push_button_ids_pushmaster = [
             'discard-push', 'add-selected-requests',
             'remove-selected-requests', 'rebuild-deploy-branch',
-            'deploy-to-stage', 'deploy-to-prod', 'merge-to-master',
+            'deploy-to-stage-step0', 'deploy-to-prod', 'merge-to-master',
             'message-all', 'show-checklist']
 
     def test_push_buttons_random_user(self):
@@ -282,7 +282,8 @@ class PushTemplateTest(T.TemplateTestCase):
     dialog_ids = [
             'dialog-prototypes',
             'run-a-command', 'comment-on-request', 'merge-requests',
-            'merge-branches-command', 'push-checklist', 'send-message-prompt'
+            'merge-branches-command', 'push-checklist', 'send-message-prompt',
+            'set-stageenv-prompt'
     ]
 
     def test_dialogs_divs(self):
