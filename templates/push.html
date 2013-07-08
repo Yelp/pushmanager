@@ -7,23 +7,7 @@
 	{% include 'edit-push.html' %}
 </div>
 <!-- ========= PUSH INFO ========== -->
-<ul id="push-info" class="push-info standalone" push="{{ int(push_info['id']) }}" pushmaster="{{ escape(push_info['user']) }}" branch="{{ escape(push_info['branch']) }}">
-	<li><span class="label">Pushmaster</span><span class="value">{{ escape(push_info['user']) }}</span></li>
-	<li><span class="label">Branch</span><span class="value">{{ escape(push_info['branch']) }}</span></li>
-{% if push_info['state'] == 'accepting' %}
-	<li><span class="label">Buildbot Runs</span><span class="value"><a href="http://{{ escape(Settings['buildbot']['servername']) }}/branch/{{ escape(push_info['branch']) }}">url</a></span></li>
-{% end %}
-	<li><span class="label">State</span><span class="value"><ul class="tags">
-			<li class="tag-{{ escape(push_info['state']) }}">{{ escape(push_info['state']) }}</li>
-		</ul></span></li>
-	<li><span class="label">Push Type</span><span class="value"><ul class="tags">
-			<li class="tag-{{ escape(push_info['pushtype']) }}">{{ escape(push_info['pushtype']) }}</li>
-		</ul></span></li>
-	<li><span class="label">Created</span><span class="value">{{ datetime.datetime.fromtimestamp(push_info['created']).strftime("%x %X") }}</span></li>
-{% if not push_info['created'] == push_info['modified'] %}
-	<li><span class="label">Modified</span><span class="value">{{ datetime.datetime.fromtimestamp(push_info['modified']).strftime("%x %X") }}</span></li>
-{% end %}
-</ul>
+{% include 'push-info.html' %}
 <!-- ========= BUTTON BAR ========== -->
 <ul id="action-buttons">
 	<li><button id="expand-all-requests">Expand All</button></li>
