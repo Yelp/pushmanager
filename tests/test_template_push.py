@@ -226,6 +226,19 @@ class PushTemplateTest(T.TemplateTestCase):
 
         self.assert_push_info_list(list(tree.iter('ul'))[0], push_info_items)
 
+    def test_push_info_list_items_stageenv(self):
+        push = dict(self.basic_push)
+        push['stageenv'] = 'stageenv'
+        tree = self.render_etree(
+            self.push_info_page,
+            push_info=push,
+            **self.basic_kwargs)
+
+        push_info_items = dict(self.basic_push_info_items)
+        push_info_items['Stage'] = 'stageenv'
+
+        self.assert_push_info_list(list(tree.iter('ul'))[0], push_info_items)
+
     push_button_ids_base = ['expand-all-requests', 'collapse-all-requests', 'ping-me', 'edit-push']
     push_button_ids_pushmaster = [
             'discard-push', 'add-selected-requests',
