@@ -9,6 +9,7 @@ class PushTemplateTest(T.TemplateTestCase):
     push_page = 'push.html'
     edit_push_page = 'edit-push.html'
     push_info_page = 'push-info.html'
+    push_button_bar_page = 'push-button-bar.html'
 
     accepting_push_sections = ['blessed', 'verified', 'staged', 'added', 'pickme', 'requested']
     now = time.time()
@@ -69,6 +70,19 @@ class PushTemplateTest(T.TemplateTestCase):
         found_ul = []
         for ul in tree.iter('ul'):
             if 'id' in ul.attrib and ul.attrib['id'] == 'push-info':
+                found_ul.append(ul)
+
+        T.assert_equal(1, len(found_ul))
+
+    def test_include_push_button_bar(self):
+        tree = self.render_etree(
+            self.push_page,
+            push_info=self.basic_push,
+            **self.basic_kwargs)
+
+        found_ul = []
+        for ul in tree.iter('ul'):
+            if 'id' in ul.attrib and ul.attrib['id'] == 'action-buttons':
                 found_ul.append(ul)
 
         T.assert_equal(1, len(found_ul))
@@ -197,6 +211,46 @@ class PushTemplateTest(T.TemplateTestCase):
         del push_info_items['Buildbot Runs']
 
         self.assert_push_info_list(list(tree.iter('ul'))[0], push_info_items)
+
+    push_button_ids_base = ['expand-all-requests', 'collapse-all-requests', 'ping-me', 'edit-push']
+    push_button_ids_pushmaster = [
+            'discard-push', 'add-selected-requests',
+            'remove-selected-requests', 'rebuild-deploy-branch',
+            'deploy-to-stage', 'deploy-to-prod', 'merge-to-master',
+            'message-all', 'show-checklist']
+
+    def test_push_buttons_random_user(self):
+        tree = self.render_etree(
+            self.push_button_bar_page,
+            push_info=self.basic_push,
+            **self.basic_kwargs)
+
+        found_buttons = []
+        for button in tree.iter('button'):
+            T.assert_in(button.attrib['id'], self.push_button_ids_base)
+            found_buttons.append(button)
+
+        T.assert_equal(len(found_buttons), len(self.push_button_ids_base))
+
+    def test_push_buttons_pushmaster(self):
+        kwargs = dict(self.basic_kwargs)
+        kwargs['current_user'] = self.basic_push['user']
+
+        tree = self.render_etree(
+            self.push_button_bar_page,
+            push_info=self.basic_push,
+            **kwargs)
+
+        found_buttons = []
+        for button in tree.iter('button'):
+            T.assert_in(
+                    button.attrib['id'],
+                    self.push_button_ids_base + self.push_button_ids_pushmaster)
+            found_buttons.append(button)
+
+        T.assert_equal(
+                len(found_buttons),
+                len(self.push_button_ids_base + self.push_button_ids_pushmaster))
 
 
 if __name__ == '__main__':
