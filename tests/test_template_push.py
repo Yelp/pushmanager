@@ -1,5 +1,6 @@
 import time
 
+from core.settings import Settings
 import testing as T
 
 class PushTemplateTest(T.TemplateTestCase):
@@ -7,6 +8,7 @@ class PushTemplateTest(T.TemplateTestCase):
     authenticated = True
     push_page = 'push.html'
     edit_push_page = 'edit-push.html'
+    push_info_page = 'push-info.html'
 
     accepting_push_sections = ['blessed', 'verified', 'staged', 'added', 'pickme', 'requested']
     now = time.time()
@@ -49,6 +51,27 @@ class PushTemplateTest(T.TemplateTestCase):
             'watchers': None,
             }
 
+    basic_push_info_items = {
+            'Pushmaster': basic_push['user'],
+            'Branch': basic_push['branch'],
+            'Buildbot Runs': 'http://%s/branch/%s' % (Settings['buildbot']['servername'], basic_push['branch']),
+            'State': basic_push['state'],
+            'Push Type': basic_push['pushtype'],
+            'Created': time.strftime("%x %X", time.localtime(basic_push['created']))
+    }
+
+    def test_include_push_info(self):
+        tree = self.render_etree(
+            self.push_page,
+            push_info=self.basic_push,
+            **self.basic_kwargs)
+
+        found_ul = []
+        for ul in tree.iter('ul'):
+            if 'id' in ul.attrib and ul.attrib['id'] == 'push-info':
+                found_ul.append(ul)
+
+        T.assert_equal(1, len(found_ul))
 
     def test_include_push_status_when_accepting(self):
         tree = self.render_etree(
@@ -115,6 +138,65 @@ class PushTemplateTest(T.TemplateTestCase):
             found_inputs.append(input)
 
         T.assert_equal(len(found_inputs), len(inputs))
+
+    push_info_items = [
+        'Pushmaster', 'Branch', 'Buildbot Runs',
+        'State', 'Push Type', 'Created', 'Modified'
+    ]
+
+    def assert_push_info_list(self, list_items, push_info_items):
+        for li in list_items:
+            T.assert_in(li[0].text, push_info_items.keys())
+            if li[0].text == 'Buildbot Runs':
+                T.assert_equal(li[1][0].text, 'url')
+                T.assert_equal(li[1][0].attrib['href'], push_info_items['Buildbot Runs'])
+            elif li[0].text == 'State':
+                T.assert_equal(li[1][0].attrib['class'], 'tags')  # Inner ul
+                T.assert_equal(li[1][0][0].attrib['class'], 'tag-%s' % push_info_items['State'])  # Inner li
+                T.assert_equal(li[1][0][0].text, push_info_items['State'])
+            elif li[0].text == 'Push Type':
+                T.assert_equal(li[1][0].attrib['class'], 'tags')  # Inner ul
+                T.assert_equal(li[1][0][0].attrib['class'], 'tag-%s' % push_info_items['Push Type'])  # Inner li
+                T.assert_equal(li[1][0][0].text, push_info_items['Push Type'])
+            else:
+                T.assert_equal(li[1].text, push_info_items[li[0].text])
+
+        T.assert_equal(len(list_items), len(push_info_items))
+
+    def test_push_info_list_items(self):
+        tree = self.render_etree(
+            self.push_info_page,
+            push_info=self.basic_push,
+            **self.basic_kwargs)
+
+        self.assert_push_info_list(list(tree.iter('ul'))[0], self.basic_push_info_items)
+
+    def test_push_info_list_items_modified(self):
+        push = dict(self.basic_push)
+        push['modified'] = time.time()
+        tree = self.render_etree(
+            self.push_info_page,
+            push_info=push,
+            **self.basic_kwargs)
+
+        push_info_items = dict(self.basic_push_info_items)
+        push_info_items['Modified'] = time.strftime("%x %X", time.localtime(push['modified']))
+
+        self.assert_push_info_list(list(tree.iter('ul'))[0], push_info_items)
+
+    def test_push_info_list_items_notaccepting(self):
+        push = dict(self.basic_push)
+        push['state'] = 'live'
+        tree = self.render_etree(
+            self.push_info_page,
+            push_info=push,
+            **self.basic_kwargs)
+
+        push_info_items = dict(self.basic_push_info_items)
+        push_info_items['State'] = 'live'
+        del push_info_items['Buildbot Runs']
+
+        self.assert_push_info_list(list(tree.iter('ul'))[0], push_info_items)
 
 
 if __name__ == '__main__':
