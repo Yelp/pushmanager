@@ -28,6 +28,9 @@ class PushServlet(RequestHandler):
 
         push_info, push_requests, available_requests = self.get_api_results(response)
 
+        if push_info['stageenv'] is None:
+            push_info['stageenv'] = 'Stage'
+
         push_survey_url = Settings.get('push_survey_url', None)
 
         self.render(

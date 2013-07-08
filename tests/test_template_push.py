@@ -27,6 +27,7 @@ class PushTemplateTest(T.TemplateTestCase):
             'created': now,
             'modified': now,
             'extra_pings': None,
+            'stageenv': None,
         }
 
     basic_kwargs = {
@@ -359,11 +360,24 @@ class PushTemplateTest(T.TemplateTestCase):
 
         self.assert_push_info_list(list(tree.iter('ul'))[0], push_info_items)
 
+    def test_push_info_list_items_stageenv(self):
+        push = dict(self.basic_push)
+        push['stageenv'] = 'stageenv'
+        tree = self.render_etree(
+            self.push_info_page,
+            push_info=push,
+            **self.basic_kwargs)
+
+        push_info_items = dict(self.basic_push_info_items)
+        push_info_items['Stage'] = 'stageenv'
+
+        self.assert_push_info_list(list(tree.iter('ul'))[0], push_info_items)
+
     push_button_ids_base = ['expand-all-requests', 'collapse-all-requests', 'ping-me', 'edit-push']
     push_button_ids_pushmaster = [
             'discard-push', 'add-selected-requests',
             'remove-selected-requests', 'rebuild-deploy-branch',
-            'deploy-to-stage', 'deploy-to-prod', 'merge-to-master',
+            'deploy-to-stage-step0', 'deploy-to-prod', 'merge-to-master',
             'message-all', 'show-checklist']
 
     def test_push_buttons_random_user(self):
@@ -405,7 +419,7 @@ class PushTemplateTest(T.TemplateTestCase):
             'dialog-prototypes',
             'run-a-command', 'comment-on-request', 'merge-requests',
             'merge-branches-command', 'push-checklist', 'send-message-prompt',
-            'push-survey',
+            'push-survey', 'set-stageenv-prompt',
     ]
 
     def test_dialogs_divs(self):

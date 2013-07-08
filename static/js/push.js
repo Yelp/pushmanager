@@ -333,20 +333,59 @@ $(function() {
         $('.request-item-expander').attr('src', "/static/img/button_expand.gif");
     });
 
-    $('#deploy-to-stage').click(function() {
+    $('#set-stageenv-prompt').dialog({
+        autoOpen: false,
+        modal: true,
+        title: 'Set stage environment:',
+        width: 300,
+        height: 150
+    });
+    PushManager.set_stageenv_dialog = function(env) {
+        if (env == '') {
+            $('#set-stageenv').attr('disabled', 'true');
+        }
+        $('#set-stageenv-contents').val(env);
+        $('#set-stageenv-contents').keyup(function(){
+            if ($(this).val() != '') {
+                $('#set-stageenv').removeAttr('disabled');
+            } else {
+                $('#set-stageenv').attr('disabled', 'true');
+            }});
+        $('#set-stageenv-prompt').dialog('open');
+    }
+
+    $('#deploy-to-stage-step0').click(function() {
+        PushManager.set_stageenv_dialog($('#push-info').attr('stageenv'))
+    });
+
+    $('#set-stageenv').click(function() {
         var that = $(this);
-        PushManager.run_command_dialog("deploy-stage --target <stagename> -b " + $('#push-info').attr('branch'), function() {
-            // "Cancel" button was not pressed, so mark as deployed to stage
-            $.ajax({
-                'type': 'POST',
-                'url': '/deploypush',
-                'data': {'id': $('#push-info').attr('push')},
-                'success': function() {
-                    $("#added-items").children().detach().appendTo('#staged-items');
-                    setTimeout('PushManager.update_status_counts()', 50);
-                },
-                'error': function() { alert("Something went wrong when marking the newly added items as staged."); }
-            });
+        $.ajax({
+            'url': '/editpush',
+            'type': 'POST',
+            'data': {
+                'id': $('#push-info').attr('push'),
+                'push-title': $('#push-info').attr('title'),
+                'push-branch': $('#push-info').attr('branch'),
+                'push-stageenv': $('#set-stageenv-contents').val()
+            },
+            'success' : function() {
+                $('#set-stageenv-prompt').dialog('close');
+                $('#push-info').attr('stageenv', $('#set-stageenv-contents').val());
+                PushManager.run_command_dialog("deploy-stage --target " + $('#push-info').attr('stageenv') + " -b " + $('#push-info').attr('branch'), function() {
+                    // "Cancel" button was not pressed, so mark as deployed to stage
+                    $.ajax({
+                        'type': 'POST',
+                        'url': '/deploypush',
+                        'data': {'id': $('#push-info').attr('push')},
+                        'success': function() {
+                            $("#added-items").children().detach().appendTo('#staged-items');
+                            setTimeout('PushManager.update_status_counts()', 50);
+                        },
+                        'error': function() { alert("Something went wrong when marking the newly added items as staged."); }
+                    });
+                });
+            }
         });
     });
 
