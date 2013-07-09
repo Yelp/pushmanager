@@ -10,6 +10,7 @@ class PushTemplateTest(T.TemplateTestCase):
     push_status_page = 'push-status.html'
     push_info_page = 'push-info.html'
     push_button_bar_page = 'push-button-bar.html'
+    push_dialogs_page = 'push-dialogs.html'
 
     accepting_push_sections = ['blessed', 'verified', 'staged', 'added', 'pickme', 'requested']
     now = time.time()
@@ -286,6 +287,19 @@ class PushTemplateTest(T.TemplateTestCase):
 
         T.assert_equal(len(found_form), 1)
 
+    def test_include_dialogs(self):
+        tree = self.render_etree(
+            self.push_page,
+            push_info=self.basic_push,
+            **self.basic_kwargs)
+
+        found_divs = []
+        for div in tree.iter('div'):
+            if 'id' in div.attrib and div.attrib['id'] ==  'dialog-prototypes':
+                found_divs.append(div)
+
+        T.assert_equal(len(found_divs), 1)
+
     push_info_items = [
         'Pushmaster', 'Branch', 'Buildbot Runs',
         'State', 'Push Type', 'Created', 'Modified'
@@ -386,6 +400,26 @@ class PushTemplateTest(T.TemplateTestCase):
         T.assert_equal(
                 len(found_buttons),
                 len(self.push_button_ids_base + self.push_button_ids_pushmaster))
+
+    dialog_ids = [
+            'dialog-prototypes',
+            'run-a-command', 'comment-on-request', 'merge-requests',
+            'merge-branches-command', 'push-checklist', 'send-message-prompt',
+            'push-survey',
+    ]
+
+    def test_dialogs_divs(self):
+        tree = self.render_etree(
+            self.push_dialogs_page,
+            push_info=self.basic_push,
+            **self.basic_kwargs)
+
+        found_divs = []
+        for div in tree.iter('div'):
+            T.assert_in(div.attrib['id'], self.dialog_ids)
+            found_divs.append(div)
+
+        T.assert_equal(len(found_divs),len(self.dialog_ids))
 
 
 if __name__ == '__main__':
