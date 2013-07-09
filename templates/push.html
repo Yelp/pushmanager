@@ -13,61 +13,8 @@
 
 {% include 'push-status.html' %}
 
-<div id="dialog-prototypes" style="display: none;">
-<!-- "Run a command" dialog -->
-	<div id="run-a-command">
-		<pre id="command-to-run">&nbsp;</pre>
-		<p class="directions">
-			Wait for it to complete, then
-			<button id="command-done">Continue</button>
-		</p>
-		<p class="mininote">
-			(If it fails, click the X or press Esc.)
-		</p>
-	</div>
-<!-- "Comment on a request" dialog -->
-	<div id="comment-on-request">
-		<textarea id="comment-input-area"></textarea>
-		<p class="directions">
-			Enter your comment here, then
-			<button id="submit-request-comment">Submit</button>
-		</p>
-	</div>
-<!-- "Check in multiple requests" dialog -->
-	<div id="merge-requests">
-		<div class="command" id="merge-branches-command">&nbsp;</div>
-		<p class="dialog-note">(Triple-click above to easily select the entire command for copying.)</p>
-		<p class="directions">
-			Once the command completes, click <button id="done-merging">here</button>
-		</p>
-	</div>
-<!-- Push checklist dialog -->
-	<div id="push-checklist">
-		<h4>Before Staging</h4>
-		<ul id="checklist-before-staging">
-			<li><input type="checkbox" /> Foo</li>
-			<li><input type="checkbox" /> Foo</li>
-		</ul>
-		<h4>Before Blessing</h4>
-		<ul id="checklist-before-blessing">
-			<li><input type="checkbox" /> Foo</li>
-			<li><input type="checkbox" /> Foo</li>
-		</ul>
-		<h4>After Live</h4>
-		<ul id="checklist-after-live">
-			<li><input type="checkbox" /> Foo</li>
-			<li><input type="checkbox" /> Foo</li>
-		</ul>
-	</div>
-<!-- Messaging dialog -->
-	<div id="send-message-prompt">
-		<input id="send-message-contents" />
-		<p class="directions">
-			Enter the message you wish to send here, then
-			<button id="send-message">Send</button>
-		</p>
-	</div>
-</div>
+{% include 'push-dialogs.html' %}
+
 {% end %}
 
 {% block scripts %}
