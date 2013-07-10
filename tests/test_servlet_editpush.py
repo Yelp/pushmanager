@@ -33,6 +33,7 @@ class EditPushServletTest(T.TestCase, T.ServletTestMixin, T.FakeDataMixin):
             'id':  existing_push[0],
             'push-title': 'clever-title',
             'push-branch': 'deploy-clever-branch',
+            'push-stageenv': 'stagea',
             }
 
         response = self.fetch(
@@ -52,3 +53,4 @@ class EditPushServletTest(T.TestCase, T.ServletTestMixin, T.FakeDataMixin):
         T.assert_equal(existing_push[1], push['push-title'])
         T.assert_equal(existing_push[2], 'testuser')
         T.assert_equal(existing_push[3], push['push-branch'])
+        T.assert_equal(existing_push[10], push['push-stageenv'])
