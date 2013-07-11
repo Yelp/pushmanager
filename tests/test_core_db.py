@@ -2,6 +2,10 @@
 
 import os
 
+from sqlalchemy.schema import Column
+from sqlalchemy.schema import Table
+from sqlalchemy.sql.compiler import SQLCompiler
+from sqlalchemy.types import Integer
 import mock
 import sqlalchemy as SA
 
@@ -77,3 +81,22 @@ class CoreDBTest(T.TestCase, T.FakeDataMixin):
                     lambda results: False
                 )
             )
+
+class InsertIgnoreTestCase(T.TestCase):
+
+    table = Table('faketable', SA.MetaData(), Column('a', Integer), Column('b', Integer))
+    statement = db.InsertIgnore(table, ({'a': 0, 'b': 1}))
+
+    def assert_ignore_clause(self, scheme, expected):
+        dialect = SA.create_engine(scheme + ':///').dialect
+        compiler = SQLCompiler(dialect=dialect, statement=self.statement)
+
+        T.assert_equal(str(compiler), expected)
+
+    def test_insert_ignore_mysql(self):
+        expected = 'INSERT IGNORE INTO faketable (a, b) VALUES (%s, %s)'
+        self.assert_ignore_clause('mysql', expected)
+
+    def test_insert_ignore_sqlite(self):
+        expected = 'INSERT OR IGNORE INTO faketable (a, b) VALUES (?, ?)'
+        self.assert_ignore_clause('sqlite', expected)

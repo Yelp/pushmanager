@@ -1,4 +1,5 @@
 import core.db as db
+from core.db import InsertIgnore
 from core.mail import MailQueue
 from core.requesthandler import RequestHandler
 from core.settings import Settings
@@ -14,8 +15,9 @@ class AddRequestServlet(RequestHandler):
         self.request_ids = self.request.arguments.get('request', [])
 
         insert_queries = [
-            db.push_pushcontents.insert({'request':int(i), 'push':self.pushid}).prefix_with('IGNORE')
-            for i in self.request_ids]
+                InsertIgnore(db.push_pushcontents, ({'request': int(i), 'push': self.pushid}))
+                for i in self.request_ids
+        ]
         update_query = db.push_requests.update().where(
             db.push_requests.c.id.in_(self.request_ids)).values({'state':'added'})
         request_query = db.push_requests.select().where(
