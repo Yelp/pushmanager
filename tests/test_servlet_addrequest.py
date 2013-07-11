@@ -63,7 +63,7 @@ class AddRequestServletTest(T.TestCase, T.ServletTestMixin):
         T.assert_equal(num_results_after, num_results_before + 1, "Add new request failed.")
 
     @mock.patch('core.db.execute_transaction_cb')
-    def test_puscontent_insert_ignore_sqlite(self, mock_transaction):
+    def test_pushcontent_insert_ignore(self, mock_transaction):
         request = { 'request': 1, 'push': 1 }
         response = self.fetch(
             '/addrequest',
@@ -74,19 +74,5 @@ class AddRequestServletTest(T.TestCase, T.ServletTestMixin):
         T.assert_equal(mock_transaction.call_count, 1)
 
         # Extract the string of the prefix of the insert query
-        T.assert_equal(mock_transaction.call_args[0][0][0]._prefixes[0].text, 'OR IGNORE')
-
-    @mock.patch('core.db.execute_transaction_cb')
-    @mock.patch.dict(db.Settings, {'db_uri': 'mysql://'})
-    def test_puscontent_insert_ignore_mysql(self, mock_transaction):
-        request = { 'request': 1, 'push': 1 }
-        response = self.fetch(
-            '/addrequest',
-            method='POST',
-            body=urllib.urlencode(request)
-        )
-        T.assert_equal(response.error, None)
-        T.assert_equal(mock_transaction.call_count, 1)
-
-        # Extract the string of the prefix of the insert query
-        T.assert_equal(mock_transaction.call_args[0][0][0]._prefixes[0].text, 'IGNORE')
+        insert_ignore_clause = mock_transaction.call_args[0][0][0]
+        T.assert_is(type(insert_ignore_clause), db.InsertIgnore)
