@@ -60,6 +60,7 @@ class PushPushes(Base):
     modified = Column(Integer, nullable=True)
     pushtype = Column(String)
     extra_pings = Column(String)
+    stageenv = Column(String, nullable=True)
 
 
 class PushRemovals(Base):

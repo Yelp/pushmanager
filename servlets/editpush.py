@@ -18,6 +18,7 @@ class EditPushServlet(RequestHandler):
             'user': self.current_user,
             'branch': self._arg('push-branch'),
             'revision': "0"*40,
+            'stageenv': self._arg('push-stageenv'),
             'modified': time.time(),
             })
         db.execute_cb(

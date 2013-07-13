@@ -40,13 +40,13 @@ class FakeDataMixin(object):
     yesterday = time.mktime((datetime.now() - timedelta(days=1)).timetuple())
 
     push_data = [
-        [10, 'OnePush', 'bmetin', 'deploy-1', 'abc', 'live', yesterday, now, 'regular', ''],
-        [11, 'TwoPush', 'troscoe', 'deploy-2', 'def', 'accepting', now, now, 'regular', ''],
-        [12, 'RedPush', 'heyjoe', 'deploy-3', 'ghi', 'accepting', now, now, 'regular', ''],
-        [13, 'BluePush', 'humpty', 'deploy-4', 'jkl', 'accepting', now, now, 'regular', ''],
+        [10, 'OnePush', 'bmetin', 'deploy-1', '', 'abc', 'live', yesterday, now, 'regular', ''],
+        [11, 'TwoPush', 'troscoe', 'deploy-2', '', 'def', 'accepting', now, now, 'regular', ''],
+        [12, 'RedPush', 'heyjoe', 'deploy-3', '', 'ghi', 'accepting', now, now, 'regular', ''],
+        [13, 'BluePush', 'humpty', 'deploy-4', '', 'jkl', 'accepting', now, now, 'regular', ''],
     ]
     push_keys = [
-        'id', 'title', 'user', 'branch', 'revision', 'state',
+        'id', 'title', 'user', 'branch', 'stageenv', 'revision', 'state',
         'created', 'modified', 'pushtype', 'extra_pings'
     ]
 

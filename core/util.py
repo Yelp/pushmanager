@@ -172,6 +172,7 @@ def push_to_jsonable(push):
             'title',
             'user',
             'branch',
+            'stageenv',
             'state',
             'created',
             'modified',
