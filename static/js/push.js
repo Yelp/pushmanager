@@ -87,7 +87,16 @@ $(function() {
     });
     $('.message-people').live('click', function() {
         var contents = $(this).siblings('.item-count').text();
-        var people = (/(?:[a-z]+(?:\s\((?:[a-z]+,?\s?)+\))?,?\s?)+/.exec(contents) || [""])[0];
+
+        var people_pat = new RegExp(    // person, person (person, person), person (person), person
+            "(?:[a-z]+" +                   // A username, possibly followed by:
+                "(?:\\s\\(" +               //   a space and (
+                    "(?:[a-z]+,?\\s?)+" +   //   and or more comma seperated usernames
+                "\\))?" +                   //   followed by a )
+            ",?\\s?" +                      // possibibly followed by a command and space
+            ")+")                           // and more of the same
+
+        var people = (people_pat.exec(contents) || [""])[0];
         PushManager.send_message_dialog(people);
     });
     $('#message-all').live('click', function() {
