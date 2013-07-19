@@ -10,13 +10,13 @@ class NewRequestTemplateTest(T.TemplateTestCase):
     def test_request_form_labels(self):
         tree = self.render_etree(self.newrequest_page)
 
-        for_attr = ['request-form-%s' % elem for elem in self.form_elements]
+        form_attr = ['request-form-%s' % elem for elem in self.form_elements]
 
         found_labels = []
         for label in tree.iter('label'):
             found_labels.append(label.attrib['for'])
 
-        T.assert_sorted_equal(for_attr, found_labels)
+        T.assert_sorted_equal(form_attr, found_labels)
 
     def test_request_form_input(self):
         tree = self.render_etree(self.newrequest_page)
