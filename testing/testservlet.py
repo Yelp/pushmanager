@@ -7,7 +7,6 @@ import mock
 import tornado.web
 from lxml import etree
 from tornado.testing import AsyncHTTPTestCase
-from tornado.web import UIModule
 
 from core import db
 from core.requesthandler import RequestHandler
@@ -60,10 +59,13 @@ class TemplateTestCase(T.TestCase):
             'autoescape': None,
         }
 
+        # Properly load ui_modules and ui_methods
         application.ui_modules = {}
         application.ui_methods = {}
-        self._load_ui_modules(application, ui_modules)
-        self._load_ui_methods(application, ui_methods)
+        application._load_ui_modules = types.MethodType(tornado.web.Application._load_ui_modules.im_func, application)
+        application._load_ui_methods = types.MethodType(tornado.web.Application._load_ui_methods.im_func, application)
+        application._load_ui_modules(ui_modules)
+        application._load_ui_methods(ui_methods)
 
         if self.authenticated:
             application.settings['cookie_secret'] = 'cookie_secret'
@@ -82,38 +84,6 @@ class TemplateTestCase(T.TestCase):
         modules.Request = mock.Mock()
         with mock.patch.dict(self.servlet.ui, modules=modules):
             yield
-
-    # The following methods are lifted from tornado.web.Application
-    def _load_ui_methods(self, application, methods):
-        if type(methods) is types.ModuleType:
-            self._load_ui_methods(
-                    application,
-                    dict((n, getattr(methods, n)) for n in dir(methods)))
-        elif isinstance(methods, list):
-            for m in methods:
-                self._load_ui_methods(m)
-        else:
-            for name, fn in methods.iteritems():
-                if not name.startswith("_") and hasattr(fn, "__call__") \
-                   and name[0].lower() == name[0]:
-                    application.ui_methods[name] = fn
-
-    def _load_ui_modules(self, application, modules):
-        if type(modules) is types.ModuleType:
-            self._load_ui_modules(
-                    application,
-                    dict((n, getattr(modules, n)) for n in dir(modules)))
-        elif isinstance(modules, list):
-            for m in modules:
-                self._load_ui_modules(m)
-        else:
-            assert isinstance(modules, dict)
-            for name, cls in modules.iteritems():
-                try:
-                    if issubclass(cls, UIModule):
-                        application.ui_modules[name] = cls
-                except TypeError:
-                    pass
 
 
 class ServletTestMixin(AsyncTestCase):
