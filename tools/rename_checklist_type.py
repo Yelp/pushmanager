@@ -50,7 +50,7 @@ def convert_checklist_callback(old, new, success, db_results):
         old: new,
         '%s-cleanup' % old: '%s-cleanup' % new
     }
-    
+
     update_queries = []
     for checklist in checklists:
         if checklist['type'] in convert.keys():
