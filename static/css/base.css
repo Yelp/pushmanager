@@ -713,7 +713,7 @@ ul.tags > .tag-urgent		{ background: #fcc; }
 ul.tags > .tag-special	{ background: #fcf; }
 ul.tags > .tag-caches		{ background: #ff8; }
 ul.tags > .tag-buildbot	{ background: #de9; }
-ul.tags > .tag-plans		{ background: #ccf; }
+ul.tags > .tag-pushplans	{ background: #ccf; }
 ul.tags > .tag-git-ok		{ background: #fec; }
 ul.tags > .tag-git-error	{ background: #f00; }
 ul.tags > .tag-accepting	{ background: #ddf; }

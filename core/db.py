@@ -16,6 +16,11 @@ def UnsignedInteger():
     else:
         return Integer
 
+
+class DatabaseError(Exception):
+    pass
+
+
 class PushCheckList(Base):
     __tablename__ = "push_checklist"
 

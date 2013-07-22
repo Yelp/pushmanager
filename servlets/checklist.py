@@ -8,7 +8,7 @@ import core.util
 
 
 checklist_reminders = {
-    'plans': dict((target, 'Plans for %(pushee)s') for target in ('stage', 'prod')),
+    'pushplans': dict((target, 'Push plans for %(pushee)s') for target in ('stage', 'prod')),
     'search': {
         'post-stage': 'Restart stage search for %(pushee)s',
         'prod': 'Disable index distribution for %(pushee)s',
@@ -20,8 +20,8 @@ checklist_reminders = {
         'post-stage': 'Ask Search to force index distribution on stage for %(pushee)s',
         'prod': 'Notify %(pushee)s to deploy Geoservices to prod.',
     },
-    'plans-cleanup': {
-        'post-verify-stage': 'Run plans on other stages for %(pushee)s',
+    'pushplans-cleanup': {
+        'post-verify-stage': 'Run push plans on other stages for %(pushee)s',
     },
     'search-cleanup': {
         'post-verify-prod': 'Re-enable index distribution in prod for %(pushee)s',
@@ -79,7 +79,7 @@ class ChecklistServlet(RequestHandler):
         for target, items in items_by_target.items():
             merge_items = defaultdict(list)
             for item in items:
-                if item['type'] == "plans":
+                if item['type'] == "pushplans":
                     clean_items_by_target[target].append(item)
                 else:
                     merge_items[item['type']].append(item)
