@@ -6,7 +6,7 @@ class NewRequestTemplateTest(T.TemplateTestCase):
     authenticated = True
     newrequest_page = 'modules/newrequest.html'
 
-    tags = ['feature', 'fix' ,'cleanup', 'buildbot', 'caches', 'plans',
+    tags = ['feature', 'fix' ,'cleanup', 'buildbot', 'caches', 'pushplans',
         'special', 'urgent', 'l10n', 'l10n-only', 'hoods']
 
     def test_request_quicktags(self):
