@@ -242,3 +242,6 @@ class EditRequestChecklistTest(T.TestCase, NewRequestChecklistMixin):
         new_reqid = self.assert_checklist_for_tags(tags, orig_reqid)
 
         T.assert_equal(orig_reqid, new_reqid)
+
+if __name__ == '__main__':
+	T.run()
