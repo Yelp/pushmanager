@@ -1,3 +1,14 @@
+2013.07.29
+  AFFECTS: Users with existing installs before commit 93CFFB559
+  AUTHOR: milki
+
+  As of commit 93CFFB559, a new column 'watchers' has been added to the
+  'pull_requests' table. Existing installs will 500 error until the
+  database has been updated.
+
+  A convenience script, 'pushplans/add_watchers.sql' has been included
+  to facilitate the database update.
+
 2013.06.18:
   AFFECTS: Users with existing installs before commit 7A89C5A7F
   AUTHOR: milki
