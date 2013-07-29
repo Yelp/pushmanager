@@ -5,7 +5,7 @@ from core.util import get_servlet_urlspec
 from servlets.api import APIServlet
 import testing as T
 
-class APITests(T.TestCase, T.ServletTestMixin):
+class APITests(T.TestCase, T.ServletTestMixin, T.FakeDataMixin):
 
     def get_handlers(self):
         return [get_servlet_urlspec(APIServlet)]
@@ -43,6 +43,20 @@ class APITests(T.TestCase, T.ServletTestMixin):
 
         pushes, last_push = self.api_call("pushes?before=%d" % time.time())
         T.assert_length(pushes, 2)
+
+    def test_pushes_order(self):
+        self.insert_pushes()
+        pushes, _ = self.api_call("pushes")
+        T.assert_length(pushes, 6)
+
+        lastpush = None
+        for push in pushes:
+            if lastpush is not None:
+                if push['state'] == 'accepting':
+                    T.assert_equal('accepting', lastpush['state'])
+                elif lastpush['state'] != 'accepting':
+                    T.assert_gte(push['modified'], lastpush['modified'])
+            lastpush = push
 
     def test_pushcontents(self):
         pushcontents = self.api_call("pushcontents?id=1")

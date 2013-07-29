@@ -3,7 +3,9 @@ import logging
 import sqlalchemy as SA
 from sqlalchemy.dialects import mysql
 from sqlalchemy import Column, Integer, SmallInteger, String
+from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.sql.expression import Insert
 
 from core.settings import Settings
 
@@ -170,3 +172,14 @@ def execute_transaction_cb(queries, callback_fn, condition=None):
     finally:
         callback_fn(success, results)
         conn.close()
+
+class InsertIgnore(Insert):
+    pass
+
+@compiles(InsertIgnore)
+def prefix_insert_ignore(insert_ignore, compiler, **kw):
+    return  compiler.visit_insert(insert_ignore.prefix_with('IGNORE'), **kw)
+
+@compiles(InsertIgnore, 'sqlite')
+def prefix_insert_ignore_sqlite(insert_ignore, compiler, **kw):
+    return  compiler.visit_insert(insert_ignore.prefix_with('OR IGNORE'), **kw)
