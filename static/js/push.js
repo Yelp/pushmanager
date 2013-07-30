@@ -89,11 +89,11 @@ $(function() {
         var contents = $(this).siblings('.item-count').text();
 
         var people_pat = new RegExp(    // person, person (person, person), person (person), person
-            "(?:[a-z]+" +                   // A username, possibly followed by:
+            "(?:[a-z]+" +                   // A username, possibly followed by
                 "(?:\\s\\(" +               //   a space and (
-                    "(?:[a-z]+,?\\s?)+" +   //   and or more comma seperated usernames
+                    "(?:[a-z]+,?\\s?)+" +   //   and one or more usernames (possibly separated by comma and/or a single space)
                 "\\))?" +                   //   followed by a )
-            ",?\\s?" +                      // possibibly followed by a command and space
+            ",?\\s?" +                      // possibly followed by a command and space
             ")+")                           // and more of the same
 
         var people = (people_pat.exec(contents) || [""])[0];
