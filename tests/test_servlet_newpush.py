@@ -3,6 +3,7 @@ from contextlib import contextmanager
 
 import mock
 import testing as T
+import types
 
 from core import db
 from core.settings import Settings
@@ -67,6 +68,47 @@ class NewPushServletTest(T.TestCase, T.ServletTestMixin):
                     mock.ANY, # msg
                 ])
 
+
+
+    def call_on_db_complete(self, urgent=False):
+        mocked_self = mock.Mock()
+        mocked_self.check_db_results = mock.Mock(return_value=None)
+        mocked_self.redirect = mock.Mock(return_value=None)
+        mocked_self.pushtype = 'normal'
+
+        mocked_self.on_db_complete = types.MethodType(NewPushServlet.on_db_complete.im_func, mocked_self)
+
+        push = mock.Mock()
+        push.lastrowid = 0
+
+        no_watcher_req = {
+            'user': 'testuser',
+            'watchers': None,
+        }
+        watched_req = {
+            'user': 'testuser',
+            'watchers': 'testuser1,testuser2',
+        }
+        if urgent:
+            no_watcher_req['tags'] = 'urgent'
+            watched_req['tags'] = 'urgent'
+            mocked_self.pushtype = 'urgent'
+
+        reqs = [no_watcher_req, watched_req]
+
+        mocked_self.on_db_complete('success', [push, reqs])
+
+    @mock.patch('servlets.newpush.send_notifications')
+    def test_normal_people_on_db_complete(self, notify):
+        self.call_on_db_complete()
+        notify.called_once_with(set(['testuser', 'testuser1', 'testuser2']), mock.ANY, mock.ANY)
+
+    @mock.patch('servlets.newpush.send_notifications')
+    def test_urgent_people_on_db_complete(self, notify):
+        self.call_on_db_complete(urgent=True)
+        notify.called_once_with(set(['testuser', 'testuser1', 'testuser2']), mock.ANY, mock.ANY)
+
+
 class NotificationsTestCase(T.TestCase):
 
     @contextmanager
@@ -126,3 +168,7 @@ class NotificationsTestCase(T.TestCase):
                 mock.ANY, # subject
             )
             T.assert_is(mocked_xmpp.called, False)
+
+
+if __name__ == '__main__':
+    T.run()
