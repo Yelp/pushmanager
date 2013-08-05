@@ -246,4 +246,4 @@ class EditRequestChecklistTest(T.TestCase, NewRequestChecklistMixin):
         T.assert_equal(orig_reqid, new_reqid)
 
 if __name__ == '__main__':
-	T.run()
+    T.run()
