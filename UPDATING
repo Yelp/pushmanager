@@ -1,8 +1,8 @@
 2013.07.29
-  AFFECTS: Users with existing installs before commit 93CFFB559
+  AFFECTS: Users with existing installs before commit $add_watchers-merge$
   AUTHOR: milki
 
-  As of commit 93CFFB559, a new column 'watchers' has been added to the
+  As of commit $add_watchers-merge$, a new column 'watchers' has been added to the
   'pull_requests' table. Existing installs will 500 error until the
   database has been updated.
 
