@@ -63,10 +63,17 @@ class LivePushServlet(RequestHandler):
                 review_id = int(req['reviewid'])
                 RBQueue.enqueue_review(review_id)
 
+            if req['watchers']:
+                user_string = '%s (%s)' % (req['user'], req['watchers'])
+                users = [req['user']] + req['watchers'].split(',')
+            else:
+                user_string = req['user']
+                users = [req['user']]
+
             msg = (
                 """
                 <p>
-                    %(pushmaster)s has certified your request as stable in production:
+                    %(pushmaster)s has certified request for %(user)s as stable in production:
                 </p>
                 <p>
                     <strong>%(user)s - %(title)s</strong><br />
@@ -78,12 +85,10 @@ class LivePushServlet(RequestHandler):
                 </p>"""
                 ) % core.util.EscapedDict({
                     'pushmaster': self.current_user,
-                    'user': req['user'],
+                    'user': user_string,
                     'title': req['title'],
                     'repo': req['repo'],
                     'branch': req['branch'],
                 })
-            subject = "[push] %s - %s" % (req['user'], req['title'])
-            MailQueue.enqueue_user_email([req['user']], msg, subject)
-
-
+            subject = "[push] %s - %s" % (user_string, req['title'])
+            MailQueue.enqueue_user_email(users, msg, subject)

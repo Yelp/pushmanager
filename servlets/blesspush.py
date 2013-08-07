@@ -40,10 +40,16 @@ class BlessPushServlet(RequestHandler):
 
         _, blessed_requests, push_results = db_results
         for req in blessed_requests:
+            if req['watchers']:
+                user_string = '%s (%s)' % (req['user'], req['watchers'])
+                users = [req['user']] + req['watchers'].split(',')
+            else:
+                user_string = req['user']
+                users = [req['user']]
             msg = (
                 """
                 <p>
-                    %(pushmaster)s has deployed your request to production:
+                    %(pushmaster)s has deployed request for %(user)s to production:
                 </p>
                 <p>
                     <strong>%(user)s - %(title)s</strong><br />
@@ -55,18 +61,19 @@ class BlessPushServlet(RequestHandler):
                 </p>"""
                 ) % core.util.EscapedDict({
                     'pushmaster': self.current_user,
-                    'user': req['user'],
+                    'user': user_string,
                     'title': req['title'],
                     'repo': req['repo'],
                     'branch': req['branch'],
                 })
-            subject = "[push] %s - %s" % (req['user'], req['title'])
-            MailQueue.enqueue_user_email([req['user']], msg, subject)
-            msg = '%(pushmaster)s has deployed your request "%(title)s" to production.' % {
+            subject = "[push] %s - %s" % (user_string, req['title'])
+            MailQueue.enqueue_user_email(users, msg, subject)
+            msg = '%(pushmaster)s has deployed request "%(title)s" for %(user)s to production.' % {
                     'pushmaster': self.current_user,
                     'title': req['title'],
+                    'user': user_string,
                 }
-            XMPPQueue.enqueue_user_xmpp([req['user']], msg)
+            XMPPQueue.enqueue_user_xmpp(users, msg)
 
         push = push_results.fetchone()
         if push['extra_pings']:

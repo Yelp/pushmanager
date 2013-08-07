@@ -148,6 +148,7 @@ def request_to_jsonable(request):
         (k, request[k]) for k in (
             'id',
             'user',
+            'watchers',
             'state',
             'repo',
             'branch',

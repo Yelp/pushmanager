@@ -41,10 +41,16 @@ class RemoveRequestServlet(RequestHandler):
         reqs, _, _ = db_results
         removal_dicts = []
         for req in reqs:
+            if req['watchers']:
+                user_string = '%s (%s)' % (req['user'], req['watchers'])
+                users = [req['user']] + req['watchers'].split(',')
+            else:
+                user_string = req['user']
+                users = [req['user']]
             msg = (
                 """
                 <p>
-                    %(pushmaster)s has removed your request from a push:
+                    %(pushmaster)s has removed request for %(user)s from a push:
                 </p>
                 <p>
                     <strong>%(user)s - %(title)s</strong><br />
@@ -56,19 +62,20 @@ class RemoveRequestServlet(RequestHandler):
                 </p>"""
                 ) % core.util.EscapedDict({
                     'pushmaster': self.current_user,
-                    'user': req['user'],
+                    'user': user_string,
                     'title': req['title'],
                     'repo': req['repo'],
                     'branch': req['branch'],
                 })
-            subject = "[push] %s - %s" % (req['user'], req['title'])
-            MailQueue.enqueue_user_email([req['user']], msg, subject)
-            msg = '%(pushmaster)s has removed your request "%(title)s" from a push' % {
+            subject = "[push] %s - %s" % (user_string, req['title'])
+            MailQueue.enqueue_user_email(users, msg, subject)
+            msg = '%(pushmaster)s has removed request "%(title)s" for %(user)s from a push' % {
                     'pushmaster': self.current_user,
                     'title': req['title'],
                     'pushid': self.pushid,
+                    'user': user_string,
                 }
-            XMPPQueue.enqueue_user_xmpp([req['user']], msg)
+            XMPPQueue.enqueue_user_xmpp(users, msg)
             removal_dicts.append({
                 'request': req['id'],
                 'push': self.pushid,
