@@ -113,3 +113,5 @@ check_sites_bookmarklet:
     substitutions:
         - 'production_id' : 'non_production_id'
 
+tornado:
+   num_workers: 4

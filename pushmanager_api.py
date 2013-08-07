@@ -32,7 +32,7 @@ class PushManagerAPIApp(Application):
     def start_services(self):
         # HTTP server (for api)
         sockets = tornado.netutil.bind_sockets(self.port, address=Settings['api_app']['servername'])
-        tornado.process.fork_processes(0)
+        tornado.process.fork_processes(Settings['tornado']['num_workers'])
         server = tornado.httpserver.HTTPServer(api_application)
         server.add_sockets(sockets)
 
