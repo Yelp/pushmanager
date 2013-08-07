@@ -176,7 +176,7 @@ class PushManagerApp(Application):
         # HTTPS server
         sockets = tornado.netutil.bind_sockets(self.port, address=Settings['main_app']['servername'])
         redir_sockets = tornado.netutil.bind_sockets(self.redir_port, address=Settings['main_app']['servername'])
-        tornado.process.fork_processes(0)
+        tornado.process.fork_processes(Settings['tornado']['num_workers'])
 
         server = tornado.httpserver.HTTPServer(self.main_app, ssl_options={
                 'certfile': Settings['main_app']['ssl_certfile'],
