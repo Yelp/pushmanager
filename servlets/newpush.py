@@ -64,12 +64,18 @@ class NewPushServlet(RequestHandler):
 
         insert_results, select_results = db_results
         pushurl = '/push?id=%s' % insert_results.lastrowid
+
+        def users_involved(request):
+            if request['watchers']:
+                return [request['user']] + request['watchers'].split(',')
+            return [request['user']]
+
         if self.pushtype in ('private', 'morning'):
             people = None
         elif self.pushtype == 'urgent':
-            people = set(x['user'] for x in select_results if 'urgent' in x['tags'].split(','))
+            people = set(user for x in select_results for user in users_involved(x) if 'urgent' in x['tags'].split(','))
         else:
-            people = set(x['user'] for x in select_results)
+            people = set(user for x in select_results for user in users_involved(x))
 
         send_notifications(people, self.pushtype, pushurl)
 

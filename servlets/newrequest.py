@@ -28,6 +28,8 @@ class NewRequestServlet(RequestHandler):
             except (ValueError, TypeError):
                 return self.send_error(500)
 
+        watchers = ','.join(map(str.strip, self._arg('request-watchers').split(',')))
+
         if self.requestid != '':
             self.requestid = int(self.requestid)
             query = db.push_requests.update().where(
@@ -41,6 +43,7 @@ class NewRequestServlet(RequestHandler):
                     'branch': self._arg('request-branch'),
                     'comments': self._arg('request-comments'),
                     'description': self._arg('request-description'),
+                    'watchers': watchers,
                     'modified': time.time(),
                     'revision': '0'*40,
                 })
@@ -54,6 +57,7 @@ class NewRequestServlet(RequestHandler):
                 'branch': self._arg('request-branch'),
                 'comments': self._arg('request-comments'),
                 'description': self._arg('request-description'),
+                'watchers': watchers,
                 'created': time.time(),
                 'modified': time.time(),
                 'state': 'requested',

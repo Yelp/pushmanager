@@ -79,51 +79,9 @@
 		{% end %}
 	{% end %}
 </ul>
-<!-- ======== PUSH STATES ========= -->
-{% if push_info['state'] == 'accepting' %}
-{% for (section,sect_title) in [('blessed', 'Deployed to Prod'), ('verified', 'Verified on Stage'),	('staged', 'Deployed to Stage'), ('added', 'Added to Deploy Branch')] %}
-<h3 class="status-header" section="{{section}}">{{ sect_title }} <span class="item-count"></span>
-	{% if push_info['user'] == current_user or override %}<button class="message-people">msg</button>{% end %}</h3>
-<ul id="{{ section }}-items" class="push-items push-items-section items-in-push">
-	{% for request in sorted(push_contents.get(section, []), key=lambda x: x['user']) %}
-	<li {% if request['user'] == current_user %}class="mine"{% end %}>
-		{{ modules.Request(request, pushmaster=(push_info['user'] == current_user or override), push_buttons=True) }}
-	</li>
-	{% end %}
-</ul>
-{% end %}
-<!-- ========= PICKME ITEMS =========== -->
-<h3 class="status-header" section="pickme">Pick me, pick me! <span class="item-count"></span>
-	{% if push_info['user'] == current_user or override %}<button class="message-people">msg</button>{% end %}</h3>
-<ul id="pickme-items" class="push-items push-items-section">
-	{% for request in sorted(push_contents.get('pickme', []), key=lambda x: x['created']) %}
-	<li {% if request['user'] == current_user %}class="mine"{% end %}>
-		{{ modules.Request(request, pushmaster=(push_info['user'] == current_user or override), push_buttons=True, show_ago=True) }}
-	</li>
-	{% end %}
-</ul>
-<!-- ========= REQUESTED ITEMS  ========== -->
-<h3 class="status-header" section="requested">Open Requests <span class="item-count"></span>
-	{% if push_info['user'] == current_user or override %}<button class="message-people">msg</button>{% end %}</h3>
-<ul id="requested-items" class="push-items push-items-section">
-<p class="smalltext">Beginning with the oldest requests:</p>
-	{% for request in sorted(available_requests, key=lambda x: x['created']) %}
-	<li {% if request['user'] == current_user %}class="mine"{% end %}>
-		{{ modules.Request(request, pushmaster=(push_info['user'] == current_user or override), push_buttons=True, show_ago=True) }}
-	</li>
-	{% end %}
-</ul>
-{% else %}
-<!-- ========= ITEMS THAT WERE INCLUDED [CLOSED PUSH] ========== -->
-<h3 class="status-header">Included Requests ({{ len(push_contents.get('all', [])) }})</h3>
-<ul id="added-items" class="push-items push-items-section">
-	{% for request in push_contents.get('all', []) %}
-	<li {% if request['user'] == current_user %}class="mine"{% end %}>
-		{{ modules.Request(request) }}
-	</li>
-	{% end %}
-</ul>
-{% end %}
+
+{% include 'push-status.html' %}
+
 <div id="dialog-prototypes" style="display: none;">
 <!-- "Run a command" dialog -->
 	<div id="run-a-command">

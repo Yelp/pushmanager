@@ -38,10 +38,17 @@ class DelayRequestServlet(RequestHandler):
         if req['state'] != 'delayed':
             # We didn't actually discard the record, for whatever reason
             return self.redirect("/requests?user=%s" % self.current_user)
+
+        if req['watchers']:
+            user_string = '%s (%s)' % (req['user'], req['watchers'])
+            users = [req['user']] + req['watchers'].split(',')
+        else:
+            user_string = req['user']
+            users = [req['user']]
         msg = (
             """
             <p>
-                Your request has been marked as delayed by %(pushmaster)s, and will not be accepted into pushes until you
+                Request for %(user)s has been marked as delayed by %(pushmaster)s, and will not be accepted into pushes until you
                 mark it as requested again:
             </p>
             <p>
@@ -54,12 +61,12 @@ class DelayRequestServlet(RequestHandler):
             </p>"""
             ) % core.util.EscapedDict({
                 'pushmaster': self.current_user,
-                'user': req['user'],
+                'user': user_string,
                 'title': req['title'],
                 'repo': req['repo'],
                 'branch': req['branch'],
             })
-        subject = "[push] %s - %s" % (req['user'], req['title'])
-        MailQueue.enqueue_user_email([req['user']], msg, subject)
+        subject = "[push] %s - %s" % (user_string, req['title'])
+        MailQueue.enqueue_user_email(users, msg, subject)
 
         self.redirect("/requests?user=%s" % self.current_user)

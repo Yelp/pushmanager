@@ -34,7 +34,7 @@ $(function() {
     };
     $('#request-info-form').submit(PushManager.NewRequestDialog.validate);
 
-    PushManager.NewRequestDialog.open_new_request = function(title, branch, repo, review, comments, description, tags, requestid, notyours) {
+    PushManager.NewRequestDialog.open_new_request = function(title, branch, repo, review, comments, description, watchers, tags, requestid, notyours) {
         var d = PushManager.NewRequestDialog.element;
 
         d.find('#request-form-title').val(title || '');
@@ -44,6 +44,7 @@ $(function() {
         d.find('#request-form-tags').val(tags || '');
         d.find('#request-form-comments').val(comments || '');
         d.find('#request-form-description').val(description || '');
+        d.find('#request-form-watchers').val(watchers || '');
         d.find('#request-form-id').val(requestid || '');
         d.find('#request-not-yours-notice').toggle(notyours || false);
 
@@ -68,6 +69,7 @@ $(function() {
             that.attr('reviewid'),
             that.find('.request-comments').text().replace(/\n{3,}/g, '\n\n'),
             that.find('.request-description').text(),
+            that.attr('watchers'),
             tags,
             that.attr('request'),
             that.attr('user') != PushManager.current_user

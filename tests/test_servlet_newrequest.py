@@ -42,6 +42,7 @@ class NewRequestServletTest(T.TestCase, T.ServletTestMixin, T.FakeDataMixin):
                 'request-branch': 'super_safe_fix',
                 'request-comments': 'No comment',
                 'request-description': 'I approve this fix!',
+                'request-watchers': 'testuser2,testuser3',
             }
 
             response = self.fetch(
@@ -65,6 +66,7 @@ class NewRequestServletTest(T.TestCase, T.ServletTestMixin, T.FakeDataMixin):
             T.assert_equal(request['request-tags'], last_req['tags'])
             T.assert_equal(request['request-comments'], last_req['comments'])
             T.assert_equal(request['request-description'], last_req['description'])
+            T.assert_equal(request['request-watchers'], last_req['watchers'])
 
 
 class NewRequestChecklistMixin(T.ServletTestMixin, T.FakeDataMixin):
@@ -244,4 +246,4 @@ class EditRequestChecklistTest(T.TestCase, NewRequestChecklistMixin):
         T.assert_equal(orig_reqid, new_reqid)
 
 if __name__ == '__main__':
-	T.run()
+    T.run()

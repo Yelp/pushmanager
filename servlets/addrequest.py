@@ -32,10 +32,16 @@ class AddRequestServlet(RequestHandler):
         self.check_db_results(success, db_results)
 
         for req in db_results[-1]:
+            if req['watchers']:
+                user_string = '%s (%s)' % (req['user'], req['watchers'])
+                users = [req['user']] + req['watchers'].split(',')
+            else:
+                user_string = req['user']
+                users = [req['user']]
             msg = (
                 """
                 <p>
-                    %(pushmaster)s has accepted your request into a push:
+                    %(pushmaster)s has accepted request for %(user)s into a push:
                 </p>
                 <p>
                     <strong>%(user)s - %(title)s</strong><br />
@@ -47,17 +53,18 @@ class AddRequestServlet(RequestHandler):
                 </p>"""
                 ) % core.util.EscapedDict({
                     'pushmaster': self.current_user,
-                    'user': req['user'],
+                    'user': user_string,
                     'title': req['title'],
                     'repo': req['repo'],
                     'branch': req['branch'],
                 })
-            subject = "[push] %s - %s" % (req['user'], req['title'])
-            MailQueue.enqueue_user_email([req['user']], msg, subject)
-            msg = '%(pushmaster)s has accepted your request "%(title)s" into a push:\nhttps://%(pushmanager_servername)s/push?id=%(pushid)s' % {
+            subject = "[push] %s - %s" % (user_string, req['title'])
+            MailQueue.enqueue_user_email(users, msg, subject)
+            msg = '%(pushmaster)s has accepted request "%(title)s" for %(user)s into a push:\nhttps://%(pushmanager_servername)s/push?id=%(pushid)s' % {
                 'pushmanager_servername': Settings['main_app']['servername'],
                 'pushmaster': self.current_user,
                 'title': req['title'],
                 'pushid': self.pushid,
+                'user': user_string,
             }
-            XMPPQueue.enqueue_user_xmpp([req['user']], msg)
+            XMPPQueue.enqueue_user_xmpp(users, msg)

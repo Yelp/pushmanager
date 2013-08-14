@@ -87,7 +87,16 @@ $(function() {
     });
     $('.message-people').live('click', function() {
         var contents = $(this).siblings('.item-count').text();
-        var people = (/(?:[a-z]+,?\s?)+/.exec(contents) || [""])[0];
+
+        var people_pat = new RegExp(    // person, person (person, person), person (person), person
+            "(?:[a-z]+" +                   // A username, possibly followed by
+                "(?:\\s\\(" +               //   a space and (
+                    "(?:[a-z]+,?\\s?)+" +   //   and one or more usernames (possibly separated by comma and/or a single space)
+                "\\))?" +                   //   followed by a )
+            ",?\\s?" +                      // possibly followed by a command and space
+            ")+")                           // and more of the same
+
+        var people = (people_pat.exec(contents) || [""])[0];
         PushManager.send_message_dialog(people);
     });
     $('#message-all').live('click', function() {
@@ -255,7 +264,11 @@ $(function() {
     PushManager.requests_to_names = function(requests) {
         var hash = new Object();
         requests.each(function() {
-            hash[$(this).attr('user')] = true;
+            if($(this).attr('watchers')) {
+                hash[$(this).attr('user') + ' (' + $(this).attr('watchers') + ')'] = true;
+            } else {
+                hash[$(this).attr('user')] = true;
+            }
         });
         var names = new Array();
         for(value in hash) {

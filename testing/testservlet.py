@@ -1,5 +1,7 @@
+from contextlib import contextmanager
 import logging
 import os
+import types
 
 import mock
 import tornado.web
@@ -10,6 +12,7 @@ from core import db
 from core.requesthandler import RequestHandler
 from testify.utils import turtle
 import ui_modules
+import ui_methods
 import testing as T
 
 FORMAT = "%(asctime)-15s %(message)s"
@@ -35,6 +38,7 @@ class AsyncTestCase(AsyncHTTPTestCase):
             template_path = os.path.join(os.path.dirname(__file__), "../templates"),
             cookie_secret = 'cookie_secret',
             ui_modules = ui_modules,
+            ui_methods = ui_methods,
             autoescape = None,
         )
         return app
@@ -52,7 +56,17 @@ class TemplateTestCase(T.TestCase):
         application.settings = {
             'static_path': os.path.join(os.path.dirname(__file__), "../static"),
             'template_path': os.path.join(os.path.dirname(__file__), "../templates"),
+            'autoescape': None,
         }
+
+        # Properly load ui_modules and ui_methods
+        application.ui_modules = {}
+        application.ui_methods = {}
+        application._load_ui_modules = types.MethodType(tornado.web.Application._load_ui_modules.im_func, application)
+        application._load_ui_methods = types.MethodType(tornado.web.Application._load_ui_methods.im_func, application)
+        application._load_ui_modules(ui_modules)
+        application._load_ui_methods(ui_methods)
+
         if self.authenticated:
             application.settings['cookie_secret'] = 'cookie_secret'
         request = turtle.Turtle()
@@ -63,6 +77,13 @@ class TemplateTestCase(T.TestCase):
         rendered_page = ''.join(self.servlet._write_buffer)
         tree = etree.HTML(rendered_page)
         return tree
+
+    @contextmanager
+    def no_ui_modules(self):
+        modules = mock.Mock()
+        modules.Request = mock.Mock()
+        with mock.patch.dict(self.servlet.ui, modules=modules):
+            yield
 
 
 class ServletTestMixin(AsyncTestCase):
