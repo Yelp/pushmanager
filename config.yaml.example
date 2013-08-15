@@ -115,3 +115,9 @@ check_sites_bookmarklet:
 
 tornado:
    num_workers: 4
+
+
+# Upon completion of a push, Pushmanager can optionally display a button to fill out a survey.
+# If this is not defined, no button to a survey is displayed.
+# push_survey_url: 'https://examplesurvey'
+
