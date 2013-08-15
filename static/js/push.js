@@ -430,7 +430,7 @@ $(function() {
                 'url': '/livepush',
                 'data': {'id': $('#push-info').attr('push')},
                 'success': function() {
-                    window.location.reload();
+                    $('#push-survey')[0].maybe_open();
                 },
                 'error': function() { alert("Something went wrong when marking the push live."); }
             });
@@ -464,4 +464,13 @@ $(function() {
     setTimeout(function() {
         $('.tag-buildbot').each(function() { PushManager.Request.load_bb_failures(this); });
     }, 1000);
+
+    $('#push-survey').dialog({
+        autoOpen: false,
+        modal: true,
+        title: 'Congratulations on a successful push!',
+        width: 400,
+        height: 100,
+        resizable: false
+    });
 });

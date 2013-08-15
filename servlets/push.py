@@ -27,12 +27,16 @@ class PushServlet(RequestHandler):
                     )
 
         push_info, push_requests, available_requests = self.get_api_results(response)
+
+        push_survey_url = Settings.get('push_survey_url', None)
+
         self.render(
             "push.html",
             page_title=push_info['title'],
             pushid=pushid,
             push_info=push_info,
             push_contents=push_requests,
+            push_survey_url=push_survey_url,
             available_requests=available_requests,
             fullrepo=_repo,
             override=override
