@@ -29,7 +29,8 @@ class PushTemplateTest(T.TemplateTestCase):
             'push_contents': {},
             'available_requests': [],
             'fullrepo': 'not/a/repo',
-            'override': False
+            'override': False,
+            'push_survey_url': None
             }
 
     basic_request = {
@@ -187,6 +188,23 @@ class PushTemplateTest(T.TemplateTestCase):
             found_mockreq.append(mockreq)
 
         T.assert_equal(5, len(found_mockreq))
+
+    def test_include_push_survey_exists(self):
+        push = dict(self.basic_push)
+        push['state'] = 'live'
+
+        kwargs = dict(**self.basic_kwargs)
+        kwargs['push_survey_url'] = 'http://sometestsurvey'
+        tree = self.render_etree(
+            self.push_page,
+            push_info=push,
+            **kwargs)
+
+        for script in tree.iter('script'):
+            if script.text and kwargs['push_survey_url'] in script.text:
+                break
+        else:
+            assert False, 'push_survey_url not found'
 
 
 if __name__ == '__main__':

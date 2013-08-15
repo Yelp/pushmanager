@@ -136,9 +136,25 @@
 			<button id="send-message">Send</button>
 		</p>
 	</div>
+<!-- Push survey dialog -->
+	<div id="push-survey">
+		<p class="directions">
+			Please fill out this <button id="go-survey">quick survey.</button>
+		</p>
+	</div>
 </div>
 {% end %}
 
 {% block scripts %}
 <script type="text/javascript" src="{{ static_url('js/push.js') }}"></script>
+<script type="text/javascript">
+	{% if push_survey_url %}
+        $('#go-survey').click(function() {
+                window.location.href = "{{ escape(push_survey_url) }}";
+        })
+        $('#push-survey')[0].maybe_open = function() { $('#push-survey').dialog('open'); }
+        {% else %}
+        $('#push-survey')[0].maybe_open = function() { window.location.reload(); }
+        {% end %}
+</script>
 {% end %}
