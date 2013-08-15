@@ -41,4 +41,3 @@ class PushServlet(RequestHandler):
             fullrepo=_repo,
             override=override
         )
-
