@@ -5,7 +5,7 @@ class NewRequestTemplateTest(T.TemplateTestCase):
     authenticated = True
     newrequest_page = 'modules/newrequest.html'
 
-    form_elements = ['title', 'tags', 'review', 'repo', 'branch', 'description', 'comments', 'watchers']
+    form_elements = ['title', 'tags', 'review', 'repo', 'branch', 'description', 'comments', 'watchers', 'takeover']
 
     def test_request_form_labels(self):
         tree = self.render_etree(self.newrequest_page)
@@ -27,7 +27,7 @@ class NewRequestTemplateTest(T.TemplateTestCase):
         found_id = []
         found_name = []
         for field in tree.iter('input'):
-            if 'type' not in field.attrib:  # ignore hidden/submit
+            if 'type' not in field.attrib or field.attrib['type'] in ['checkbox']:  # ignore hidden/submit
                 found_id.append(field.attrib['id'])
                 found_name.append(field.attrib['name'])
 
