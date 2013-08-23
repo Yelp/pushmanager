@@ -11,16 +11,20 @@ import testing as T
 
 class NewRequestServletTest(T.TestCase, T.ServletTestMixin, T.FakeDataMixin):
 
-    def get_handlers(self):
-        return [get_servlet_urlspec(NewRequestServlet)]
+    basic_request = {
+           'request-title': 'Test Push Request Title',
+           'request-tags': 'super-safe,logs',
+           'request-review': 1,
+           'request-repo': 'testuser',
+           'request-branch': 'super_safe_fix',
+           'request-comments': 'No comment',
+           'request-description': 'I approve this fix!',
+           'request-watchers': 'testuser2,testuser3',
+           'request-takeover': False,
+    }
 
-    def test_newrequest(self):
-        results = []
-
-        def on_db_return(success, db_results):
-            assert success
-            results.extend(db_results.fetchall())
-
+    @T.class_setup_teardown
+    def mock(self):
         with nested(
             mock.patch.dict(db.Settings, T.MockedSettings),
             mock.patch.object(NewRequestServlet, "redirect"),
@@ -30,43 +34,59 @@ class NewRequestServletTest(T.TestCase, T.ServletTestMixin, T.FakeDataMixin):
                 return_value="testuser"
             )
         ):
-            results = []
-            db.execute_cb(db.push_requests.select(), on_db_return)
-            num_results_before = len(results)
+            yield
 
-            request = {
-                'request-title': 'Test Push Request Title',
-                'request-tags': 'super-safe,logs',
-                'request-review': 1,
-                'request-repo': 'testuser',
-                'request-branch': 'super_safe_fix',
-                'request-comments': 'No comment',
-                'request-description': 'I approve this fix!',
-                'request-watchers': 'testuser2,testuser3',
-            }
+    def get_handlers(self):
+        return [get_servlet_urlspec(NewRequestServlet)]
 
-            response = self.fetch(
-                "/newrequest",
-                method="POST",
-                body=urllib.urlencode(request)
-            )
-            T.assert_equal(response.error, None)
+    def assert_submit_request(self, request, edit=False):
+        results = []
 
-            results = []
-            db.execute_cb(db.push_requests.select(), on_db_return)
-            num_results_after = len(results)
+        def on_db_return(success, db_results):
+            assert success
+            results.extend(db_results.fetchall())
 
+        results = []
+        db.execute_cb(db.push_requests.select(), on_db_return)
+        num_results_before = len(results)
+
+        response = self.fetch(
+            "/newrequest",
+            method="POST",
+            body=urllib.urlencode(request)
+        )
+        T.assert_equal(response.error, None)
+
+        results = []
+        db.execute_cb(db.push_requests.select(), on_db_return)
+        num_results_after = len(results)
+
+        if not edit:
             T.assert_equal(num_results_after, num_results_before + 1)
 
             last_req = self.get_requests()[-1]
             T.assert_equal(len(results), last_req['id'])
-            T.assert_equal('testuser', last_req['user'])
-            T.assert_equal(request['request-repo'], last_req['repo'])
-            T.assert_equal(request['request-branch'], last_req['branch'])
-            T.assert_equal(request['request-tags'], last_req['tags'])
-            T.assert_equal(request['request-comments'], last_req['comments'])
-            T.assert_equal(request['request-description'], last_req['description'])
-            T.assert_equal(request['request-watchers'], last_req['watchers'])
+            return last_req
+        else:
+            T.assert_equal(num_results_after, num_results_before)
+            last_req = self.get_requests()[-1]
+            return last_req
+
+    def assert_request(self, expected, actual):
+        T.assert_equal(expected['user'], actual['user'])
+        T.assert_equal(expected['request-repo'], actual['repo'])
+        T.assert_equal(expected['request-branch'], actual['branch'])
+        T.assert_equal(expected['request-tags'], actual['tags'])
+        T.assert_equal(expected['request-comments'], actual['comments'])
+        T.assert_equal(expected['request-description'], actual['description'])
+        T.assert_equal(expected['request-watchers'], actual['watchers'])
+
+    def test_newrequest(self):
+        last_req = self.assert_submit_request(self.basic_request)
+        basic_request = dict(self.basic_request)
+        basic_request.update({'user': 'testuser'})
+        self.assert_request(basic_request, last_req)
+
 
 
 class NewRequestChecklistMixin(T.ServletTestMixin, T.FakeDataMixin):
@@ -244,6 +264,7 @@ class EditRequestChecklistTest(T.TestCase, NewRequestChecklistMixin):
         new_reqid = self.assert_checklist_for_tags(tags, orig_reqid)
 
         T.assert_equal(orig_reqid, new_reqid)
+
 
 if __name__ == '__main__':
     T.run()
