@@ -45,9 +45,12 @@
 	<label for="request-form-watchers">Additional Watchers (comma separated)</label>
 	<input name="request-watchers" id="request-form-watchers" />
 
-	<label for="request-form-takeover"><input type="checkbox" name="request-takeover" id="request-form-takeover" style="display: inline; width: 5%" />
-		This request is not yours. Check to take ownership.</label>
+	<label for="request-form-takeover">
+		<input type="checkbox" name="request-takeover" id="request-form-takeover" value="takeover" style="display: inline; width: 5%" />
+		This request is not yours. Check to take ownership.
+	</label>
 
+	<input type="hidden" name="request-user" id="request-form-user" value="" />
 	<input type="hidden" name="request-id" id="request-form-id" value="" />
 
 	<input type="submit" id="request-form-submit" name="request-submit" value="Submit Request" />

@@ -20,7 +20,7 @@ class NewRequestServletTest(T.TestCase, T.ServletTestMixin, T.FakeDataMixin):
            'request-comments': 'No comment',
            'request-description': 'I approve this fix!',
            'request-watchers': 'testuser2,testuser3',
-           'request-takeover': False,
+           'request-takeover': '',
     }
 
     @T.class_setup_teardown
@@ -39,7 +39,7 @@ class NewRequestServletTest(T.TestCase, T.ServletTestMixin, T.FakeDataMixin):
     def get_handlers(self):
         return [get_servlet_urlspec(NewRequestServlet)]
 
-    def assert_submit_request(self, request, edit=False):
+    def assert_submit_request(self, request, edit=False, redirect=None):
         results = []
 
         def on_db_return(success, db_results):
@@ -50,12 +50,23 @@ class NewRequestServletTest(T.TestCase, T.ServletTestMixin, T.FakeDataMixin):
         db.execute_cb(db.push_requests.select(), on_db_return)
         num_results_before = len(results)
 
-        response = self.fetch(
-            "/newrequest",
-            method="POST",
-            body=urllib.urlencode(request)
-        )
-        T.assert_equal(response.error, None)
+        if redirect:
+            with mock.patch.object(NewRequestServlet, "redirect") as redir:
+                response = self.fetch(
+                    "/newrequest",
+                    method="POST",
+                    body=urllib.urlencode(request)
+                )
+                T.assert_equal(response.error, None)
+
+                T.assert_equal(redir.call_args[0][0], redirect)
+        else:
+            response = self.fetch(
+                "/newrequest",
+                method="POST",
+                body=urllib.urlencode(request)
+            )
+            T.assert_equal(response.error, None)
 
         results = []
         db.execute_cb(db.push_requests.select(), on_db_return)
@@ -87,6 +98,40 @@ class NewRequestServletTest(T.TestCase, T.ServletTestMixin, T.FakeDataMixin):
         basic_request.update({'user': 'testuser'})
         self.assert_request(basic_request, last_req)
 
+    def test_editrequest_no_takeover(self):
+        last_req = self.assert_submit_request(self.basic_request)
+        basic_request = dict(self.basic_request)
+        basic_request.update({'user': 'testuser'})
+        self.assert_request(basic_request, last_req)
+
+        basic_request.update({'request-id': last_req['id']})
+        basic_request.update({'request-user': 'testuser'})
+        with mock.patch.object(
+                NewRequestServlet,
+                "get_current_user",
+                return_value="testtakeoveruser"
+                ):
+            edit_req = self.assert_submit_request(basic_request, edit=True, redirect='/requests?user=testuser')
+            basic_request.update({'user': 'testuser'})
+            self.assert_request(basic_request, edit_req)
+
+    def test_editrequest_takeover(self):
+        last_req = self.assert_submit_request(self.basic_request)
+        basic_request = dict(self.basic_request)
+        basic_request.update({'user': 'testuser'})
+        self.assert_request(basic_request, last_req)
+
+        basic_request.update({'request-id': last_req['id']})
+        basic_request.update({'request-takeover': 'takeover'})
+        basic_request.update({'request-user': 'testuser'})
+        with mock.patch.object(
+                NewRequestServlet,
+                "get_current_user",
+                return_value="testtakeoveruser"
+                ):
+            edit_req = self.assert_submit_request(basic_request, edit=True, redirect='/requests?user=testtakeoveruser')
+            basic_request.update({'user': 'testtakeoveruser'})
+            self.assert_request(basic_request, edit_req)
 
 
 class NewRequestChecklistMixin(T.ServletTestMixin, T.FakeDataMixin):
