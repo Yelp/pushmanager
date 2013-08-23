@@ -8,9 +8,9 @@ $(function() {
         title: 'Create/Edit Push Request',
         width: 650,
         minWidth: 650,
-        height: 750,
-        maxHeight: 750,
-        minHeight: 750
+        height: 805,
+        maxHeight: 805,
+        minHeight: 805
     });
 
     PushManager.NewRequestDialog.validate = function() {
