@@ -15,7 +15,7 @@ $(function() {
         data = data.replace(/"/g, '&quot;');
 
         // Newlines -> Rendered newlines
-        data = data.replace(/\n/g, '\n<br>\n');
+        data = data.replace(/\n/g, '\n<br>');
 
         // Bold comment headers
         data = data.replace(/Comment from \w+:/g, function(m) { return '<strong>' + m + '</strong>'; });
