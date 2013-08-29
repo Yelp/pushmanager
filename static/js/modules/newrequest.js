@@ -47,7 +47,7 @@ $(function() {
         d.find('#request-form-watchers').val(watchers || '');
         d.find('#request-form-user').val(requestuser || '');
         d.find('#request-form-id').val(requestid || '');
-        d.find('#request-form-takeover').toggle(notyours || false);
+        d.find('#request-form-takeover-label').toggle(notyours || false);
 
         d.dialog('open');
     };
