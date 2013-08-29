@@ -32,11 +32,9 @@ class NewRequestServlet(RequestHandler):
 
         if self.requestid != '':
             self.requestid = int(self.requestid)
-            query = db.push_requests.update().where(
-                    db.push_requests.c.id == self.requestid
-                ).values({
+
+            updated_values = {
                     'title': self._arg('request-title'),
-                    'user': self.current_user,
                     'tags': ','.join(self.tag_list),
                     'reviewid': reviewid or None,
                     'repo': self._arg('request-repo'),
@@ -46,7 +44,17 @@ class NewRequestServlet(RequestHandler):
                     'watchers': watchers,
                     'modified': time.time(),
                     'revision': '0'*40,
-                })
+            }
+
+            if len(self._arg('request-takeover')):
+                updated_values.update({'user': self.current_user})
+                self.request_user = self.current_user
+            else:
+                self.request_user = self._arg('request-user')
+
+            query = db.push_requests.update().where(
+                    db.push_requests.c.id == self.requestid
+                ).values(updated_values)
         else:
             query = db.push_requests.insert({
                 'title': self._arg('request-title'),
@@ -63,6 +71,7 @@ class NewRequestServlet(RequestHandler):
                 'state': 'requested',
                 'revision': '0'*40,
                 })
+            self.request_user = self.current_user
 
         db.execute_cb(query, self.on_request_upsert_complete)
 
@@ -131,4 +140,4 @@ class NewRequestServlet(RequestHandler):
         if self.requestid:
             GitQueue.enqueue_request(self.requestid)
 
-        return self.redirect("/requests?user=%s" % self.current_user)
+        return self.redirect("/requests?user=%s" % self.request_user)

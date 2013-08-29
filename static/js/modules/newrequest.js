@@ -34,7 +34,7 @@ $(function() {
     };
     $('#request-info-form').submit(PushManager.NewRequestDialog.validate);
 
-    PushManager.NewRequestDialog.open_new_request = function(title, branch, repo, review, comments, description, watchers, tags, requestid, notyours) {
+    PushManager.NewRequestDialog.open_new_request = function(title, branch, repo, review, comments, description, watchers, tags, requestid, requestuser, notyours) {
         var d = PushManager.NewRequestDialog.element;
 
         d.find('#request-form-title').val(title || '');
@@ -45,8 +45,9 @@ $(function() {
         d.find('#request-form-comments').val(comments || '');
         d.find('#request-form-description').val(description || '');
         d.find('#request-form-watchers').val(watchers || '');
+        d.find('#request-form-user').val(requestuser || '');
         d.find('#request-form-id').val(requestid || '');
-        d.find('#request-not-yours-notice').toggle(notyours || false);
+        d.find('#request-form-takeover').toggle(notyours || false);
 
         d.dialog('open');
     };
@@ -72,6 +73,7 @@ $(function() {
             that.attr('watchers'),
             tags,
             that.attr('request'),
+            that.attr('user'),
             that.attr('user') != PushManager.current_user
         );
     });
