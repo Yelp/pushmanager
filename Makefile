@@ -23,5 +23,13 @@ flakes:
 test:
 	testify -v --summary tests
 
+.PHONY: coverage
+coverage:
+	@coverage erase
+	coverage run `which testify` --verbose --exclude-suite disabled tests; STATUS=$$?; exit $$STATUS
+	coverage report
+	coverage html
+	coverage xml
+
 .PHONY: tests
 tests: test ;
