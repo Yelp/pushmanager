@@ -126,8 +126,8 @@ class RequestTemplateTest(T.TemplateTestCase):
 
     pushmaster_button_classes = ['add-request', 'remove-request', 'comment-request', 'pushmaster-delay-request']
     pushmaster_button_text = ['Add', 'Remove', 'Comment', 'Delay']
-    push_button_classes = ['verify-request', 'pickme-request', 'unpickme-request']
-    push_button_text = ['Verify', 'Pick me!', 'Don\'t pick me!']
+    push_button_classes = ['verify-request', 'pickme-request', 'unpickme-request', 'edit-request']
+    push_button_text = ['Verify', 'Pick me!', 'Don\'t pick me!', 'Edit']
     requester_edit_button_classes = ['edit-request', 'delay-request', 'discard-request']
     requester_edit_button_text = ['Edit', 'Delay', 'Discard']
     edit_button_classes = ['edit-request']
