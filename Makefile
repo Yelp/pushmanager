@@ -26,7 +26,7 @@ test:
 .PHONY: coverage
 coverage:
 	@coverage erase
-	coverage run `which testify` --verbose --exclude-suite disabled tests; STATUS=$$?; exit $$STATUS
+	coverage run `which testify` --verbose --exclude-suite disabled tests
 	coverage report
 	coverage html
 	coverage xml
