@@ -206,6 +206,17 @@ class PushTemplateTest(T.TemplateTestCase):
         else:
             assert False, 'push_survey_url not found'
 
+    def test_include_new_request_form(self):
+        with self.no_ui_modules():
+            tree = self.render_etree(
+                self.push_page,
+                push_info=self.basic_push,
+                **self.basic_kwargs)
+
+        T.assert_exactly_one(
+                *[mock.attrib['name'] for mock in tree.iter('mock')],
+                truthy_fxn=lambda name: name == 'mock.NewRequestDialog()')
+
 
 if __name__ == '__main__':
     T.run()
