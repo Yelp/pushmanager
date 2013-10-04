@@ -318,7 +318,7 @@ $(function() {
         PushManager.run_command_dialog("git push --delete canon " + $('#push-info').attr('branch'), function() {
             // Go ahead and discard it.
             $.post('/discardpush', {'id': $('#push-info').attr('push')}, function() {
-                window.location.reload();
+                $('#push-survey')[0].maybe_open();
             });
         });
     });
@@ -468,9 +468,9 @@ $(function() {
     $('#push-survey').dialog({
         autoOpen: false,
         modal: true,
-        title: 'Congratulations on a successful push!',
+        title: 'Congratulations or condolences, let\'s find out.',
         width: 400,
-        height: 100,
+        height: 120,
         resizable: false
     });
 });
