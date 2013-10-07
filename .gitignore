@@ -3,3 +3,5 @@
 app.*.log
 app.*.pid
 /config.yaml
+.coverage
+coverage*
