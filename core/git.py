@@ -61,9 +61,9 @@ class GitQueue(object):
         if Settings['git']['port']:
             netloc = '%s:%s' % (netloc, Settings['git']['port'])
         if repository == Settings['git']['main_repository']:
-            repository = '%s://%s/%s' % (Settings['git']['scheme'], netloc, Settings['git']['main_repository'])
+            repository = '%s://%s/%s' % (scheme, netloc, Settings['git']['main_repository'])
         else:
-            repository = '%s://%s/%s/%s' % (Settings['git']['scheme'], netloc, Settings['git']['dev_repositories_dir'], repository)
+            repository = '%s://%s/%s/%s' % (scheme, netloc, Settings['git']['dev_repositories_dir'], repository)
         return repository
 
     @classmethod
