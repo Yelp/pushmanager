@@ -62,12 +62,12 @@ class Application:
         with daemon_context:
             pid.write(self.pid_file)
             try:
-                self.start_services()
-                pid.write(self.pid_file, append=True)
-
                 # Drop privileges
                 uid = pwd.getpwnam(Settings.get("username", "www-data"))[2]
                 os.setuid(uid)
+
+                self.start_services()
+                pid.write(self.pid_file, append=True)
 
                 tornado.ioloop.IOLoop.instance().start()
             finally:
