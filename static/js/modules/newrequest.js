@@ -10,7 +10,8 @@ $(function() {
         minWidth: 650,
         height: 805,
         maxHeight: 805,
-        minHeight: 805
+        minHeight: 805,
+        closeOnEscape: false
     });
 
     PushManager.NewRequestDialog.validate = function() {
