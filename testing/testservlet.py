@@ -82,6 +82,7 @@ class TemplateTestCase(T.TestCase):
     def no_ui_modules(self):
         modules = mock.Mock()
         modules.Request = mock.Mock()
+        modules.NewRequestDialog = mock.Mock()
         with mock.patch.dict(self.servlet.ui, modules=modules):
             yield
 
