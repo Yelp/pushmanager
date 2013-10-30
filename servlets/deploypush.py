@@ -41,6 +41,8 @@ class DeployPushServlet(RequestHandler):
         self.check_db_results(success, db_results)
 
         _, staged_requests, push_result = db_results
+        push = push_result.fetchone()
+
         for req in staged_requests:
             if req['watchers']:
                 user_string = '%s (%s)' % (req['user'], req['watchers'])
@@ -51,7 +53,7 @@ class DeployPushServlet(RequestHandler):
             msg = (
                 """
                 <p>
-                    %(pushmaster)s has deployed request for %(user)s to stage:
+                    %(pushmaster)s has deployed request for %(user)s to %(pushstage)s:
                 </p>
                 <p>
                     <strong>%(user)s - %(title)s</strong><br />
@@ -75,6 +77,7 @@ class DeployPushServlet(RequestHandler):
                     'repo': req['repo'],
                     'branch': req['branch'],
                     'pushid': self.pushid,
+                    'pushstage': push['stageenv'],
                 })
             subject = "[push] %s - %s" % (user_string, req['title'])
             MailQueue.enqueue_user_email(users, msg, subject)
@@ -88,7 +91,6 @@ class DeployPushServlet(RequestHandler):
                 }
             XMPPQueue.enqueue_user_xmpp(users, msg)
 
-        push = push_result.fetchone()
         if push['extra_pings']:
             for user in push['extra_pings'].split(','):
                 XMPPQueue.enqueue_user_xmpp([user], '%s has deployed a push to stage.' % self.current_user)

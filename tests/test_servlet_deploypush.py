@@ -50,7 +50,7 @@ class DeployPushServletTest(T.TestCase, T.ServletTestMixin):
         reqs = [no_watcher_req, watched_req]
 
         def fetchone():
-            return {'extra_pings': None}
+            return {'extra_pings': None, 'stageenv': None}
 
         res = mock.Mock()
         res.fetchone = fetchone
