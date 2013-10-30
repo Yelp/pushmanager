@@ -1,3 +1,14 @@
+2013.10.39
+  AFFECTS: Users with existing installs before commit UPDATEME
+  AUTHOR: milki
+
+  As of commit UPDATEME, a new column 'stageenv' has been added to the
+  'pull_pushes' table. Existing installs will 500 error until the
+  database has been updated.
+
+  A convenience script, 'pushplans/add_stageenv.sql' has been included
+  to facilitate the database update.
+
 2013.07.29
   AFFECTS: Users with existing installs before commit b3f8fa5
   AUTHOR: milki
