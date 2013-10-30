@@ -60,9 +60,9 @@ $(function() {
     $('.edit-request').click(function() {
         var that = $(this).closest('.request-module');
         var tags = '';
-        that.find('ul.tags > li').each(function() {
+        that.find('ul.tags > li').each(function(_, elem) {
             if(tags !== '') tags += ' ';
-            tags += $(this).text().replace(/^\s+|\s+$/g, '');
+            tags += elem.classList[0].replace(/tag-/, '');
         });
         PushManager.NewRequestDialog.open_new_request(
             that.attr('request_title'),
