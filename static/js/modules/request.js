@@ -141,6 +141,9 @@ $(function() {
                     if(data['missing_builders']) {
                         a.append(', <span style="color: #f08;">' + data['missing_builders'] + ' missing</span>');   
                     }
+                    if(data['unfinished_builders']) {
+                        a.append(', <span style="color: #f08;">' + data['unfinished_builders'] + ' builders not finished</span>');
+                    }
                     a.append(')');
                 }
                 that.addClass('bb-data-loaded');
