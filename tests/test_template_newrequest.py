@@ -42,7 +42,8 @@ class NewRequestTemplateTest(T.TemplateTestCase):
         T.assert_sorted_equal(name_attr, found_name)
 
     tags = ['feature', 'fix' ,'cleanup', 'buildbot', 'caches', 'pushplans',
-        'special', 'urgent', 'l10n', 'l10n-only', 'hoods', 'stagea', 'stageb']
+        'special', 'urgent', 'l10n', 'l10n-only', 'hoods', 'stagea', 'stageb',
+        'no-verify']
 
     def test_request_quicktags(self):
         tree = self.render_etree(self.newrequest_page)
