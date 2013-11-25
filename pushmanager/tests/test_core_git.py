@@ -9,7 +9,7 @@ import mock
 from core import db
 from core.settings import Settings
 import core.git
-import testing as T
+import pushmanager.testing as T
 
 class CoreGitTest(T.TestCase):
 

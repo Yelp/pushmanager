@@ -10,7 +10,7 @@ import mock
 import sqlalchemy as SA
 
 from core import db
-import testing as T
+import pushmanager.testing as T
 
 class CoreDBTest(T.TestCase, T.FakeDataMixin):
 

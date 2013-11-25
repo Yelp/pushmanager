@@ -9,7 +9,7 @@ from core import db
 from core.util import get_servlet_urlspec
 from pushmanager.servlets.checklist import ChecklistServlet
 from pushmanager.servlets.checklist import ChecklistToggleServlet
-import testing as T
+import pushmanager.testing as T
 
 @contextmanager
 def fake_checklist_request():

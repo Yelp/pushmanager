@@ -4,7 +4,7 @@ import mock
 from core import db
 from core.util import get_servlet_urlspec
 from pushmanager.servlets.deploypush import DeployPushServlet
-import testing as T
+import pushmanager.testing as T
 import types
 
 class DeployPushServletTest(T.TestCase, T.ServletTestMixin):
