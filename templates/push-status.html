@@ -1,6 +1,6 @@
 <!-- ======== PUSH STATES ========= -->
 {% if push_info['state'] == 'accepting' %}
-{% for (section,sect_title) in [('blessed', 'Deployed to Prod'), ('verified', 'Verified on Stage'),	('staged', 'Deployed to Stage'), ('added', 'Added to Deploy Branch')] %}
+{% for (section,sect_title) in [('blessed', 'Deployed to Prod'), ('verified', 'Verified on %s' % push_info['stageenv']), ('staged', 'Deployed to %s' % push_info['stageenv']), ('added', 'Added to Deploy Branch')] %}
 <h3 class="status-header" section="{{section}}">{{ sect_title }} <span class="item-count"></span>
 	{% if push_info['user'] == current_user or override %}<button class="message-people">msg</button>{% end %}</h3>
 <ul id="{{ section }}-items" class="push-items push-items-section items-in-push">

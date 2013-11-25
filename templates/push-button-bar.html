@@ -1,0 +1,33 @@
+<ul id="action-buttons">
+	<li><button id="expand-all-requests">Expand All</button></li>
+	<li><button id="collapse-all-requests">Collapse All</button></li>
+	&mdash;
+	{% if current_user in (push_info['extra_pings'] or []) %}
+	<li><button id="ping-me" action="unset">Don't Ping Me</button></li>
+	{% else %}
+	<li><button id="ping-me" action="set">Ping Me</button></li>
+	{% end %}
+	{% if push_info['user'] == current_user or override %}
+		&mdash;
+		<li><button id="edit-push">Edit Push</button></li>
+		{% if push_info['state'] == 'accepting' %}
+		<li><button id="discard-push">Discard Push</button></li>
+		&mdash;
+		<li><button id="add-selected-requests">Add Selected</button></li>
+		<li><button id="remove-selected-requests">Remove Selected</button></li>
+		<li><button id="rebuild-deploy-branch">Rebuild Deploy Branch</button></li>
+		&mdash;
+		<li><button id="deploy-to-stage-step0">Added &rarr; Stage</button></li>
+		<li><button id="deploy-to-prod">Stage &rarr; Prod</button></li>
+		<li><button id="merge-to-master">Prod &rarr; master</button></li>
+		&mdash;
+		<li><button id="message-all">Message All</button></li>
+		<li><button id="show-checklist">Push Checklist</button></li>
+		{% end %}
+	{% else %}
+		{% if push_info['state'] == 'accepting' %}
+		&mdash; <li><button id="edit-push">Takeover Push</button></li>
+		{% end %}
+	{% end %}
+	<li style="display: none;">{{ modules.NewRequestDialog() }}</li>
+</ul>
