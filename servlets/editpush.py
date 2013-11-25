@@ -17,6 +17,7 @@ class EditPushServlet(RequestHandler):
             'title': self._arg('push-title'),
             'user': self.current_user,
             'branch': self._arg('push-branch'),
+            'stageenv': self._arg('push-stageenv'),
             'revision': "0"*40,
             'modified': time.time(),
             })

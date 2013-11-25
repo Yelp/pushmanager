@@ -15,6 +15,7 @@ CREATE TABLE push_pushes (
 	modified INTEGER,
 	pushtype VARCHAR,
 	extra_pings VARCHAR,
+	stageenv VARCHAR,
 	PRIMARY KEY (id)
 );
 INSERT INTO "push_pushes" VALUES(
@@ -27,6 +28,7 @@ INSERT INTO "push_pushes" VALUES(
        1346458516.87736,
        1346458516.87736,
        'regular',
+       NULL,
        NULL
 );
 INSERT INTO "push_pushes" VALUES(2,
@@ -38,6 +40,7 @@ INSERT INTO "push_pushes" VALUES(2,
        1346458663.2721,
        1346458663.2721,
        'private',
+       NULL,
        NULL
 );
 CREATE TABLE push_pushcontents (
