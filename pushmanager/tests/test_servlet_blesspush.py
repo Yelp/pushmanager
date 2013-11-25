@@ -3,7 +3,7 @@ import mock
 
 from core import db
 from core.util import get_servlet_urlspec
-from servlets.blesspush import BlessPushServlet
+from pushmanager.servlets.blesspush import BlessPushServlet
 import testing as T
 import types
 

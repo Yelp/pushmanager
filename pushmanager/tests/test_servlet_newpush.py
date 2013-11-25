@@ -10,9 +10,9 @@ from core.settings import Settings
 from core.mail import MailQueue
 from core.util import get_servlet_urlspec
 from core.xmppclient import XMPPQueue
-import servlets.newpush
-from servlets.newpush import NewPushServlet
-from servlets.newpush import send_notifications
+import pushmanager.servlets.newpush
+from pushmanager.servlets.newpush import NewPushServlet
+from pushmanager.servlets.newpush import send_notifications
 
 class NewPushServletTest(T.TestCase, T.ServletTestMixin):
 
@@ -32,7 +32,7 @@ class NewPushServletTest(T.TestCase, T.ServletTestMixin):
             mock.patch.object(NewPushServlet, "redirect"),
             mock.patch.object(MailQueue, "enqueue_user_email"),
         ):
-            with mock.patch("%s.servlets.newpush.subprocess.call" % __name__) as mocked_call:
+            with mock.patch("%s.pushmanager.servlets.newpush.subprocess.call" % __name__) as mocked_call:
                 title = "BestPushInTheWorld"
                 branch = "jblack"
                 push_type = "regular"
@@ -55,7 +55,7 @@ class NewPushServletTest(T.TestCase, T.ServletTestMixin):
                 T.assert_equal(num_pushes_before + 1, num_pushes_after)
 
                 # There should be one call to nodebot after a push is created
-                T.assert_equal(servlets.newpush.subprocess.call.call_count, 1)
+                T.assert_equal(pushmanager.servlets.newpush.subprocess.call.call_count, 1)
 
                 # Verify that we have a valid call to
                 # subprocess.call. Getting the arguments involves ugly
@@ -98,12 +98,12 @@ class NewPushServletTest(T.TestCase, T.ServletTestMixin):
 
         mocked_self.on_db_complete('success', [push, reqs])
 
-    @mock.patch('servlets.newpush.send_notifications')
+    @mock.patch('pushmanager.servlets.newpush.send_notifications')
     def test_normal_people_on_db_complete(self, notify):
         self.call_on_db_complete()
         notify.called_once_with(set(['testuser', 'testuser1', 'testuser2']), mock.ANY, mock.ANY)
 
-    @mock.patch('servlets.newpush.send_notifications')
+    @mock.patch('pushmanager.servlets.newpush.send_notifications')
     def test_urgent_people_on_db_complete(self, notify):
         self.call_on_db_complete(urgent=True)
         notify.called_once_with(set(['testuser', 'testuser1', 'testuser2']), mock.ANY, mock.ANY)
@@ -113,7 +113,7 @@ class NotificationsTestCase(T.TestCase):
 
     @contextmanager
     def mocked_notifications(self):
-        with mock.patch("%s.servlets.newpush.subprocess.call" % __name__) as mocked_call:
+        with mock.patch("%s.pushmanager.servlets.newpush.subprocess.call" % __name__) as mocked_call:
             with mock.patch.object(MailQueue, "enqueue_user_email") as mocked_mail:
                 with mock.patch.object(XMPPQueue, "enqueue_user_xmpp") as mocked_xmpp:
                     yield mocked_call, mocked_mail, mocked_xmpp

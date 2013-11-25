@@ -3,7 +3,7 @@ import mock
 
 from core import db
 from core.util import get_servlet_urlspec
-from servlets.delayrequest import DelayRequestServlet
+from pushmanager.servlets.delayrequest import DelayRequestServlet
 import testing as T
 import types
 

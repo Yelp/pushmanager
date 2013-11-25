@@ -7,8 +7,8 @@ import mock
 
 from core import db
 from core.util import get_servlet_urlspec
-from servlets.checklist import ChecklistServlet
-from servlets.checklist import ChecklistToggleServlet
+from pushmanager.servlets.checklist import ChecklistServlet
+from pushmanager.servlets.checklist import ChecklistToggleServlet
 import testing as T
 
 @contextmanager

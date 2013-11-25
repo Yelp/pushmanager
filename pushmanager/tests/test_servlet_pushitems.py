@@ -3,7 +3,7 @@ import json
 import mock
 
 from core.util import get_servlet_urlspec
-from servlets.pushitems import PushItemsServlet
+from pushmanager.servlets.pushitems import PushItemsServlet
 import testing as T
 
 class PushsItemsServletTest(T.TestCase, T.ServletTestMixin):
