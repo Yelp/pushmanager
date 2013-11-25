@@ -46,8 +46,8 @@ from pushmanager.servlets.undelayrequest import UndelayRequestServlet
 from pushmanager.servlets.userlist import UserListServlet
 from pushmanager.servlets.verifyrequest import VerifyRequestServlet
 
-import ui_modules
-import ui_methods
+import pushmanager.ui_modules as ui_modules
+import pushmanager.ui_methods as ui_methods
 
 class NullRequestHandler(RequestHandler):
     def get(self): pass
