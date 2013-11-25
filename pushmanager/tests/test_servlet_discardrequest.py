@@ -7,13 +7,13 @@ from pushmanager.servlets.discardrequest import DiscardRequestServlet
 import pushmanager.testing as T
 import types
 
-class DiscardRequestServletTest(T.TestCase, T.ServletTestMixin):
+class DiscardRequestServletTest(T.TestCase, ServletTestMixin):
 
     @T.class_setup_teardown
     def mock_servlet_env(self):
         self.results = []
         with nested(
-            mock.patch.dict(db.Settings, T.MockedSettings),
+            mock.patch.dict(db.Settings, MockedSettings),
             mock.patch.object(
                 DiscardRequestServlet,
                 "get_current_user",

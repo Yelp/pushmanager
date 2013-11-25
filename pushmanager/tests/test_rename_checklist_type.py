@@ -9,7 +9,7 @@ from tools import rename_checklist_type
 import pushmanager.testing as T
 
 
-class RenameTagTest(T.TestCase, T.FakeDataMixin):
+class RenameTagTest(T.TestCase, FakeDataMixin):
 
     checklist_keys = [ 'id', 'request', 'type', 'complete', 'target']
 
@@ -24,8 +24,8 @@ class RenameTagTest(T.TestCase, T.FakeDataMixin):
     @T.setup_teardown
     def setup_db(self):
         self.db_file_path = T.testdb.create_temp_db_file()
-        T.MockedSettings['db_uri'] = T.testdb.get_temp_db_uri(self.db_file_path)
-        with patch.dict(db.Settings, T.MockedSettings):
+        MockedSettings['db_uri'] = T.testdb.get_temp_db_uri(self.db_file_path)
+        with patch.dict(db.Settings, MockedSettings):
             db.init_db()
             self.insert_checklists()
             yield

@@ -12,13 +12,13 @@ import sqlalchemy as SA
 from core import db
 import pushmanager.testing as T
 
-class CoreDBTest(T.TestCase, T.FakeDataMixin):
+class CoreDBTest(T.TestCase, FakeDataMixin):
 
     @T.class_setup
     def setup_db_settings(self):
         self.db_file_path = T.testdb.create_temp_db_file()
-        T.MockedSettings['db_uri'] = T.testdb.get_temp_db_uri(self.db_file_path)
-        with mock.patch.dict(db.Settings, T.MockedSettings):
+        MockedSettings['db_uri'] = T.testdb.get_temp_db_uri(self.db_file_path)
+        with mock.patch.dict(db.Settings, MockedSettings):
             db.init_db()
             self.populate_database()
 

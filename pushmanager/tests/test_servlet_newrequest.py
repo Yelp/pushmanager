@@ -9,7 +9,7 @@ from pushmanager.servlets.checklist import checklist_reminders
 from pushmanager.servlets.newrequest import NewRequestServlet
 import pushmanager.testing as T
 
-class NewRequestServletTest(T.TestCase, T.ServletTestMixin, T.FakeDataMixin):
+class NewRequestServletTest(T.TestCase, ServletTestMixin, FakeDataMixin):
 
     basic_request = {
            'request-title': 'Test Push Request Title',
@@ -26,7 +26,7 @@ class NewRequestServletTest(T.TestCase, T.ServletTestMixin, T.FakeDataMixin):
     @T.class_setup_teardown
     def mock(self):
         with nested(
-            mock.patch.dict(db.Settings, T.MockedSettings),
+            mock.patch.dict(db.Settings, MockedSettings),
             mock.patch.object(NewRequestServlet, "redirect"),
             mock.patch.object(
                 NewRequestServlet,
@@ -134,14 +134,14 @@ class NewRequestServletTest(T.TestCase, T.ServletTestMixin, T.FakeDataMixin):
             self.assert_request(basic_request, edit_req)
 
 
-class NewRequestChecklistMixin(T.ServletTestMixin, T.FakeDataMixin):
+class NewRequestChecklistMixin(ServletTestMixin, FakeDataMixin):
 
     __test__ = False
 
     @T.class_setup_teardown
     def mock(self):
         with nested(
-            mock.patch.dict(db.Settings, T.MockedSettings),
+            mock.patch.dict(db.Settings, MockedSettings),
             mock.patch.object(NewRequestServlet, "redirect"),
             mock.patch.object(
                 NewRequestServlet,

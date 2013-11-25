@@ -6,7 +6,7 @@ import mock
 from pushmanager_main import LoginHandler
 import pushmanager.testing as T
 
-class LoginTest(T.TestCase, T.ServletTestMixin):
+class LoginTest(T.TestCase, ServletTestMixin):
 
     def get_handlers(self):
         return [(r'/login', LoginHandler)]
