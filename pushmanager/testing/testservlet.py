@@ -119,7 +119,7 @@ class ServletTestMixin(AsyncTestCase):
 
     def mocked_api_call(self, method, arguments, callback):
         """This is the mocked response from API. Responses in tests
-        are actually comming from servlets.
+        are actually comming from pushmanager.servlets.
         """
         response = mock.MagicMock()
         response.error = None

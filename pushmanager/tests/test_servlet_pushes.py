@@ -3,7 +3,7 @@ import lxml.html
 import mock
 
 from core.util import get_servlet_urlspec
-from servlets.pushes import PushesServlet
+from pushmanager.servlets.pushes import PushesServlet
 import testing as T
 
 class PushesServletTest(T.TestCase, T.ServletTestMixin):

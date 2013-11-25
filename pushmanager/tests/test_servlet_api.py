@@ -2,7 +2,7 @@ import json
 import time
 
 from core.util import get_servlet_urlspec
-from servlets.api import APIServlet
+from pushmanager.servlets.api import APIServlet
 import testing as T
 
 class APITests(T.TestCase, T.ServletTestMixin, T.FakeDataMixin):

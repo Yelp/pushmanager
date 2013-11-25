@@ -3,7 +3,7 @@ import mock
 
 from core import db
 from core.util import get_servlet_urlspec
-from servlets.livepush import LivePushServlet
+from pushmanager.servlets.livepush import LivePushServlet
 import testing as T
 import types
 
