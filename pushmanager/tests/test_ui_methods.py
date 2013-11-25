@@ -1,6 +1,6 @@
 import pushmanager.testing as T
 
-from ui_methods import authorized_to_manage_request
+from pushmanager.ui_methods import authorized_to_manage_request
 
 class UIMethodTest(T.TestCase):
 

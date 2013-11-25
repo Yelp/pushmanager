@@ -9,7 +9,7 @@ import core.db as db
 from core.settings import Settings
 from core.util import get_servlet_urlspec
 from pushmanager.servlets.api import APIServlet
-import ui_modules
+import pushmanager.ui_modules as ui_modules
 
 api_application = tornado.web.Application(
     # Servlet dispatch rules
