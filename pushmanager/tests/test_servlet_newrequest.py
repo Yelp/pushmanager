@@ -7,7 +7,7 @@ from core import db
 from core.util import get_servlet_urlspec
 from pushmanager.servlets.checklist import checklist_reminders
 from pushmanager.servlets.newrequest import NewRequestServlet
-import testing as T
+import pushmanager.testing as T
 
 class NewRequestServletTest(T.TestCase, T.ServletTestMixin, T.FakeDataMixin):
 

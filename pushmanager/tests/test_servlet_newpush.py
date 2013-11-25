@@ -2,7 +2,7 @@ from contextlib import nested
 from contextlib import contextmanager
 
 import mock
-import testing as T
+import pushmanager.testing as T
 import types
 
 from core import db

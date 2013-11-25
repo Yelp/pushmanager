@@ -4,7 +4,7 @@ from contextlib import nested
 import mock
 
 import core.xmppclient
-import testing as T
+import pushmanager.testing as T
 
 class CoreXMPPClientTest(T.TestCase):
 

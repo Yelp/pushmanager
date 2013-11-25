@@ -4,7 +4,7 @@ import mock
 from core import db
 from core.util import get_servlet_urlspec
 from pushmanager.servlets.livepush import LivePushServlet
-import testing as T
+import pushmanager.testing as T
 import types
 
 class LivePushServletTest(T.TestCase, T.ServletTestMixin):

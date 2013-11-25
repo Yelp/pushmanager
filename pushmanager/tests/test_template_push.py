@@ -1,7 +1,7 @@
 import time
 
 from core.settings import Settings
-import testing as T
+import pushmanager.testing as T
 
 class PushTemplateTest(T.TemplateTestCase):
 

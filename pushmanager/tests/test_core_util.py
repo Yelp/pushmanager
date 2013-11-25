@@ -3,7 +3,7 @@
 import copy
 import datetime
 
-import testing as T
+import pushmanager.testing as T
 from core.util import EscapedDict
 from core.util import get_servlet_urlspec
 from core.util import pretty_date

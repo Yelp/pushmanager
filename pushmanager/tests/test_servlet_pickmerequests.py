@@ -5,7 +5,7 @@ import mock
 from core import db
 from core.util import get_servlet_urlspec
 from pushmanager.servlets.pickmerequest import PickMeRequestServlet
-import testing as T
+import pushmanager.testing as T
 
 class PickMeRequestServletTest(T.TestCase, T.ServletTestMixin):
 

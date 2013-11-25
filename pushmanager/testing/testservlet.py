@@ -13,7 +13,7 @@ from core.requesthandler import RequestHandler
 from testify.utils import turtle
 import ui_modules
 import ui_methods
-import testing as T
+import pushmanager.testing as T
 
 FORMAT = "%(asctime)-15s %(message)s"
 logging.basicConfig(format=FORMAT)
