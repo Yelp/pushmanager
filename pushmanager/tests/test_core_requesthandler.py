@@ -2,7 +2,7 @@
 
 import mock
 
-import testing as T
+import pushmanager.testing as T
 from core.settings import Settings
 from core.requesthandler import RequestHandler
 

@@ -3,7 +3,7 @@ import mock
 
 from core.util import get_servlet_urlspec
 from pushmanager.servlets.summaryforbranch import SummaryForBranchServlet
-import testing as T
+import pushmanager.testing as T
 
 class SummaryForBranchServletTest(T.TestCase, T.ServletTestMixin):
 

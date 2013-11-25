@@ -6,7 +6,7 @@ from mock import patch
 
 from core import db
 from tools import rename_checklist_type
-import testing as T
+import pushmanager.testing as T
 
 
 class RenameTagTest(T.TestCase, T.FakeDataMixin):

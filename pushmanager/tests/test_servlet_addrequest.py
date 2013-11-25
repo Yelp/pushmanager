@@ -5,7 +5,7 @@ import urllib
 from core import db
 from core.util import get_servlet_urlspec
 from pushmanager.servlets.addrequest import AddRequestServlet
-import testing as T
+import pushmanager.testing as T
 import types
 
 class AddRequestServletTest(T.TestCase, T.ServletTestMixin):

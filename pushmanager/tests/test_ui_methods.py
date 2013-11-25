@@ -1,4 +1,4 @@
-import testing as T
+import pushmanager.testing as T
 
 from ui_methods import authorized_to_manage_request
 

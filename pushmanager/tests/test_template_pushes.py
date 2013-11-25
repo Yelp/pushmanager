@@ -1,4 +1,4 @@
-import testing as T
+import pushmanager.testing as T
 
 class PushesTemplateTest(T.TemplateTestCase):
 

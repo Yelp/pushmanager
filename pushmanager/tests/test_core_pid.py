@@ -6,7 +6,7 @@ from exceptions import OSError
 
 import mock
 
-import testing as T
+import pushmanager.testing as T
 from core import pid
 
 
