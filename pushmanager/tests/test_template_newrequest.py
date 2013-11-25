@@ -1,6 +1,6 @@
 import pushmanager.testing as T
 
-class NewRequestTemplateTest(T.TemplateTestCase):
+class NewRequestTemplateTest(TemplateTestCase):
 
     authenticated = True
     newrequest_page = 'modules/newrequest.html'

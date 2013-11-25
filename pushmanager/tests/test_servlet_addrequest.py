@@ -8,13 +8,13 @@ from pushmanager.servlets.addrequest import AddRequestServlet
 import pushmanager.testing as T
 import types
 
-class AddRequestServletTest(T.TestCase, T.ServletTestMixin):
+class AddRequestServletTest(T.TestCase, ServletTestMixin):
 
     @T.class_setup_teardown
     def mock_servlet_env(self):
         self.results = []
         with nested(
-            mock.patch.dict(db.Settings, T.MockedSettings),
+            mock.patch.dict(db.Settings, MockedSettings),
             mock.patch.object(
                 AddRequestServlet,
                 "get_current_user",

@@ -93,20 +93,20 @@ class ServletTestMixin(AsyncTestCase):
     def setup_db(self):
         self.setup_async_test_case()
 
-        self.db_file = T.make_test_db()
-        T.MockedSettings['db_uri'] = T.get_temp_db_uri(self.db_file)
-        T.MockedSettings['irc'] = {
+        self.db_file = T.testdb.make_test_db()
+        MockedSettings['db_uri'] = T.testdb.get_temp_db_uri(self.db_file)
+        MockedSettings['irc'] = {
             "nickname": "pushhamster+test",
             "channel": "pushmanagertest"
         }
         # for the purpose of unittests we'll use a single application
         # for API and main site.
-        T.MockedSettings['api_app'] = {
+        MockedSettings['api_app'] = {
             "domain": "localhost",
             "port": self.get_http_port()
         }
 
-        with mock.patch.dict(db.Settings, T.MockedSettings):
+        with mock.patch.dict(db.Settings, MockedSettings):
             db.init_db()
 
     @T.teardown

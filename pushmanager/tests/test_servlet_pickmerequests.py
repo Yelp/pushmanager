@@ -7,7 +7,7 @@ from core.util import get_servlet_urlspec
 from pushmanager.servlets.pickmerequest import PickMeRequestServlet
 import pushmanager.testing as T
 
-class PickMeRequestServletTest(T.TestCase, T.ServletTestMixin):
+class PickMeRequestServletTest(T.TestCase, ServletTestMixin):
 
     def get_handlers(self):
         return [get_servlet_urlspec(PickMeRequestServlet)]
@@ -15,7 +15,7 @@ class PickMeRequestServletTest(T.TestCase, T.ServletTestMixin):
     @contextmanager
     def fake_pickme_request(self):
         with nested(
-            mock.patch.dict(db.Settings, T.MockedSettings),
+            mock.patch.dict(db.Settings, MockedSettings),
             mock.patch.object(
                 PickMeRequestServlet,
                 "get_current_user",
@@ -61,7 +61,7 @@ class PickMeRequestServletTest(T.TestCase, T.ServletTestMixin):
             # push_pushcontents table should define a multi column
             # primary key on (request id, push id).
             #
-            # Fake data from T.ServletTestMixin already have this
+            # Fake data from ServletTestMixin already have this
             # (pushid, requestid) binding. Adding another pickme request
             # with same (request id, push id) should fail.
             requestid = 1

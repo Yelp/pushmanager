@@ -6,7 +6,7 @@ from core.util import get_servlet_urlspec
 from pushmanager.servlets.pushes import PushesServlet
 import pushmanager.testing as T
 
-class PushesServletTest(T.TestCase, T.ServletTestMixin):
+class PushesServletTest(T.TestCase, ServletTestMixin):
 
     def get_handlers(self):
         return [

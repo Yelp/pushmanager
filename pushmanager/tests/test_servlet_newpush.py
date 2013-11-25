@@ -14,7 +14,7 @@ import pushmanager.servlets.newpush
 from pushmanager.servlets.newpush import NewPushServlet
 from pushmanager.servlets.newpush import send_notifications
 
-class NewPushServletTest(T.TestCase, T.ServletTestMixin):
+class NewPushServletTest(T.TestCase, ServletTestMixin):
 
     def get_handlers(self):
         return [get_servlet_urlspec(NewPushServlet)]
@@ -27,7 +27,7 @@ class NewPushServletTest(T.TestCase, T.ServletTestMixin):
             pushes.extend(db_results.fetchall())
 
         with nested(
-            mock.patch.dict(db.Settings, T.MockedSettings),
+            mock.patch.dict(db.Settings, MockedSettings),
             mock.patch.object(NewPushServlet, "get_current_user", return_value = "jblack"),
             mock.patch.object(NewPushServlet, "redirect"),
             mock.patch.object(MailQueue, "enqueue_user_email"),
