@@ -440,7 +440,7 @@ $(function() {
             alert("There are staged requests which have not been verified. You must either verify or remove them.");
             return false;
         }
-        PushManager.run_command_dialog("deploy-prod --source <stagename> <deploytag>", function() {
+        PushManager.run_command_dialog("deploy-prod --source " + $('#push-info').attr('stageenv') + " <deploytag>", function() {
             // "Cancel" button was not pressed, so mark as blessed to prod
             $.ajax({
                 'type': 'POST',
