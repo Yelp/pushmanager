@@ -5,8 +5,8 @@ import urllib
 
 from core import db
 from core.util import get_servlet_urlspec
-from servlets.checklist import checklist_reminders
-from servlets.newrequest import NewRequestServlet
+from pushmanager.servlets.checklist import checklist_reminders
+from pushmanager.servlets.newrequest import NewRequestServlet
 import testing as T
 
 class NewRequestServletTest(T.TestCase, T.ServletTestMixin, T.FakeDataMixin):

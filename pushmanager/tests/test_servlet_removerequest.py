@@ -4,7 +4,7 @@ import types
 
 from core import db
 from core.util import get_servlet_urlspec
-from servlets.removerequest import RemoveRequestServlet
+from pushmanager.servlets.removerequest import RemoveRequestServlet
 import testing as T
 
 class RemoveRequestServletTest(T.TestCase, T.ServletTestMixin):

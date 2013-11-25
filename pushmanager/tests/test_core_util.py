@@ -13,7 +13,7 @@ from core.util import tags_contain
 from core.util import tags_str_as_set
 from core.util import dict_copy_keys
 
-from servlets.pushes import PushesServlet
+from pushmanager.servlets.pushes import PushesServlet
 
 
 class CoreUtilFunctionsTest(T.TestCase):

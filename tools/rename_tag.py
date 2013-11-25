@@ -21,7 +21,7 @@ import core.db as db
 from core.util import add_to_tags_str
 from core.util import del_from_tags_str
 from core.util import tags_contain
-from servlets.checklist import checklist_reminders
+from pushmanager.servlets.checklist import checklist_reminders
 
 def main():
     usage = 'usage: %prog <oldtype> <newtype>'

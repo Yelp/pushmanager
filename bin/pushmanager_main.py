@@ -16,35 +16,35 @@ from core.settings import Settings
 from core.util import get_servlet_urlspec
 from core.xmppclient import XMPPQueue
 
-from servlets.addrequest import AddRequestServlet
-from servlets.api import APIServlet
-from servlets.checklist import ChecklistServlet
-from servlets.checklist import ChecklistToggleServlet
-from servlets.commentrequest import CommentRequestServlet
-from servlets.editpush import EditPushServlet
-from servlets.newrequest import NewRequestServlet
-from servlets.delayrequest import DelayRequestServlet
-from servlets.discardpush import DiscardPushServlet
-from servlets.discardrequest import DiscardRequestServlet
-from servlets.deploypush import DeployPushServlet
-from servlets.blesspush import BlessPushServlet
-from servlets.livepush import LivePushServlet
-from servlets.msg import MsgServlet
-from servlets.newpush import NewPushServlet
-from servlets.pickmerequest import PickMeRequestServlet, UnpickMeRequestServlet
-from servlets.pingme import PingMeServlet
-from servlets.push import PushServlet
-from servlets.pushbyrequest import PushByRequestServlet
-from servlets.pushes import PushesServlet
-from servlets.pushitems import PushItemsServlet
-from servlets.removerequest import RemoveRequestServlet
-from servlets.request import RequestServlet
-from servlets.requests import RequestsServlet
-from servlets.smartdest import SmartDestServlet
-from servlets.summaryforbranch import SummaryForBranchServlet
-from servlets.undelayrequest import UndelayRequestServlet
-from servlets.userlist import UserListServlet
-from servlets.verifyrequest import VerifyRequestServlet
+from pushmanager.servlets.addrequest import AddRequestServlet
+from pushmanager.servlets.api import APIServlet
+from pushmanager.servlets.checklist import ChecklistServlet
+from pushmanager.servlets.checklist import ChecklistToggleServlet
+from pushmanager.servlets.commentrequest import CommentRequestServlet
+from pushmanager.servlets.editpush import EditPushServlet
+from pushmanager.servlets.newrequest import NewRequestServlet
+from pushmanager.servlets.delayrequest import DelayRequestServlet
+from pushmanager.servlets.discardpush import DiscardPushServlet
+from pushmanager.servlets.discardrequest import DiscardRequestServlet
+from pushmanager.servlets.deploypush import DeployPushServlet
+from pushmanager.servlets.blesspush import BlessPushServlet
+from pushmanager.servlets.livepush import LivePushServlet
+from pushmanager.servlets.msg import MsgServlet
+from pushmanager.servlets.newpush import NewPushServlet
+from pushmanager.servlets.pickmerequest import PickMeRequestServlet, UnpickMeRequestServlet
+from pushmanager.servlets.pingme import PingMeServlet
+from pushmanager.servlets.push import PushServlet
+from pushmanager.servlets.pushbyrequest import PushByRequestServlet
+from pushmanager.servlets.pushes import PushesServlet
+from pushmanager.servlets.pushitems import PushItemsServlet
+from pushmanager.servlets.removerequest import RemoveRequestServlet
+from pushmanager.servlets.request import RequestServlet
+from pushmanager.servlets.requests import RequestsServlet
+from pushmanager.servlets.smartdest import SmartDestServlet
+from pushmanager.servlets.summaryforbranch import SummaryForBranchServlet
+from pushmanager.servlets.undelayrequest import UndelayRequestServlet
+from pushmanager.servlets.userlist import UserListServlet
+from pushmanager.servlets.verifyrequest import VerifyRequestServlet
 
 import ui_modules
 import ui_methods

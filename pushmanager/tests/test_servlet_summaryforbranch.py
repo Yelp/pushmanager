@@ -2,7 +2,7 @@ from contextlib import nested
 import mock
 
 from core.util import get_servlet_urlspec
-from servlets.summaryforbranch import SummaryForBranchServlet
+from pushmanager.servlets.summaryforbranch import SummaryForBranchServlet
 import testing as T
 
 class SummaryForBranchServletTest(T.TestCase, T.ServletTestMixin):
