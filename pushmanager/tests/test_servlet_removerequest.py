@@ -7,7 +7,7 @@ from core.util import get_servlet_urlspec
 from pushmanager.servlets.removerequest import RemoveRequestServlet
 import pushmanager.testing as T
 
-class RemoveRequestServletTest(T.TestCase, T.ServletTestMixin):
+class RemoveRequestServletTest(T.TestCase, ServletTestMixin):
 
     def get_handlers(self):
         return [get_servlet_urlspec(RemoveRequestServlet)]
@@ -20,7 +20,7 @@ class RemoveRequestServletTest(T.TestCase, T.ServletTestMixin):
             results.extend(db_results.fetchall())
 
         with nested(
-            mock.patch.dict(db.Settings, T.MockedSettings),
+            mock.patch.dict(db.Settings, MockedSettings),
             mock.patch.object(
                 RemoveRequestServlet,
                 "get_current_user",

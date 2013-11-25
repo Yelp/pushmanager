@@ -7,13 +7,13 @@ from pushmanager.servlets.deploypush import DeployPushServlet
 import pushmanager.testing as T
 import types
 
-class DeployPushServletTest(T.TestCase, T.ServletTestMixin):
+class DeployPushServletTest(T.TestCase, ServletTestMixin):
 
     @T.class_setup_teardown
     def mock_servlet_env(self):
         self.results = []
         with nested(
-            mock.patch.dict(db.Settings, T.MockedSettings),
+            mock.patch.dict(db.Settings, MockedSettings),
             mock.patch.object(
                 DeployPushServlet,
                 "get_current_user",

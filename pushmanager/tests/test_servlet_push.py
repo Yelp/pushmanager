@@ -8,7 +8,7 @@ from core.settings import Settings
 from pushmanager.servlets.push import PushServlet
 import pushmanager.testing as T
 
-class PushServletTestBase(T.TestCase, T.ServletTestMixin, T.FakeDataMixin):
+class PushServletTestBase(T.TestCase, ServletTestMixin, FakeDataMixin):
     __test__ = False
 
     def get_handlers(self):

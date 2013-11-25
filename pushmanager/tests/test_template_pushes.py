@@ -1,6 +1,6 @@
 import pushmanager.testing as T
 
-class PushesTemplateTest(T.TemplateTestCase):
+class PushesTemplateTest(TemplateTestCase):
 
     authenticated = True
     pushes_page = 'pushes.html'

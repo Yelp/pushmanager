@@ -90,8 +90,8 @@ class CoreXMPPClientTest(T.TestCase):
     def test_enqueue_user_xmpp_with_string(self):
         fake_domain = "fakedomain.com"
         fake_user = "fakeuser"
-        T.MockedSettings['xmpp'] = {'default_domain': fake_domain}
-        with mock.patch.dict(core.xmppclient.Settings, T.MockedSettings):
+        MockedSettings['xmpp'] = {'default_domain': fake_domain}
+        with mock.patch.dict(core.xmppclient.Settings, MockedSettings):
             with mock.patch.object(core.xmppclient.XMPPQueue, "enqueue_xmpp") as mock_enqueue_xmpp:
                 core.xmppclient.XMPPQueue.enqueue_user_xmpp(fake_user)
                 mock_enqueue_xmpp.assert_called_with("%s@%s" % (fake_user, fake_domain))
@@ -100,8 +100,8 @@ class CoreXMPPClientTest(T.TestCase):
     def test_enqueue_user_xmpp_with_list(self):
         fake_domain = "fakedomain.com"
         fake_users = ["fakeuser1", "fakeuser2"]
-        T.MockedSettings['xmpp'] = {'default_domain': fake_domain}
-        with mock.patch.dict(core.xmppclient.Settings, T.MockedSettings):
+        MockedSettings['xmpp'] = {'default_domain': fake_domain}
+        with mock.patch.dict(core.xmppclient.Settings, MockedSettings):
             with mock.patch.object(core.xmppclient.XMPPQueue, "enqueue_xmpp") as mock_enqueue_xmpp:
                 core.xmppclient.XMPPQueue.enqueue_user_xmpp(fake_users)
                 fake_ids = ["%s@%s" % (fake_user, fake_domain) for fake_user in fake_users]

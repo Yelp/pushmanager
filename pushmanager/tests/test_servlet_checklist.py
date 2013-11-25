@@ -14,7 +14,7 @@ import pushmanager.testing as T
 @contextmanager
 def fake_checklist_request():
     with nested(
-        mock.patch.dict(db.Settings, T.MockedSettings),
+        mock.patch.dict(db.Settings, MockedSettings),
         mock.patch.object(
             ChecklistToggleServlet,
             "get_current_user",
@@ -33,7 +33,7 @@ def on_db_return(success, db_results):
 
 
 
-class ChecklistServletTest(T.TestCase, T.ServletTestMixin, T.FakeDataMixin):
+class ChecklistServletTest(T.TestCase, ServletTestMixin, FakeDataMixin):
 
     def get_handlers(self):
         return [get_servlet_urlspec(ChecklistServlet)]
@@ -174,7 +174,7 @@ class ChecklistServletTest(T.TestCase, T.ServletTestMixin, T.FakeDataMixin):
             T.assert_in("Ask Search to force index distribution on stage for testuser1", response.body)
 
 
-class ChecklistToggleServletTest(T.TestCase, T.ServletTestMixin, T.FakeDataMixin):
+class ChecklistToggleServletTest(T.TestCase, ServletTestMixin, FakeDataMixin):
 
     def get_handlers(self):
         return [get_servlet_urlspec(ChecklistToggleServlet)]

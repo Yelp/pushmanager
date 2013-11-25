@@ -3,7 +3,7 @@ import time
 from core.settings import Settings
 import pushmanager.testing as T
 
-class PushTemplateTest(T.TemplateTestCase):
+class PushTemplateTest(TemplateTestCase):
 
     authenticated = True
     push_page = 'push.html'

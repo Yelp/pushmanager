@@ -6,7 +6,7 @@ from pushmanager_main import CheckSitesBookmarkletHandler
 import pushmanager.testing as T
 
 
-class BookmarkletTest(T.TestCase, T.AsyncTestCase):
+class BookmarkletTest(T.TestCase, AsyncTestCase):
 
     def get_handlers(self):
         return [
