@@ -13,7 +13,6 @@ class PushTemplateTest(T.TemplateTestCase):
     push_dialogs_page = 'push-dialogs.html'
 
     accepting_push_sections = ['blessed', 'verified', 'staged', 'added', 'pickme', 'requested']
-    now = time.time()
 
     now = time.time()
 
