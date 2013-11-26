@@ -1,0 +1,10 @@
+include bin/*
+include config.yaml.example
+include pushmanager/testing/*sql
+include README.rst
+include requirements-dev.txt
+include requirements.txt
+include setup.py
+include tox.ini
+recursive-include pushmanager/static *
+recursive-include pushmanager/templates *
