@@ -1,4 +1,4 @@
-<ul id="push-info" class="push-info standalone" push="{{ int(push_info['id']) }}" pushmaster="{{ escape(push_info['user']) }}" branch="{{ escape(push_info['branch']) }}" stageenv="{% if push_info['stageenv'] %}{{ escape(push_info['stageenv']) }}{% end %}">
+<ul id="push-info" class="push-info standalone" push="{{ int(push_info['id']) }}" title="{{ escape(push_info['title']) }}" pushmaster="{{ escape(push_info['user']) }}" branch="{{ escape(push_info['branch']) }}" stageenv="{% if push_info['stageenv'] %}{{ escape(push_info['stageenv']) }}{% end %}">
 	<li><span class="label">Pushmaster</span><span class="value">{{ escape(push_info['user']) }}</span></li>
 	<li><span class="label">Branch</span><span class="value">{{ escape(push_info['branch']) }}</span></li>
 	{% if push_info['stageenv'] %}<li><span class="label">Stage</span><span class="value">{{ escape(push_info['stageenv']) }}</span></li>{% end %}
