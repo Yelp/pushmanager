@@ -6,6 +6,8 @@ from mock import patch
 
 from core import db
 from tools import rename_checklist_type
+from pushmanager.testing.mocksettings import MockedSettings
+from pushmanager.testing.testdb import FakeDataMixin
 import pushmanager.testing as T
 
 

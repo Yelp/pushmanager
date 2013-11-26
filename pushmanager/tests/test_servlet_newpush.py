@@ -13,6 +13,8 @@ from core.xmppclient import XMPPQueue
 import pushmanager.servlets.newpush
 from pushmanager.servlets.newpush import NewPushServlet
 from pushmanager.servlets.newpush import send_notifications
+from pushmanager.testing.mocksettings import MockedSettings
+from pushmanager.testing.testservlet import ServletTestMixin
 
 class NewPushServletTest(T.TestCase, ServletTestMixin):
 

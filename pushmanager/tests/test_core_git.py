@@ -8,6 +8,7 @@ import mock
 
 from core import db
 from core.settings import Settings
+from pushmanager.testing.mocksettings import MockedSettings
 import core.git
 import pushmanager.testing as T
 
