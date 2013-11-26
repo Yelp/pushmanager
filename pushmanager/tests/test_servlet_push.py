@@ -6,6 +6,8 @@ import mock
 from core import util
 from core.settings import Settings
 from pushmanager.servlets.push import PushServlet
+from pushmanager.testing.testdb import FakeDataMixin
+from pushmanager.testing.testservlet import ServletTestMixin
 import pushmanager.testing as T
 
 class PushServletTestBase(T.TestCase, ServletTestMixin, FakeDataMixin):

@@ -5,6 +5,8 @@ import types
 from core import db
 from core.util import get_servlet_urlspec
 from pushmanager.servlets.removerequest import RemoveRequestServlet
+from pushmanager.testing.mocksettings import MockedSettings
+from pushmanager.testing.testservlet import ServletTestMixin
 import pushmanager.testing as T
 
 class RemoveRequestServletTest(T.TestCase, ServletTestMixin):

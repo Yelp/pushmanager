@@ -3,6 +3,7 @@ from contextlib import nested
 
 import mock
 
+from pushmanager.testing.mocksettings import MockedSettings
 import core.xmppclient
 import pushmanager.testing as T
 

@@ -5,6 +5,7 @@ import mock
 import pushmanager.testing as T
 from core.settings import Settings
 from core.requesthandler import RequestHandler
+from pushmanager.testing.mocksettings import MockedSettings
 
 class RequestHandlerTest(T.TestCase):
 

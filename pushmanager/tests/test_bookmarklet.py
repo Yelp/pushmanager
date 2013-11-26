@@ -3,6 +3,7 @@ import mock
 
 from pushmanager_main import CreateRequestBookmarkletHandler
 from pushmanager_main import CheckSitesBookmarkletHandler
+from pushmanager.testing.testservlet import AsyncTestCase
 import pushmanager.testing as T
 
 

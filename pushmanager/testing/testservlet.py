@@ -11,6 +11,7 @@ from tornado.testing import AsyncHTTPTestCase
 from core import db
 from core.requesthandler import RequestHandler
 from testify.utils import turtle
+from pushmanager.testing.mocksettings import MockedSettings
 import ui_modules
 import ui_methods
 import pushmanager.testing as T

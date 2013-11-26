@@ -4,6 +4,7 @@ import logging
 import mock
 
 from pushmanager_main import LoginHandler
+from pushmanager.testing.testservlet import ServletTestMixin
 import pushmanager.testing as T
 
 class LoginTest(T.TestCase, ServletTestMixin):
