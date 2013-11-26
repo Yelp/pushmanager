@@ -3,9 +3,9 @@ import os
 import tornado.gen
 import tornado.web
 
-from core.requesthandler import RequestHandler
-from core.settings import Settings
-import core.util
+from pushmanager.core.requesthandler import RequestHandler
+from pushmanager.core.settings import Settings
+import pushmanager.core.util
 
 def _repo(base):
     dev_repos_dir = Settings['git']['dev_repositories_dir']
@@ -18,8 +18,8 @@ class PushServlet(RequestHandler):
     @tornado.web.authenticated
     @tornado.gen.engine
     def get(self):
-        pushid = core.util.get_int_arg(self.request, 'id')
-        override = core.util.get_int_arg(self.request, 'override')
+        pushid = pushmanager.core.util.get_int_arg(self.request, 'id')
+        override = pushmanager.core.util.get_int_arg(self.request, 'override')
         response = yield tornado.gen.Task(
                         self.async_api_call,
                         "pushdata",

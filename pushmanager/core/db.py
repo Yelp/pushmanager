@@ -7,7 +7,7 @@ from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql.expression import Insert
 
-from core.settings import Settings
+from pushmanager.core.settings import Settings
 
 engine = None
 Base = declarative_base()

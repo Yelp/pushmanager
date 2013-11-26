@@ -6,7 +6,7 @@ import sqlite3
 import tempfile
 import time
 
-from core import db
+from pushmanager.core import db
 
 def create_temp_db_file():
     fd, db_file_path = tempfile.mkstemp(suffix="pushmanager.db")

@@ -7,7 +7,7 @@ from threading import Thread
 import time
 from urllib import urlencode
 
-from core.settings import Settings
+from pushmanager.core.settings import Settings
 
 class RBQueue(object):
 

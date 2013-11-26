@@ -3,8 +3,8 @@ import json
 import lxml.html
 import mock
 
-from core import util
-from core.settings import Settings
+from pushmanager.core import util
+from pushmanager.core.settings import Settings
 from pushmanager.servlets.push import PushServlet
 from pushmanager.testing.testdb import FakeDataMixin
 from pushmanager.testing.testservlet import ServletTestMixin

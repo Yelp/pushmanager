@@ -10,8 +10,8 @@ import time
 
 import tornado.ioloop
 
-from core import pid
-from core.settings import Settings
+from pushmanager.core import pid
+from pushmanager.core.settings import Settings
 
 logging.basicConfig(
     level=logging.WARNING,

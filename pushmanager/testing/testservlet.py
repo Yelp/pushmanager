@@ -8,8 +8,8 @@ import tornado.web
 from lxml import etree
 from tornado.testing import AsyncHTTPTestCase
 
-from core import db
-from core.requesthandler import RequestHandler
+from pushmanager.core import db
+from pushmanager.core.requesthandler import RequestHandler
 from testify.utils import turtle
 from pushmanager.testing.mocksettings import MockedSettings
 import pushmanager.ui_modules as ui_modules

@@ -4,7 +4,7 @@ import logging
 import mock
 
 import pushmanager.testing as T
-from core import auth
+from pushmanager.core import auth
 
 class TestAuthenticaton(T.TestCase):
 

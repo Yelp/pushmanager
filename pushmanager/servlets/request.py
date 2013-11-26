@@ -1,8 +1,8 @@
 import tornado.gen
 import tornado.web
 
-from core.requesthandler import RequestHandler
-import core.util
+from pushmanager.core.requesthandler import RequestHandler
+import pushmanager.core.util
 
 class RequestServlet(RequestHandler):
 
@@ -10,7 +10,7 @@ class RequestServlet(RequestHandler):
     @tornado.web.authenticated
     @tornado.gen.engine
     def get(self):
-        request_id = core.util.get_int_arg(self.request, 'id')
+        request_id = pushmanager.core.util.get_int_arg(self.request, 'id')
         if not request_id:
             self.send_error(404)
 

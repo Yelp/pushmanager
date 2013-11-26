@@ -1,7 +1,7 @@
 import json
 import time
 
-from core.util import get_servlet_urlspec
+from pushmanager.core.util import get_servlet_urlspec
 from pushmanager.servlets.api import APIServlet
 from pushmanager.testing.testdb import FakeDataMixin
 from pushmanager.testing.testservlet import ServletTestMixin

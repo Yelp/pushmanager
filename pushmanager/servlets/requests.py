@@ -1,8 +1,8 @@
 import tornado.gen
 import tornado.web
 
-from core.requesthandler import RequestHandler
-import core.util
+from pushmanager.core.requesthandler import RequestHandler
+import pushmanager.core.util
 
 class RequestsServlet(RequestHandler):
 
@@ -10,8 +10,8 @@ class RequestsServlet(RequestHandler):
     @tornado.web.authenticated
     @tornado.gen.engine
     def get(self):
-        username = core.util.get_str_arg(self.request, 'user')
-        limit_count = core.util.get_int_arg(self.request, 'max')
+        username = pushmanager.core.util.get_str_arg(self.request, 'user')
+        limit_count = pushmanager.core.util.get_int_arg(self.request, 'max')
         arguments = {'limit' : limit_count}
 
         if username:

@@ -1,11 +1,11 @@
 import sqlalchemy as SA
 from tornado.escape import xhtml_escape
 
-import core.db as db
-from core.mail import MailQueue
-from core.requesthandler import RequestHandler
-import core.util
-from core.xmppclient import XMPPQueue
+import pushmanager.core.db as db
+from pushmanager.core.mail import MailQueue
+from pushmanager.core.requesthandler import RequestHandler
+import pushmanager.core.util
+from pushmanager.core.xmppclient import XMPPQueue
 
 class CommentRequestServlet(RequestHandler):
 
@@ -13,8 +13,8 @@ class CommentRequestServlet(RequestHandler):
         if not self.current_user:
             return self.send_error(403)
 
-        requestid = core.util.get_int_arg(self.request, 'id')
-        comment = core.util.get_str_arg(self.request, 'comment')
+        requestid = pushmanager.core.util.get_int_arg(self.request, 'id')
+        comment = pushmanager.core.util.get_str_arg(self.request, 'comment')
         self.comment = comment
         if not comment:
             return self.send_error(500)
@@ -56,7 +56,7 @@ class CommentRequestServlet(RequestHandler):
                     Regards,<br />
                     PushManager
                 </p>"""
-            ) % core.util.EscapedDict({
+            ) % pushmanager.core.util.EscapedDict({
                     'pushmaster': self.current_user,
                     'user': req['user'],
                     'title': req['title'],
