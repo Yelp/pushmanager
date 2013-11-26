@@ -305,7 +305,21 @@ class PushTemplateTest(T.TemplateTestCase):
         'State', 'Push Type', 'Created', 'Modified'
     ]
 
-    def assert_push_info_list(self, list_items, push_info_items):
+    push_info_attributes = {
+        'branch': basic_push['branch'],
+        'class': 'push-info standalone',
+        'id': 'push-info',
+        'pushmaster': basic_push['user'],
+        'push': '%d' % basic_push['id'],
+        'stageenv': '',
+        'title': basic_push['title'],
+    }
+
+    def assert_push_info_attributes(self, ul_attributes, expected):
+        T.assert_dicts_equal(ul_attributes, expected)
+
+
+    def assert_push_info_listitems(self, list_items, push_info_items):
         for li in list_items:
             T.assert_in(li[0].text, push_info_items.keys())
             if li[0].text == 'Buildbot Runs':
@@ -330,7 +344,8 @@ class PushTemplateTest(T.TemplateTestCase):
             push_info=self.basic_push,
             **self.basic_kwargs)
 
-        self.assert_push_info_list(list(tree.iter('ul'))[0], self.basic_push_info_items)
+        self.assert_push_info_listitems(list(tree.iter('ul'))[0], self.basic_push_info_items)
+        self.assert_push_info_attributes(list(tree.iter('ul'))[0].attrib, self.push_info_attributes)
 
     def test_push_info_list_items_modified(self):
         push = dict(self.basic_push)
@@ -343,7 +358,8 @@ class PushTemplateTest(T.TemplateTestCase):
         push_info_items = dict(self.basic_push_info_items)
         push_info_items['Modified'] = time.strftime("%x %X", time.localtime(push['modified']))
 
-        self.assert_push_info_list(list(tree.iter('ul'))[0], push_info_items)
+        self.assert_push_info_listitems(list(tree.iter('ul'))[0], push_info_items)
+        self.assert_push_info_attributes(list(tree.iter('ul'))[0].attrib, self.push_info_attributes)
 
     def test_push_info_list_items_notaccepting(self):
         push = dict(self.basic_push)
@@ -357,7 +373,8 @@ class PushTemplateTest(T.TemplateTestCase):
         push_info_items['State'] = 'live'
         del push_info_items['Buildbot Runs']
 
-        self.assert_push_info_list(list(tree.iter('ul'))[0], push_info_items)
+        self.assert_push_info_listitems(list(tree.iter('ul'))[0], push_info_items)
+        self.assert_push_info_attributes(list(tree.iter('ul'))[0].attrib, self.push_info_attributes)
 
     def test_push_info_list_items_stageenv(self):
         push = dict(self.basic_push)
@@ -370,7 +387,11 @@ class PushTemplateTest(T.TemplateTestCase):
         push_info_items = dict(self.basic_push_info_items)
         push_info_items['Stage'] = 'stageenv'
 
-        self.assert_push_info_list(list(tree.iter('ul'))[0], push_info_items)
+        attributes = dict(self.push_info_attributes)
+        attributes['stageenv'] = 'stageenv'
+
+        self.assert_push_info_listitems(list(tree.iter('ul'))[0], push_info_items)
+        self.assert_push_info_attributes(list(tree.iter('ul'))[0].attrib, attributes)
 
     push_button_ids_base = ['expand-all-requests', 'collapse-all-requests', 'ping-me', 'edit-push']
     push_button_ids_pushmaster = [
