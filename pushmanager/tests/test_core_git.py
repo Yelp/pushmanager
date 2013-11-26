@@ -44,7 +44,7 @@ class CoreGitTest(T.TestCase):
           'auth': '',
           'port': '',
           'servername': 'example',
-          'main_repository': 'main_repository', 
+          'main_repository': 'main_repository',
           'dev_repositories_dir': 'dev_directory'
         }
 
