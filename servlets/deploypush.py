@@ -82,12 +82,13 @@ class DeployPushServlet(RequestHandler):
             subject = "[push] %s - %s" % (user_string, req['title'])
             MailQueue.enqueue_user_email(users, msg, subject)
 
-            msg = '%(pushmaster)s has deployed request "%(title)s" for %(user)s to stage.\nPlease verify it at https://%(pushmanager_servername)s/push?id=%(pushid)s' % {
+            msg = '%(pushmaster)s has deployed request "%(title)s" for %(user)s to %(pushstage)s.\nPlease verify it at https://%(pushmanager_servername)s/push?id=%(pushid)s' % {
                     'pushmaster': self.current_user,
                     'pushmanager_servername': Settings['main_app']['servername'],
                     'title': req['title'],
                     'pushid': self.pushid,
                     'user': user_string,
+                    'pushstage': push['stageenv'],
                 }
             XMPPQueue.enqueue_user_xmpp(users, msg)
 
