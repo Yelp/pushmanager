@@ -3,7 +3,7 @@ import ldap
 import logging
 import os
 
-from core.settings import Settings
+from pushmanager.core.settings import Settings
 
 os.environ['LDAPTLS_REQCERT'] = 'demand'
 os.environ['LDAPTLS_CACERT'] = Settings['auth_ldap']['cert_file']

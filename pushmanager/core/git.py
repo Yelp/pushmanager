@@ -6,14 +6,14 @@ from Queue import Queue
 import subprocess
 from threading import Thread
 import time
-from core.util import add_to_tags_str
-from core.util import del_from_tags_str
-from core.util import EscapedDict
-from core.util import tags_contain
+from pushmanager.core.util import add_to_tags_str
+from pushmanager.core.util import del_from_tags_str
+from pushmanager.core.util import EscapedDict
+from pushmanager.core.util import tags_contain
 from urllib import urlencode
 import urllib2
 
-from core.settings import Settings
+from pushmanager.core.settings import Settings
 
 class GitCommand(subprocess.Popen):
 

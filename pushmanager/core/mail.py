@@ -4,7 +4,7 @@ from Queue import Queue, Empty
 import smtplib
 from threading import Thread
 
-from core.settings import Settings
+from pushmanager.core.settings import Settings
 
 class MailQueue(object):
 

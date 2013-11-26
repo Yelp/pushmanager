@@ -2,9 +2,9 @@ from collections import defaultdict
 
 import sqlalchemy as SA
 
-import core.db as db
-from core.requesthandler import RequestHandler
-import core.util
+import pushmanager.core.db as db
+from pushmanager.core.requesthandler import RequestHandler
+import pushmanager.core.util
 
 
 checklist_reminders = {
@@ -37,8 +37,8 @@ class ChecklistServlet(RequestHandler):
     def get(self):
         if not self.current_user:
             return self.send_error(403)
-        self.pushid = core.util.get_int_arg(self.request, 'id')
-        self.pushmaster = core.util.get_int_arg(self.request, 'pushmaster')
+        self.pushid = pushmanager.core.util.get_int_arg(self.request, 'id')
+        self.pushmaster = pushmanager.core.util.get_int_arg(self.request, 'pushmaster')
 
         c = db.push_checklist.c
         r = db.push_requests.c
@@ -113,8 +113,8 @@ class ChecklistToggleServlet(RequestHandler):
         if not self.current_user:
             return self.send_error(403)
 
-        self.checklist = core.util.get_int_arg(self.request, 'id')
-        new_value = core.util.get_int_arg(self.request, 'complete')
+        self.checklist = pushmanager.core.util.get_int_arg(self.request, 'id')
+        new_value = pushmanager.core.util.get_int_arg(self.request, 'complete')
 
         query = db.push_checklist.update().where(
             db.push_checklist.c.id == self.checklist).values({'complete': new_value})

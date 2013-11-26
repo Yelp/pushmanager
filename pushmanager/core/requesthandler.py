@@ -6,8 +6,8 @@ import tornado.web
 import urllib
 import urlparse
 
-from core.settings import Settings
-from core.settings import JSSettings
+from pushmanager.core.settings import Settings
+from pushmanager.core.settings import JSSettings
 
 @contextlib.contextmanager
 def async_api_call_error():

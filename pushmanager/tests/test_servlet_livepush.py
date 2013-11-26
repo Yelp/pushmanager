@@ -1,8 +1,8 @@
 from contextlib import nested
 import mock
 
-from core import db
-from core.util import get_servlet_urlspec
+from pushmanager.core import db
+from pushmanager.core.util import get_servlet_urlspec
 from pushmanager.servlets.livepush import LivePushServlet
 from pushmanager.testing.mocksettings import MockedSettings
 from pushmanager.testing.testservlet import ServletTestMixin
@@ -54,7 +54,7 @@ class LivePushServletTest(T.TestCase, ServletTestMixin):
 
         mocked_self.on_db_complete('success', [None, None, None, None, reqs])
 
-    @mock.patch('core.mail.MailQueue.enqueue_user_email')
+    @mock.patch('pushmanager.core.mail.MailQueue.enqueue_user_email')
     def test_mailqueue_on_db_complete(self, mailq):
         self.call_on_db_complete()
 

@@ -1,20 +1,20 @@
 import sqlalchemy as SA
 
-import core.db as db
-from core.mail import MailQueue
-from core.requesthandler import RequestHandler
-import core.util
-from core.xmppclient import XMPPQueue
+import pushmanager.core.db as db
+from pushmanager.core.mail import MailQueue
+from pushmanager.core.requesthandler import RequestHandler
+import pushmanager.core.util
+from pushmanager.core.xmppclient import XMPPQueue
 
 class BlessPushServlet(RequestHandler):
 
     def _arg(self, key):
-        return core.util.get_str_arg(self.request, key, '')
+        return pushmanager.core.util.get_str_arg(self.request, key, '')
 
     def post(self):
         if not self.current_user:
             return self.send_error(403)
-        self.pushid = core.util.get_int_arg(self.request, 'id')
+        self.pushid = pushmanager.core.util.get_int_arg(self.request, 'id')
         request_query = db.push_requests.update().where(SA.and_(
             db.push_requests.c.state.in_(['staged','verified']),
             SA.exists([1],
@@ -59,7 +59,7 @@ class BlessPushServlet(RequestHandler):
                     Regards,<br />
                     PushManager
                 </p>"""
-                ) % core.util.EscapedDict({
+                ) % pushmanager.core.util.EscapedDict({
                     'pushmaster': self.current_user,
                     'user': user_string,
                     'title': req['title'],

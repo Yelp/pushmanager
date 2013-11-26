@@ -3,7 +3,7 @@ import logging
 import sys
 import yaml
 
-from core.util import dict_copy_keys
+from pushmanager.core.util import dict_copy_keys
 
 configuration_file = "config.yaml"
 example_configuration_file = "config.yaml.example"

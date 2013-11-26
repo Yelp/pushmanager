@@ -3,8 +3,8 @@ import os
 
 from tornado.web import UIModule
 
-from core import util
-from core.settings import Settings
+from pushmanager.core import util
+from pushmanager.core.settings import Settings
 
 class Request(UIModule):
     """Displays an individual request entry with expandable details/comments."""

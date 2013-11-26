@@ -2,16 +2,16 @@ import operator
 import tornado.gen
 import tornado.web
 
-from core.requesthandler import RequestHandler
-from core.settings import Settings
-import core.util
+from pushmanager.core.requesthandler import RequestHandler
+from pushmanager.core.settings import Settings
+import pushmanager.core.util
 
 class SummaryForBranchServlet(RequestHandler):
 
     @tornado.web.asynchronous
     @tornado.gen.engine
     def get(self):
-        userbranch = core.util.get_str_arg(self.request, 'userbranch')
+        userbranch = pushmanager.core.util.get_str_arg(self.request, 'userbranch')
         user, branch = userbranch.split('/', 1)
         response = yield tornado.gen.Task(
                         self.async_api_call,

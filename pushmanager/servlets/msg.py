@@ -1,7 +1,7 @@
 import subprocess
 
-from core.requesthandler import RequestHandler
-from core.settings import Settings
+from pushmanager.core.requesthandler import RequestHandler
+from pushmanager.core.settings import Settings
 
 class MsgServlet(RequestHandler):
 

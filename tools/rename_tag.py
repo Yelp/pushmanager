@@ -17,10 +17,10 @@ from functools import partial
 from optparse import OptionParser
 import sys
 
-import core.db as db
-from core.util import add_to_tags_str
-from core.util import del_from_tags_str
-from core.util import tags_contain
+import pushmanager.core.db as db
+from pushmanager.core.util import add_to_tags_str
+from pushmanager.core.util import del_from_tags_str
+from pushmanager.core.util import tags_contain
 from pushmanager.servlets.checklist import checklist_reminders
 
 def main():

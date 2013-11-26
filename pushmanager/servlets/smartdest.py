@@ -1,8 +1,8 @@
 import sqlalchemy as SA
 import tornado.web
 
-import core.db as db
-from core.requesthandler import RequestHandler
+import pushmanager.core.db as db
+from pushmanager.core.requesthandler import RequestHandler
 
 class SmartDestServlet(RequestHandler):
 

@@ -2,10 +2,10 @@ import sqlalchemy as SA
 import time
 import re
 
-import core.db as db
-from core.git import GitQueue
-from core.requesthandler import RequestHandler
-import core.util
+import pushmanager.core.db as db
+from pushmanager.core.git import GitQueue
+from pushmanager.core.requesthandler import RequestHandler
+import pushmanager.core.util
 
 TAGS_RE = re.compile(r'[a-zA-Z0-9_-]+')
 
@@ -13,7 +13,7 @@ TAGS_RE = re.compile(r'[a-zA-Z0-9_-]+')
 class NewRequestServlet(RequestHandler):
 
     def _arg(self, key):
-        return core.util.get_str_arg(self.request, key, '')
+        return pushmanager.core.util.get_str_arg(self.request, key, '')
 
     def post(self):
         if not self.current_user:

@@ -2,8 +2,8 @@ from contextlib import contextmanager
 from contextlib import nested
 import mock
 
-from core import db
-from core.util import get_servlet_urlspec
+from pushmanager.core import db
+from pushmanager.core.util import get_servlet_urlspec
 from pushmanager.servlets.pickmerequest import PickMeRequestServlet
 from pushmanager.testing.mocksettings import MockedSettings
 from pushmanager.testing.testservlet import ServletTestMixin

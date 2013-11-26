@@ -4,8 +4,8 @@ import os
 
 from mock import patch
 
-from core import db
 from tools import rename_tag
+from pushmanager.core import db
 from pushmanager.testing.mocksettings import MockedSettings
 from pushmanager.testing.testdb import FakeDataMixin
 import pushmanager.testing as T
