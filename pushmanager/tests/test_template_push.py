@@ -1,6 +1,7 @@
 import time
 
 from core.settings import Settings
+from pushmanager.testing.testservlet import TemplateTestCase
 import pushmanager.testing as T
 
 class PushTemplateTest(TemplateTestCase):
