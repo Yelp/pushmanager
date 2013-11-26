@@ -19,4 +19,3 @@ class PushByRequestServlet(RequestHandler):
         push = self.get_api_results(response)
         if push:
             self.redirect('/push?id=%s' % push['id'])
-

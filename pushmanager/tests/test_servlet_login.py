@@ -23,4 +23,3 @@ class LoginTest(T.TestCase, T.ServletTestMixin):
                 body=urllib.urlencode(request)
             )
             T.assert_in("Invalid username or password specified.", response.body)
-

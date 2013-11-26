@@ -36,5 +36,3 @@ class BookmarkletTest(T.TestCase, T.AsyncTestCase):
             # See comment above in test_create_request_bookmarklet
             T.assert_equal(response.error, None)
             T.assert_in("window.open", response.body)
-
-
