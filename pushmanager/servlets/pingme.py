@@ -1,9 +1,9 @@
 import tornado.gen
 import tornado.web
 
-import core.db as db
-from core.requesthandler import RequestHandler
-import core.util
+import pushmanager.core.db as db
+from pushmanager.core.requesthandler import RequestHandler
+import pushmanager.core.util
 
 class PingMeServlet(RequestHandler):
 
@@ -11,8 +11,8 @@ class PingMeServlet(RequestHandler):
     @tornado.web.asynchronous
     @tornado.gen.engine
     def get(self):
-        pushid = core.util.get_int_arg(self.request, 'push')
-        ping_action = core.util.get_str_arg(self.request, 'action')
+        pushid = pushmanager.core.util.get_int_arg(self.request, 'push')
+        ping_action = pushmanager.core.util.get_str_arg(self.request, 'action')
         response = yield tornado.gen.Task(
                         self.async_api_call,
                         "push",

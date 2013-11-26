@@ -1,8 +1,8 @@
 import tornado.gen
 import tornado.web
 
-from core.requesthandler import RequestHandler
-import core.util
+from pushmanager.core.requesthandler import RequestHandler
+import pushmanager.core.util
 
 class PushesServlet(RequestHandler):
 
@@ -10,8 +10,8 @@ class PushesServlet(RequestHandler):
     @tornado.web.asynchronous
     @tornado.gen.engine
     def get(self):
-        pushes_per_page = core.util.get_int_arg(self.request, 'rpp', 50)
-        before = core.util.get_int_arg(self.request, 'before', 0)
+        pushes_per_page = pushmanager.core.util.get_int_arg(self.request, 'rpp', 50)
+        before = pushmanager.core.util.get_int_arg(self.request, 'before', 0)
         response = yield tornado.gen.Task(
                         self.async_api_call,
                         "pushes",

@@ -4,10 +4,10 @@ import os
 import tornado.httpserver
 import tornado.process
 
-from core.application import Application
-import core.db as db
-from core.settings import Settings
-from core.util import get_servlet_urlspec
+from pushmanager.core.application import Application
+import pushmanager.core.db as db
+from pushmanager.core.settings import Settings
+from pushmanager.core.util import get_servlet_urlspec
 from pushmanager.servlets.api import APIServlet
 import pushmanager.ui_modules as ui_modules
 

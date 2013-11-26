@@ -1,8 +1,8 @@
 from contextlib import nested
 import mock
 
-from core import db
-from core.util import get_servlet_urlspec
+from pushmanager.core import db
+from pushmanager.core.util import get_servlet_urlspec
 from pushmanager.servlets.delayrequest import DelayRequestServlet
 from pushmanager.testing.mocksettings import MockedSettings
 from pushmanager.testing.testservlet import ServletTestMixin
@@ -42,7 +42,7 @@ class DelayRequestServletTest(T.TestCase, ServletTestMixin):
 
         mocked_self.on_db_complete('success', [mock.ANY, mock.ANY, mreq])
 
-    @mock.patch('core.mail.MailQueue.enqueue_user_email')
+    @mock.patch('pushmanager.core.mail.MailQueue.enqueue_user_email')
     def test_no_watched_mailqueue_on_db_complete(self, mailq):
         req = {
             'user': 'testuser',
@@ -60,7 +60,7 @@ class DelayRequestServletTest(T.TestCase, ServletTestMixin):
         T.assert_in('testuser - title', no_watcher_call_args[1])
         T.assert_in('[push] testuser - title', no_watcher_call_args[2])
 
-    @mock.patch('core.mail.MailQueue.enqueue_user_email')
+    @mock.patch('pushmanager.core.mail.MailQueue.enqueue_user_email')
     def test_watched_mailqueue_on_db_complete(self, mailq):
         req = {
             'user': 'testuser',

@@ -5,16 +5,16 @@ import tornado.httpserver
 import tornado.web
 import urlparse
 
-from core.application import Application
-from core.auth import authenticate
-import core.db as db
-from core.git import GitQueue
-from core.mail import MailQueue
-from core.rb import RBQueue
-from core.requesthandler import RequestHandler
-from core.settings import Settings
-from core.util import get_servlet_urlspec
-from core.xmppclient import XMPPQueue
+from pushmanager.core.application import Application
+from pushmanager.core.auth import authenticate
+import pushmanager.core.db as db
+from pushmanager.core.git import GitQueue
+from pushmanager.core.mail import MailQueue
+from pushmanager.core.rb import RBQueue
+from pushmanager.core.requesthandler import RequestHandler
+from pushmanager.core.settings import Settings
+from pushmanager.core.util import get_servlet_urlspec
+from pushmanager.core.xmppclient import XMPPQueue
 
 from pushmanager.servlets.addrequest import AddRequestServlet
 from pushmanager.servlets.api import APIServlet

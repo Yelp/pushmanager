@@ -1,15 +1,15 @@
 import tornado.gen
 import tornado.web
 
-from core.requesthandler import RequestHandler
-import core.util
+from pushmanager.core.requesthandler import RequestHandler
+import pushmanager.core.util
 
 class PushByRequestServlet(RequestHandler):
 
     @tornado.web.asynchronous
     @tornado.gen.engine
     def get(self):
-        requestid = core.util.get_int_arg(self.request, 'id')
+        requestid = pushmanager.core.util.get_int_arg(self.request, 'id')
         response = yield tornado.gen.Task(
                         self.async_api_call,
                         "pushbyrequest",

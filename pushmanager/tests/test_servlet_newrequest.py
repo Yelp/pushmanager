@@ -3,8 +3,8 @@ from contextlib import nested
 import mock
 import urllib
 
-from core import db
-from core.util import get_servlet_urlspec
+from pushmanager.core import db
+from pushmanager.core.util import get_servlet_urlspec
 from pushmanager.servlets.checklist import checklist_reminders
 from pushmanager.servlets.newrequest import NewRequestServlet
 from pushmanager.testing.mocksettings import MockedSettings

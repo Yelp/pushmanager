@@ -1,8 +1,8 @@
 from contextlib import nested
 import mock
 
-from core import db
-from core.util import get_servlet_urlspec
+from pushmanager.core import db
+from pushmanager.core.util import get_servlet_urlspec
 from pushmanager.servlets.blesspush import BlessPushServlet
 from pushmanager.testing.mocksettings import MockedSettings
 from pushmanager.testing.testservlet import ServletTestMixin
@@ -60,8 +60,8 @@ class BlessPushServletTest(T.TestCase, ServletTestMixin):
         mocked_self.on_db_complete('success', [None, reqs, res])
 
 
-    @mock.patch('core.xmppclient.XMPPQueue.enqueue_user_xmpp')
-    @mock.patch('core.mail.MailQueue.enqueue_user_email')
+    @mock.patch('pushmanager.core.xmppclient.XMPPQueue.enqueue_user_xmpp')
+    @mock.patch('pushmanager.core.mail.MailQueue.enqueue_user_email')
     def test_mailqueue_on_db_complete(self, mailq, _):
         self.call_on_db_complete()
 
@@ -77,8 +77,8 @@ class BlessPushServletTest(T.TestCase, ServletTestMixin):
         T.assert_in('testuser (testuser1,testuser2) - title', watched_call_args[1])
         T.assert_in('[push] testuser (testuser1,testuser2) - title', watched_call_args[2])
 
-    @mock.patch('core.mail.MailQueue.enqueue_user_email')
-    @mock.patch('core.xmppclient.XMPPQueue.enqueue_user_xmpp')
+    @mock.patch('pushmanager.core.mail.MailQueue.enqueue_user_email')
+    @mock.patch('pushmanager.core.xmppclient.XMPPQueue.enqueue_user_xmpp')
     def test_xmppqueue_on_db_complete(self, xmppq, _):
         self.call_on_db_complete()
 

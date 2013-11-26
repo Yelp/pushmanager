@@ -1,21 +1,21 @@
 import sqlalchemy as SA
 
-import core.db as db
-from core.settings import Settings
-from core.requesthandler import RequestHandler
-import core.util
-from core.xmppclient import XMPPQueue
+import pushmanager.core.db as db
+from pushmanager.core.settings import Settings
+from pushmanager.core.requesthandler import RequestHandler
+import pushmanager.core.util
+from pushmanager.core.xmppclient import XMPPQueue
 
 class VerifyRequestServlet(RequestHandler):
 
     def _arg(self, key):
-        return core.util.get_str_arg(self.request, key, '')
+        return pushmanager.core.util.get_str_arg(self.request, key, '')
 
     def post(self):
         if not self.current_user:
             return self.send_error(403)
-        self.requestid = core.util.get_int_arg(self.request, 'id')
-        self.pushid = core.util.get_int_arg(self.request, 'push')
+        self.requestid = pushmanager.core.util.get_int_arg(self.request, 'id')
+        self.pushid = pushmanager.core.util.get_int_arg(self.request, 'push')
         select_query = db.push_pushes.select().where(
             db.push_pushes.c.id == self.pushid,
         )

@@ -7,7 +7,7 @@ from exceptions import OSError
 import mock
 
 import pushmanager.testing as T
-from core import pid
+from pushmanager.core import pid
 
 
 class TestPid(T.TestCase):

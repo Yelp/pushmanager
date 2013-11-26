@@ -5,8 +5,8 @@ import re
 
 import mock
 
-from core import db
-from core.util import get_servlet_urlspec
+from pushmanager.core import db
+from pushmanager.core.util import get_servlet_urlspec
 from pushmanager.servlets.checklist import ChecklistServlet
 from pushmanager.servlets.checklist import ChecklistToggleServlet
 from pushmanager.testing.mocksettings import MockedSettings

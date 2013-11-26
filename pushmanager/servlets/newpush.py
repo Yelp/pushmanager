@@ -1,12 +1,12 @@
 import subprocess
 import time
 
-import core.db as db
-from core.mail import MailQueue
-from core.settings import Settings
-from core.requesthandler import RequestHandler
-import core.util
-from core.xmppclient import XMPPQueue
+import pushmanager.core.db as db
+from pushmanager.core.mail import MailQueue
+from pushmanager.core.settings import Settings
+from pushmanager.core.requesthandler import RequestHandler
+import pushmanager.core.util
+from pushmanager.core.xmppclient import XMPPQueue
 
 def send_notifications(people, pushtype, pushurl):
     pushmanager_servername = Settings['main_app']['servername']
@@ -36,7 +36,7 @@ def send_notifications(people, pushtype, pushurl):
 class NewPushServlet(RequestHandler):
 
     def _arg(self, key):
-        return core.util.get_str_arg(self.request, key, '')
+        return pushmanager.core.util.get_str_arg(self.request, key, '')
 
     def post(self):
         if not self.current_user:

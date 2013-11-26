@@ -1,8 +1,8 @@
 import sqlalchemy as SA
 
-import core.db as db
-from core.requesthandler import RequestHandler
-import core.util
+import pushmanager.core.db as db
+from pushmanager.core.requesthandler import RequestHandler
+import pushmanager.core.util
 
 class PickMeRequestServlet(RequestHandler):
 
@@ -10,7 +10,7 @@ class PickMeRequestServlet(RequestHandler):
         if not self.current_user:
             return self.send_error(403)
 
-        self.pushid = core.util.get_int_arg(self.request, 'push')
+        self.pushid = pushmanager.core.util.get_int_arg(self.request, 'push')
         self.request_ids = self.request.arguments.get('request', [])
 
         db.execute_cb(db.push_pushes.select().where(db.push_pushes.c.id == self.pushid), self.on_push_select)
@@ -64,7 +64,7 @@ class UnpickMeRequestServlet(RequestHandler):
         if not self.current_user:
             return self.send_error(403)
 
-        self.pushid = core.util.get_int_arg(self.request, 'push')
+        self.pushid = pushmanager.core.util.get_int_arg(self.request, 'push')
         self.request_id = self.request.arguments.get('request', [None])[0]
         delete_query = db.push_pushcontents.delete().where(
             SA.exists([1], SA.and_(

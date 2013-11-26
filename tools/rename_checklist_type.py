@@ -17,7 +17,7 @@ from functools import partial
 from optparse import OptionParser
 import sys
 
-import core.db as db
+import pushmanager.core.db as db
 
 
 def main():

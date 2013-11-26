@@ -1,9 +1,9 @@
 import json
 import sqlalchemy as SA
 
-from core import db
-from core import util
-from core.requesthandler import RequestHandler
+from pushmanager.core import db
+from pushmanager.core import util
+from pushmanager.core.requesthandler import RequestHandler
 
 class APIServlet(RequestHandler):
 

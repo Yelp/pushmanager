@@ -1,17 +1,17 @@
-import core.db as db
-from core.db import InsertIgnore
-from core.mail import MailQueue
-from core.requesthandler import RequestHandler
-from core.settings import Settings
-import core.util
-from core.xmppclient import XMPPQueue
+import pushmanager.core.db as db
+from pushmanager.core.db import InsertIgnore
+from pushmanager.core.mail import MailQueue
+from pushmanager.core.requesthandler import RequestHandler
+from pushmanager.core.settings import Settings
+import pushmanager.core.util
+from pushmanager.core.xmppclient import XMPPQueue
 
 class AddRequestServlet(RequestHandler):
 
     def post(self):
         if not self.current_user:
             return self.send_error(403)
-        self.pushid = core.util.get_int_arg(self.request, 'push')
+        self.pushid = pushmanager.core.util.get_int_arg(self.request, 'push')
         self.request_ids = self.request.arguments.get('request', [])
 
         insert_queries = [
@@ -51,7 +51,7 @@ class AddRequestServlet(RequestHandler):
                     Regards,<br />
                     PushManager
                 </p>"""
-                ) % core.util.EscapedDict({
+                ) % pushmanager.core.util.EscapedDict({
                     'pushmaster': self.current_user,
                     'user': user_string,
                     'title': req['title'],

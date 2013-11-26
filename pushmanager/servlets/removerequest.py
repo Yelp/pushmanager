@@ -2,11 +2,11 @@ import sqlalchemy as SA
 import time
 import tornado.web
 
-import core.db as db
-from core.mail import MailQueue
-from core.requesthandler import RequestHandler
-import core.util
-from core.xmppclient import XMPPQueue
+import pushmanager.core.db as db
+from pushmanager.core.mail import MailQueue
+from pushmanager.core.requesthandler import RequestHandler
+import pushmanager.core.util
+from pushmanager.core.xmppclient import XMPPQueue
 
 class RemoveRequestServlet(RequestHandler):
 
@@ -14,7 +14,7 @@ class RemoveRequestServlet(RequestHandler):
     def post(self):
         if not self.current_user:
             return self.send_error(403)
-        self.pushid = core.util.get_int_arg(self.request, 'push')
+        self.pushid = pushmanager.core.util.get_int_arg(self.request, 'push')
         self.requestid = self.request.arguments.get('request', [])
         select_query = db.push_requests.select().where(
             db.push_requests.c.id.in_(self.requestid)
@@ -60,7 +60,7 @@ class RemoveRequestServlet(RequestHandler):
                     Regards,<br />
                     PushManager
                 </p>"""
-                ) % core.util.EscapedDict({
+                ) % pushmanager.core.util.EscapedDict({
                     'pushmaster': self.current_user,
                     'user': user_string,
                     'title': req['title'],

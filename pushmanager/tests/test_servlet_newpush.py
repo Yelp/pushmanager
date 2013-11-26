@@ -5,11 +5,11 @@ import mock
 import pushmanager.testing as T
 import types
 
-from core import db
-from core.settings import Settings
-from core.mail import MailQueue
-from core.util import get_servlet_urlspec
-from core.xmppclient import XMPPQueue
+from pushmanager.core import db
+from pushmanager.core.settings import Settings
+from pushmanager.core.mail import MailQueue
+from pushmanager.core.util import get_servlet_urlspec
+from pushmanager.core.xmppclient import XMPPQueue
 import pushmanager.servlets.newpush
 from pushmanager.servlets.newpush import NewPushServlet
 from pushmanager.servlets.newpush import send_notifications
