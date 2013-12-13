@@ -5,3 +5,6 @@ app.*.pid
 /config.yaml
 .coverage
 coverage*
+.tox/
+dist/
+pushmanager.egg-info/
