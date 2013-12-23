@@ -31,6 +31,7 @@ cookie_secret: "changethis"
 auth_ldap:
     url: "ldap://ldap.example.com:389"
     domain: "example.com"
+    basedn: "CN=Users,OU=Groups,OU=Company,DC=example,DC=com"
     cert_file: "/path/to/file.crt"
 
 # IRC channels to report to
@@ -120,4 +121,3 @@ tornado:
 # Upon completion of a push, Pushmanager can optionally display a button to fill out a survey.
 # If this is not defined, no button to a survey is displayed.
 # push_survey_url: 'https://examplesurvey'
-
