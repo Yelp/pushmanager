@@ -14,6 +14,7 @@ def authenticate(username, password):
     """Attempts to bind a given username/password pair in LDAP and returns whether or not it succeeded."""
     try:
         dn = "%s@%s" % (username, Settings['auth_ldap']['domain'])
+        basedn = Settings['auth_ldap']['basedn']
 
         con = ldap.initialize(LDAP_URL)
 
@@ -24,6 +25,7 @@ def authenticate(username, password):
         con.start_tls_s()
         try:
             con.simple_bind_s(dn, password)
+            con.search_s(basedn, ldap.SCOPE_ONELEVEL)
         except:
             return False
         con.unbind_s()
