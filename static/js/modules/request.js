@@ -115,7 +115,7 @@ $(function() {
     $('.discard-request').live('click', PushManager.Request.discard_request);
 
     PushManager.Request.load_bb_failures = function(domobj) {
-        var dataurl = "http://" + Settings['buildbot']['servername'] + "/rev/%REVISION%";
+        var dataurl = "https://" + Settings['buildbot']['servername'] + "/rev/%REVISION%";
         var that = $(domobj);
         if(that.hasClass('bb-data-loaded')) {
             return;
