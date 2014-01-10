@@ -75,7 +75,7 @@ class PushTemplateTest(T.TemplateTestCase):
     basic_push_info_items = {
             'Pushmaster': basic_push['user'],
             'Branch': basic_push['branch'],
-            'Buildbot Runs': 'http://%s/branch/%s' % (Settings['buildbot']['servername'], basic_push['branch']),
+            'Buildbot Runs': 'https://%s/branch/%s' % (Settings['buildbot']['servername'], basic_push['branch']),
             'State': basic_push['state'],
             'Push Type': basic_push['pushtype'],
             'Created': time.strftime("%x %X", time.localtime(basic_push['created']))
