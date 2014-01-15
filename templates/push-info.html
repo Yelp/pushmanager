@@ -3,7 +3,7 @@
 	<li><span class="label">Branch</span><span class="value">{{ escape(push_info['branch']) }}</span></li>
 	{% if push_info['stageenv'] %}<li><span class="label">Stage</span><span class="value">{{ escape(push_info['stageenv']) }}</span></li>{% end %}
 {% if push_info['state'] == 'accepting' %}
-	<li><span class="label">Buildbot Runs</span><span class="value"><a href="http://{{ escape(Settings['buildbot']['servername']) }}/branch/{{ escape(push_info['branch']) }}">url</a></span></li>
+	<li><span class="label">Buildbot Runs</span><span class="value"><a href="https://{{ escape(Settings['buildbot']['servername']) }}/branch/{{ escape(push_info['branch']) }}">url</a></span></li>
 {% end %}
 	<li><span class="label">State</span><span class="value"><ul class="tags">
 			<li class="tag-{{ escape(push_info['state']) }}">{{ escape(push_info['state']) }}</li>
