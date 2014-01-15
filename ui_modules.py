@@ -66,7 +66,7 @@ class Request(UIModule):
         tags = dict((tag, None) for tag in (request['tags'].split(',') if request['tags'] else []))
 
         if 'buildbot' in tags:
-            tags['buildbot'] = "http://%s/rev/%s" % (Settings['buildbot']['servername'], request['revision'])
+            tags['buildbot'] = "https://%s/rev/%s" % (Settings['buildbot']['servername'], request['revision'])
 
         if 'pushplans' in tags:
             tags['pushplans'] = "https://%s/?p=%s.git;a=history;f=pushplans;hb=refs/heads/%s" % (

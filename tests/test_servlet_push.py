@@ -66,7 +66,7 @@ class PushServletTest(PushServletTestBase):
             requests = pushdata[1]
             all_requests = requests['all']
             first_request = all_requests[0]
-            buildbot_link = "http://%s/rev/%s" % (Settings['buildbot']['servername'], first_request['revision'])
+            buildbot_link = "https://%s/rev/%s" % (Settings['buildbot']['servername'], first_request['revision'])
             T.assert_equal(self.find_buildbot_link(response, buildbot_link), True)
 
 
