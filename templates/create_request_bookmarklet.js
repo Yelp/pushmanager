@@ -9,6 +9,7 @@
     var codeReview = location.href.split('#')[0];
     var reviewid = codeReview.match(/\d+/)[0];
     var tickets = $('#bugs_closed').text().split(',').filter(Boolean).map(ticketNumberToURL);
+    var description = $('#description').text();
 
     // Get a list of reviewers who have a 'Ship it!', filtering out dupes
     var reviewerSet = {};
@@ -43,6 +44,7 @@
         'repo': repo,
         'branch': branch,
         'review': reviewid,
-        'comments': comments
+        'comments': comments,
+        'description': description
     });
 })();
