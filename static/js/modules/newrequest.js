@@ -99,9 +99,10 @@ $(function() {
             PushManager.urlParams['branch'],
             PushManager.urlParams['repo'],
             PushManager.urlParams['review'],
-            PushManager.urlParams['comments']
+            PushManager.urlParams['comments'],
+            PushManager.urlParams['description'] || '' // For those on old bookmarklet
         );
     };
 
-    
+
 });
