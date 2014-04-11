@@ -64,4 +64,3 @@ class DiscardRequestServlet(RequestHandler):
         MailQueue.enqueue_user_email(users, msg, subject)
 
         self.redirect("/requests?user=%s" % self.current_user)
-

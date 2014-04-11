@@ -8,4 +8,3 @@ sys.path.append("..")
 from core.settings import Settings
 
 MockedSettings = copy.deepcopy(Settings)
-
