@@ -11,6 +11,7 @@ from pushmanager.core.util import get_servlet_urlspec
 from pushmanager.servlets.api import APIServlet
 import pushmanager.ui_modules as ui_modules
 
+
 api_application = tornado.web.Application(
     # Servlet dispatch rules
     [
@@ -26,6 +27,7 @@ api_application = tornado.web.Application(
     autoescape = None,
 )
 
+
 class PushManagerAPIApp(Application):
     name = "api"
 
@@ -36,7 +38,12 @@ class PushManagerAPIApp(Application):
         server = tornado.httpserver.HTTPServer(api_application)
         server.add_sockets(sockets)
 
-if __name__ == '__main__':
+
+def main():
     app = PushManagerAPIApp()
     db.init_db()
     app.run()
+
+
+if __name__ == '__main__':
+    main()

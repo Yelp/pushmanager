@@ -25,7 +25,12 @@ setup(
     license='Copyright Yelp 2013',
     packages=find_packages(exclude=["tests"]),
     include_package_data=True,
-    scripts=['bin/pushmanager'],
+    entry_points = {
+        'console_scripts': [
+            'pushmanager_api = pushmanager.pushmanager_api:main',
+            'pushmanager_main = pushmanager.pushmanager_main:main',
+        ],
+    },
     setup_requires=['setuptools'],
     install_requires=[
         'lxml == 2.2.4',

@@ -146,7 +146,12 @@ class PushManagerApp(Application):
         RBQueue.start_worker()
         XMPPQueue.start_worker()
 
-if __name__ == '__main__':
+
+def main():
     app = PushManagerApp()
     db.init_db()
     app.run()
+
+
+if __name__ == '__main__':
+    main()
