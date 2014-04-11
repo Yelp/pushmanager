@@ -3,7 +3,7 @@ import logging
 
 import mock
 
-from pushmanager.pushmanager_main import LoginHandler
+from pushmanager.handlers import LoginHandler
 from pushmanager.testing.testservlet import ServletTestMixin
 import pushmanager.testing as T
 
