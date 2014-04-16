@@ -38,7 +38,9 @@
     }
     comments = comments.join('\n\n');
 
-    location.href = 'https://' + Settings['main_app']['servername'] + '/requests?' + $.param({
+    main_app_port = Settings['main_app']['port'] == 443 ? ':' + Settings['main_app']['port'] : '';
+
+    location.href = 'https://' + Settings['main_app']['servername'] + main_app_port + '/requests?' + $.param({
         'bookmarklet': 1,
         'title': summary,
         'repo': repo,

@@ -60,8 +60,9 @@ class AddRequestServlet(RequestHandler):
                 })
             subject = "[push] %s - %s" % (user_string, req['title'])
             MailQueue.enqueue_user_email(users, msg, subject)
-            msg = '%(pushmaster)s has accepted request "%(title)s" for %(user)s into a push:\nhttps://%(pushmanager_servername)s/push?id=%(pushid)s' % {
+            msg = '%(pushmaster)s has accepted request "%(title)s" for %(user)s into a push:\nhttps://%(pushmanager_servername)s%(pushmanager_port)s/push?id=%(pushid)s' % {
                 'pushmanager_servername': Settings['main_app']['servername'],
+                'pushmanager_port': ':%d' % Settings['main_app']['port'] if Settings['main_app']['port'] != 443 else '',
                 'pushmaster': self.current_user,
                 'title': req['title'],
                 'pushid': self.pushid,

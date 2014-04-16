@@ -11,8 +11,10 @@ from pushmanager.core.xmppclient import XMPPQueue
 def send_notifications(people, pushtype, pushurl):
     pushmanager_servername = Settings['main_app']['servername']
     pushmanager_servername = pushmanager_servername.rstrip('/')
+    pushmanager_port = ':%d' % Settings['main_app']['port'] if Settings['main_app']['port'] != 443 else ''
+
     pushurl = pushurl.lstrip('/')
-    pushmanager_url = "https://%s/%s" % (pushmanager_servername, pushurl)
+    pushmanager_url = "https://%s/%s" % (pushmanager_servername + pushmanager_port, pushurl)
 
     if people:
         msg = '%s: %s push starting! %s' % (', '.join(people), pushtype, pushmanager_url)

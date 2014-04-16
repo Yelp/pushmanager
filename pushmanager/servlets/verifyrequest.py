@@ -46,6 +46,8 @@ class VerifyRequestServlet(RequestHandler):
         push = db_results[0].first()
         unfinished_requests = db_results[2].first()
         pushmanager_servername = Settings['main_app']['servername']
+        pushmanager_port = ':%d' % Settings['main_app']['port'] if Settings['main_app']['port'] != 443 else ''
         if not unfinished_requests:
-            msg = "All currently staged requests in http://%s/push?id=%s have been marked as verified." % (pushmanager_servername, self.pushid)
+            msg = "All currently staged requests in https://%s/push?id=%s have been marked as verified." % \
+                (pushmanager_servername + pushmanager_port, self.pushid)
             XMPPQueue.enqueue_user_xmpp([push['user']], msg)

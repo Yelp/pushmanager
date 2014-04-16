@@ -61,8 +61,8 @@ class DeployPushServlet(RequestHandler):
                 </p>
                 <p>
                     Once you've checked that it works, mark it as verified here:
-                    <a href="https://%(pushmanager_servername)s/push?id=%(pushid)s">
-                        https://%(pushmanager_servername)s/push?id=%(pushid)s
+                    <a href="https://%(pushmanager_servername)s%(pushmanager_port)s/push?id=%(pushid)s">
+                        https://%(pushmanager_servername)s%(pushmanager_port)s/push?id=%(pushid)s
                     </a>
                 </p>
                 <p>
@@ -72,6 +72,7 @@ class DeployPushServlet(RequestHandler):
                 ) % pushmanager.core.util.EscapedDict({
                     'pushmaster': self.current_user,
                     'pushmanager_servername': Settings['main_app']['servername'],
+                    'pushmanager_port' : ':%d' % Settings['main_app']['port'] if Settings['main_app']['port'] != 443 else '',
                     'user': user_string,
                     'title': req['title'],
                     'repo': req['repo'],
@@ -82,9 +83,10 @@ class DeployPushServlet(RequestHandler):
             subject = "[push] %s - %s" % (user_string, req['title'])
             MailQueue.enqueue_user_email(users, msg, subject)
 
-            msg = '%(pushmaster)s has deployed request "%(title)s" for %(user)s to %(pushstage)s.\nPlease verify it at https://%(pushmanager_servername)s/push?id=%(pushid)s' % {
+            msg = '%(pushmaster)s has deployed request "%(title)s" for %(user)s to %(pushstage)s.\nPlease verify it at https://%(pushmanager_servername)s%(pushmanager_port)s/push?id=%(pushid)s' % {
                     'pushmaster': self.current_user,
                     'pushmanager_servername': Settings['main_app']['servername'],
+                    'pushmanager_port': ':%d' % Settings['main_app']['port'] if Settings['main_app']['port'] != 443 else '',
                     'title': req['title'],
                     'pushid': self.pushid,
                     'user': user_string,

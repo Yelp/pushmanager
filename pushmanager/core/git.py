@@ -241,10 +241,10 @@ class GitQueue(object):
         <p>
             <strong>%(user)s - %(title)s</strong><br />
             <em>%(repo)s/%(branch)s</em><br />
-            <a href="https://%(pushmanager_servername)s/request?id=%(id)s">https://%(pushmanager_servername)s/request?id=%(id)s</a>
+            <a href="https://%(pushmanager_servername)s%(pushmanager_port)s/request?id=%(id)s">https://%(pushmanager_servername)s%(pushmanager_port)s/request?id=%(id)s</a>
         </p>
         <p>
-            Review # (if specified): <a href="https://%(reviewboard_servername)s/r/%(reviewid)s">%(reviewid)s</a>
+            Review # (if specified): <a href="https://%(reviewboard_servername)s%(pushmanager_port)s/r/%(reviewid)s">%(reviewid)s</a>
         </p>
         <p>
             Verified revision: <code>%(revision)s</code><br/>
@@ -258,6 +258,7 @@ class GitQueue(object):
         """)
         updated_request.update({
             'pushmanager_servername': Settings['main_app']['servername'],
+            'pushmanager_port': ':%d' % Settings['main_app']['port'] if Settings['main_app']['port'] != 443 else '',
             'reviewboard_servername': Settings['reviewboard']['servername']
         })
         msg %= EscapedDict(updated_request)
