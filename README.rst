@@ -7,4 +7,5 @@ together push requests from engineers and information gathered from
 reviews, test builds and issue tracking system.
 
 TODO:
-   Python Packaging and README update
+   README update
+   Changelog

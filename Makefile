@@ -1,35 +1,26 @@
 all: test flakes
 	@echo "Default target is to test. You need to specify other targets explicitly."
 
-.PHONY: stop
-stop:
-	./pushmanager stop
-
-.PHONY: start
-start:
-	./pushmanager start
-
-
-.PHONY: restart
-restart:
-	./pushmanager restart
-
-
 .PHONY: flakes
 flakes:
-	pyflakes . | grep -v tornado
+	tox
 
 .PHONY: test
 test:
-	testify -v --summary tests
+	tox
 
 .PHONY: coverage
 coverage:
-	@coverage erase
-	coverage run `which testify` --verbose --exclude-suite disabled tests
-	coverage report
+	tox -e cover
 	coverage html
 	coverage xml
 
 .PHONY: tests
 tests: test ;
+
+.PHONY: clean
+clean:
+	rm -rf .coverage
+	rm -rf .tox
+	find . -name '*.pyc' -delete
+	find . -name '__pycache__' -delete
