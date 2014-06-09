@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from . import db
 from .mail import MailQueue
+import os
 import logging
 from Queue import Queue
 import subprocess
@@ -53,6 +54,64 @@ class GitQueue(object):
         cls.worker_thread.start()
 
     @classmethod
+    def create_or_update_local_repo(cls, repo_name, branch):
+        """
+        Clones or fetches the repository specified by repo_name into the local_repo_path
+        speficied in the configuration.
+        If branch is specified, it will also checkout that branch.
+        """
+
+        repo_path = cls._get_local_repository_uri(repo_name)
+
+        if not os.path.isdir(repo_path):
+            # Clone the main repo into repo_path. Will take time!
+            clone_repo = GitCommand(
+                'clone',
+                cls._get_repository_uri(repo_name),
+                repo_path
+            )
+            rc, stdout, stderr = clone_repo.run()
+            if rc:
+                logging.error("Failed to create local clone with code %d: %s" % (rc, stderr))
+                return rc
+
+        # Fetch all new repo info
+        fetch_updates = GitCommand('fetch', '--all', cwd=repo_path)
+        rc, stdout, stderr = fetch_updates.run()
+        if rc:
+            logging.error("Failed to update local git repo (code %d): %s" % (rc, stderr))
+            return rc
+
+        # Checkout the branch
+        checkout_branch = GitCommand('checkout', branch, cwd=repo_path)
+        rc, stdout, stderr = checkout_branch.run()
+        if rc:
+            logging.error(
+                "Failed to check out branch %s from %s (code %d): %s"
+                % (branch, repo_name, rc, stderr)
+            )
+            return rc
+
+        # Try to fast-forward any updates to the branch
+        fetch_updates = GitCommand('pull', '--ff-only', cwd=repo_path)
+        rc, stdout, stderr = fetch_updates.run()
+        if rc:
+            logging.error("Failed to update local git repo (code %d): %s" % (rc, stderr))
+            return rc
+
+        # Update submodules
+        sync_submodule = GitCommand("submodule", "--quiet", "sync", cwd=repo_path)
+        sync_submodule.run()
+        update_submodules = GitCommand("submodule", "--quiet", "update", "--init", cwd=repo_path)
+        update_submodules.run()
+
+        return 0
+
+    @classmethod
+    def _get_local_repository_uri(cls, repository):
+        return os.path.join(Settings['git']['local_repo_path'], repository)
+
+    @classmethod
     def _get_repository_uri(cls, repository):
         scheme = Settings['git']['scheme']
         netloc = Settings['git']['servername']
@@ -68,8 +127,11 @@ class GitQueue(object):
 
     @classmethod
     def _get_branch_sha_from_repo(cls, req):
+        # Update local copy of the repo
+        cls.create_or_update_local_repo(req['repo'], branch=req['branch'])
+
         user_to_notify = req['user']
-        repository = cls._get_repository_uri(req['repo'])
+        repository = cls._get_local_repository_uri(req['repo'])
         ls_remote = GitCommand('ls-remote', '-h', repository, req['branch'])
         rc, stdout, stderr = ls_remote.run()
         stdout = stdout.strip()
