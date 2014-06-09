@@ -15,6 +15,7 @@ Mail queues.
 """
 
 import logging
+import os
 import subprocess
 import time
 import urllib2
@@ -100,6 +101,84 @@ class GitQueue(object):
         cls.worker_thread.start()
 
     @classmethod
+    def create_or_update_local_repo(cls, repo_name, branch):
+        """Clones the main repository if it does not exist.
+        If repo_name is not the main repo, add that repo as a remote and fetch
+        refs before checking out the specified branch.
+        """
+
+        # Since we are keeping everything in the same repo, repo_path should
+        # always be the same
+        repo_path = cls._get_local_repository_uri(
+            Settings['git']['main_repository']
+        )
+
+        # repo_name is the remote to use. If we are dealing with the main
+        # repository, set the remote to origin.
+        if repo_name is Settings['git']['main_repository']:
+            repo_name = 'origin'
+
+        # Check if the main repo does not exist and needs to be created
+        if not os.path.isdir(repo_path):
+            # If we are using a reference mirror, add --reference [path] to
+            # the list of gitcommand args
+            clone_args = ['clone', cls._get_repository_uri(
+                Settings['git']['main_repository']
+            )]
+
+            if Settings['git']['use_local_mirror']:
+                if os.path.isdir(Settings['git']['local_mirror']):
+                    clone_args.extend([
+                        '--reference',
+                        Settings['git']['local_mirror']
+                    ])
+
+            clone_args.append(repo_path)
+            # Clone the main repo into repo_path. Will take time!
+            clone_repo = GitCommand(*clone_args)
+            clone_repo.run()
+
+        # If we are dealing with a dev repo, make sure it is added as a remote
+        dev_repo_uri = cls._get_repository_uri(repo_name)
+        add_remote = GitCommand(
+            'remote', 'add', repo_name, dev_repo_uri,
+            cwd=repo_path
+        )
+        try:
+            add_remote.run()
+        except GitException, e:
+            # If the remote already exists, git will return err 128
+            if e.gitret is 128:
+                pass
+            else:
+                raise e
+
+        # Fetch all new repo info
+        fetch_updates = GitCommand('fetch', '--all', '--prune', cwd=repo_path)
+        fetch_updates.run()
+
+        # Checkout the branch
+        full_branch = "%s/%s" % (repo_name, branch)
+        checkout_branch = GitCommand('checkout', full_branch, cwd=repo_path)
+        checkout_branch.run()
+
+        # Update submodules
+        sync_submodule = GitCommand(
+            "submodule", "--quiet", "sync",
+            cwd=repo_path
+        )
+        sync_submodule.run()
+        update_submodules = GitCommand(
+            "submodule", "--quiet", "update", "--init",
+            cwd=repo_path
+        )
+        update_submodules.run()
+
+    @classmethod
+    def _get_local_repository_uri(cls, repository):
+        return os.path.join(Settings['git']['local_repo_path'], repository)
+
+    @classmethod
     def _get_repository_uri(cls, repository):
         scheme = Settings['git']['scheme']
         netloc = Settings['git']['servername']
@@ -107,7 +186,7 @@ class GitQueue(object):
             netloc = '%s@%s' % (Settings['git']['auth'], netloc)
         if Settings['git']['port']:
             netloc = '%s:%s' % (netloc, Settings['git']['port'])
-        if repository == Settings['git']['main_repository']:
+        if repository == Settings['git']['main_repository'] or repository == 'origin':
             repository = (
                 '%s://%s/%s'
                 % (scheme, netloc, Settings['git']['main_repository'])
@@ -125,18 +204,22 @@ class GitQueue(object):
     @classmethod
     def _get_branch_sha_from_repo(cls, req):
         user_to_notify = req['user']
-        repository = cls._get_repository_uri(req['repo'])
-        ls_remote = GitCommand('ls-remote', '-h', repository, req['branch'])
-        rc, stdout, stderr = ls_remote.run()
-        stdout = stdout.strip()
         query_details = {
             'user': req['user'],
             'title': req['title'],
             'repo': req['repo'],
             'branch': req['branch'],
-            'stderr': stderr,
         }
-        if rc:
+        stdout = ""
+        try:
+            cls.create_or_update_local_repo(req['repo'], branch=req['branch'])
+            ls_remote = GitCommand(
+                'ls-remote', '-h',
+                cls._get_repository_uri(req['user']), req['branch']
+            )
+            _, stdout, _ = ls_remote.run()
+            stdout = stdout.strip()
+        except GitException, e:
             msg = """
                 <p>
                     There was an error verifying your push request in Git:
@@ -157,6 +240,7 @@ class GitQueue(object):
                     PushManager
                 </p>
                 """
+            query_details['stderr'] = e.giterr
             msg %= EscapedDict(query_details)
             subject = '[push error] %s - %s' % (req['user'], req['title'])
             MailQueue.enqueue_user_email([user_to_notify], msg, subject)
