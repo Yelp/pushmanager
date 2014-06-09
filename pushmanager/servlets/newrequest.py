@@ -3,7 +3,7 @@ import time
 import re
 
 import pushmanager.core.db as db
-from pushmanager.core.git import GitQueue
+from pushmanager.core.git import GitQueue, GitTaskAction
 from pushmanager.core.requesthandler import RequestHandler
 import pushmanager.core.util
 
@@ -138,6 +138,6 @@ class NewRequestServlet(RequestHandler):
             return self.send_error(500)
 
         if self.requestid:
-            GitQueue.enqueue_request(self.requestid)
+            GitQueue.enqueue_request(GitTaskAction.VERIFY_BRANCH, self.requestid)
 
         return self.redirect("/requests?user=%s" % self.request_user)

@@ -16,6 +16,22 @@ import urllib2
 
 from pushmanager.core.settings import Settings
 
+class GitTaskAction:
+    VERIFY_BRANCH, TEST_PICKME_CONFLICT = range(2)
+
+class GitQueueTask(object):
+    """
+    A task for the GitQueue to perform.
+    Task can be one of:
+    - VERIFY_BRANCH: check that a branch can be found and is not a duplicate
+    - TEST_PICKME_CONFLICT: check which (if any) branches also pickme'd for the
+        same push cause merge conflicts with this branch
+    """
+
+    def __init__(self, task_type, request_id):
+        self.task_type = task_type
+        self.request_id = request_id
+
 class GitCommand(subprocess.Popen):
 
     def __init__(self, *args, **kwargs):
@@ -250,7 +266,11 @@ class GitQueue(object):
         return updated_request
 
     @classmethod
-    def update_request(cls, request_id):
+    def test_pickme_conflicts(clas, request_id):
+        pass
+
+    @classmethod
+    def verify_branch(cls, request_id):
         req = cls._get_request(request_id)
         if not req:
             # Just log this and return. We won't be able to get more
@@ -264,12 +284,12 @@ class GitQueue(object):
 
         if not req['branch']:
             error_msg = "Git queue worker received a job for request with no branch (id %s)" % request_id
-            return cls.update_request_failure(req, error_msg)
+            return cls.verify_branch_failure(req, error_msg)
 
         sha = cls._get_branch_sha_from_repo(req)
         if sha is None:
             error_msg = "Git queue worker could not get the revision from request branch (id %s)" % request_id
-            return cls.update_request_failure(req, error_msg)
+            return cls.verify_branch_failure(req, error_msg)
 
         duplicate_req = cls._get_request_with_sha(sha)
         if duplicate_req and duplicate_req.has_key('state') and not duplicate_req['state'] == "discarded":
@@ -277,7 +297,7 @@ class GitQueue(object):
                 duplicate_req['id'],
                 request_id
             )
-            return cls.update_request_failure(req, error_msg)
+            return cls.verify_branch_failure(req, error_msg)
 
         updated_tags = add_to_tags_str(req['tags'], 'git-ok')
         updated_tags = del_from_tags_str(updated_tags, 'git-error')
@@ -285,10 +305,10 @@ class GitQueue(object):
 
         updated_request = cls._update_request(req, updated_values)
         if updated_request:
-            cls.update_request_successful(updated_request)
+            cls.verify_branch_successful(updated_request)
 
     @classmethod
-    def update_request_successful(cls, updated_request):
+    def verify_branch_successful(cls, updated_request):
         msg = (
         """
         <p>
@@ -345,7 +365,7 @@ class GitQueue(object):
             )
 
     @classmethod
-    def update_request_failure(cls, request, failure_msg):
+    def verify_branch_failure(cls, request, failure_msg):
         logging.error(failure_msg)
         updated_tags = add_to_tags_str(request['tags'], 'git-error')
         updated_tags = del_from_tags_str(updated_tags, 'git-ok')
@@ -396,17 +416,27 @@ class GitQueue(object):
             # Throttle
             time.sleep(1)
 
-            request_id = cls.request_queue.get()
+            task = cls.request_queue.get()
+
+            if not isinstance(task, GitQueueTask):
+                logging.error("Non-task object in GitQueue: %s" % task)
+                continue
+
             try:
-                cls.update_request(request_id)
+                if task.task_type is GitTaskAction.VERIFY_BRANCH:
+                    cls.verify_branch(task.request_id)
+                elif task.task_type is GitTaskAction.TEST_PICKME_CONFLICT:
+                    cls.test_pickme_conflicts(task.request_id)
+                else:
+                    logging.error("GitQueue encountered unknown task type %d" % task.task_type)
             except Exception:
                 logging.error('THREAD ERROR:', exc_info=True)
             finally:
                 cls.request_queue.task_done()
 
     @classmethod
-    def enqueue_request(cls, request_id):
-        cls.request_queue.put(request_id)
+    def enqueue_request(cls, task_type, request_id):
+        cls.request_queue.put(GitQueueTask(task_type, request_id))
 
 def webhook_req(left_type, left_token, right_type, right_token):
     webhook_url = Settings['web_hooks']['post_url']
