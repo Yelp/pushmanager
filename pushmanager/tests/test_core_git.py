@@ -10,6 +10,7 @@ import shutil
 import tempfile
 import testify as T
 from pushmanager.core import db
+from pushmanager.core.git import GitCommand
 from pushmanager.core.settings import Settings
 from pushmanager.testing import testdb
 from pushmanager.testing.mocksettings import MockedSettings
@@ -19,6 +20,7 @@ class CoreGitTest(T.TestCase):
 
     @T.class_setup
     def setup_db(self):
+        self.temp_git_dirs = []
         self.db_file = testdb.make_test_db()
         MockedSettings['db_uri'] = testdb.get_temp_db_uri(self.db_file)
         MockedSettings['irc'] = {
@@ -56,6 +58,8 @@ class CoreGitTest(T.TestCase):
     def cleanup_db(self):
         db.finalize_db()
         os.unlink(self.db_file)
+        for temp_dir in self.temp_git_dirs:
+            shutil.rmtree(temp_dir)
 
     @contextmanager
     def mocked_update_request(self, req, duplicate_req=None):
@@ -332,16 +336,12 @@ class CoreGitTest(T.TestCase):
     def test_create_or_update_local_repo_master_integration(self):
         test_settings = copy.deepcopy(Settings)
         test_settings['git']['local_repo_path'] = tempfile.mkdtemp(prefix="pushmanager")
+        self.temp_git_dirs.append(test_settings['git']['local_repo_path'])
         test_settings['git']['servername'] = "github.com"
         test_settings['git']['scheme'] = "https"
         test_settings['git']['main_repository'] = "Yelp/pushmanager/"
         with mock.patch.dict(Settings, test_settings, clear=True):
-            try:
                 pushmanager.core.git.GitQueue.create_or_update_local_repo('origin', 'master')
-            except Exception, e:
-                raise e
-            finally:
-                shutil.rmtree(test_settings['git']['local_repo_path'])
 
     def test_create_or_update_local_repo_with_reference(self):
         test_settings = copy.deepcopy(Settings)
@@ -366,3 +366,136 @@ class CoreGitTest(T.TestCase):
                     mock.call().run()
                 ]
                 GC.assert_has_calls(calls)
+
+    def test_clear_pickme_conflict_details(self):
+        GQ = pushmanager.core.git.GitQueue()
+        sample_req = {
+            'tags': 'asdasd,conflict-master,git-ok,conflict-pickme',
+            'conflicts': 'This conflicts with everything!',
+        }
+        clean_req = {
+            'tags': 'asdasd,git-ok',
+            'conflicts': '',
+        }
+        with mock.patch('pushmanager.core.git.GitQueue._update_request') as update_req:
+            GQ._clear_pickme_conflict_details(sample_req)
+            update_req.assert_called_with(sample_req, clean_req)
+
+    def test_pickme_conflict_pickme_integration(self):
+        test_settings = copy.deepcopy(Settings)
+        repo_path = tempfile.mkdtemp(prefix="pushmanager")
+        self.temp_git_dirs.append(repo_path)
+        test_settings['git']['local_repo_path'] = repo_path
+
+        # Create a repo with two conflicting branches
+        GitCommand('init', test_settings['git']['local_repo_path'], cwd=repo_path).run()
+        # Prevent Git complaints about names
+        GitCommand('config', 'user.email', 'test@pushmanager', cwd=repo_path).run()
+        GitCommand('config', 'user.name', 'pushmanager tester', cwd=repo_path).run()
+        with open(os.path.join(repo_path, "code.py"), 'w') as f:
+            f.write('#!/usr/bin/env python\n\nprint("Hello World!")\nPrint("Goodbye!")\n')
+        GitCommand('add', repo_path, cwd=repo_path).run()
+        GitCommand('commit', '-a', '-m', 'Master Commit', cwd=repo_path).run()
+
+        GitCommand('checkout', '-b', 'change_german', cwd=repo_path).run()
+        with open(os.path.join(repo_path, "code.py"), 'w') as f:
+            f.write('#!/usr/bin/env python\n\nprint("Hallo Welt!")\nPrint("Goodbye!")\n')
+        GitCommand('commit', '-a', '-m', 'verpflichten', cwd=repo_path).run()
+        GitCommand('checkout', 'master', cwd=repo_path).run()
+        german_req = {'id': 1, 'tags':'git-ok', 'title':'German', 'user':'.', 'branch':'change_german'}
+
+        GitCommand('checkout', '-b', 'change_welsh', cwd=repo_path).run()
+        with open(os.path.join(repo_path, "code.py"), 'w') as f:
+            f.write('#!/usr/bin/env python\n\nprint("Helo Byd!")\nPrint("Goodbye!")\n')
+        GitCommand('commit', '-a', '-m', 'ymrwymo', cwd=repo_path).run()
+        GitCommand('checkout', 'master', cwd=repo_path).run()
+        welsh_req = {'id': 2, 'tags':'git-ok', 'title':'Welsh', 'user':'.', 'branch':'change_welsh'}
+
+        # Create a test branch for merging
+        GitCommand('checkout', '-b', 'test_pcp', cwd=repo_path).run()
+
+        # Merge on the first pickme
+        pushmanager.core.git.git_merge_pickme(german_req, repo_path)
+
+        with nested (
+                mock.patch('pushmanager.core.git.GitQueue._get_push_for_request'),
+                mock.patch('pushmanager.core.git.GitQueue._get_request_ids_in_push'),
+                mock.patch('pushmanager.core.git.GitQueue._get_request'),
+                mock.patch('pushmanager.core.git.GitQueue._update_request'),
+                mock.patch.dict(Settings, test_settings, clear=True)
+        ) as (p_for_r, r_in_p, get_req, update_req, _) :
+            p_for_r.return_value = {'push': 1}
+            r_in_p.return_value = [1, 2]
+            get_req.return_value = welsh_req
+            update_req.return_value = german_req
+            conflict, _ = pushmanager.core.git.GitQueue._test_pickme_conflict_pickme(
+                german_req,
+                "test_pcp",
+                repo_path,
+                False
+            )
+            T.assert_equal(conflict, True)
+            updated_request = update_req.call_args
+            T.assert_equal('conflict-pickme' in updated_request[0][1]['tags'], True)
+            T.assert_equal('Welsh' in updated_request[0][1]['conflicts'], True)
+
+    def test_pickme_conflict_master_integration(self):
+        test_settings = copy.deepcopy(Settings)
+        repo_path = tempfile.mkdtemp(prefix="pushmanager")
+        self.temp_git_dirs.append(repo_path)
+        test_settings['git']['local_repo_path'] = repo_path
+
+        # Create a repo
+        GitCommand('init', test_settings['git']['local_repo_path'], cwd=repo_path).run()
+        # Prevent Git complaints about names
+        GitCommand('config', 'user.email', 'test@pushmanager', cwd=repo_path).run()
+        GitCommand('config', 'user.name', 'pushmanager tester', cwd=repo_path).run()
+        with open(os.path.join(repo_path, "code.py"), 'w') as f:
+            f.write('#!/usr/bin/env python\n\nprint("Hello World!")\nPrint("Goodbye!")\n')
+        GitCommand('add', repo_path, cwd=repo_path).run()
+        GitCommand('commit', '-a', '-m', 'Master Commit', cwd=repo_path).run()
+
+        # Branch master, commit a change
+        GitCommand('checkout', '-b', 'change_german', cwd=repo_path).run()
+        with open(os.path.join(repo_path, "code.py"), 'w') as f:
+            f.write('#!/usr/bin/env python\n\nprint("Hallo Welt!")\nPrint("Goodbye!")\n')
+        GitCommand('commit', '-a', '-m', 'verpflichten', cwd=repo_path).run()
+        german_req = {'id': 1, 'tags':'git-ok', 'title':'German', 'user':'.', 'branch':'change_german'}
+
+        # Back on master, make a conflicting change
+        GitCommand('checkout', 'master', cwd=repo_path).run()
+        with open(os.path.join(repo_path, "code.py"), 'w') as f:
+            f.write('#!/usr/bin/env python\n\nprint("Helo Byd!")\nPrint("Goodbye!")\n')
+        GitCommand('commit', '-a', '-m', 'ymrwymo', cwd=repo_path).run()
+
+        class NoRemoteBranchContextManager(object):
+            # The real branch context manager uses remote names as part
+            # of the branch spec, for testing we don't have remotes.
+            def __init__(self, branch, path):
+                self.branch = branch
+                self.path = path
+
+            def __enter__(self):
+                GitCommand('checkout', '-b', self.branch, cwd=self.path).run()
+
+            def __exit__(self, *args):
+                pass
+
+        with nested (
+                mock.patch('pushmanager.core.git.GitQueue._update_request'),
+                mock.patch(
+                    'pushmanager.core.git.git_branch_context_manager',
+                    NoRemoteBranchContextManager
+                ),
+                mock.patch.dict(Settings, test_settings, clear=True)
+        ) as (update_req, _, _) :
+            conflict, _ = pushmanager.core.git.GitQueue._test_pickme_conflict_master(
+                german_req,
+                "test_pcm",
+                repo_path,
+                False
+            )
+            T.assert_equal(conflict, True)
+            updated_request = update_req.call_args
+            T.assert_equal('conflict-master' in updated_request[0][1]['tags'], True)
+            T.assert_equal('master' in updated_request[0][1]['conflicts'], True)

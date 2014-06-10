@@ -90,6 +90,7 @@ class PushRequests(Base):
     branch = Column(String)
     revision = Column(String(40), nullable=True)
     tags = Column(String)
+    conflicts = Column(String)
     created = Column(Integer, nullable=True)
     modified = Column(Integer, nullable=True)
     title = Column(String)

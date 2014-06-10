@@ -13,7 +13,6 @@ can be enqueued:
 Notifications for verify failures and pickme conflicts are sent to the XMPP and
 Mail queues.
 """
-
 import logging
 import os
 import subprocess
@@ -31,6 +30,7 @@ from pushmanager.core.util import add_to_tags_str
 from pushmanager.core.util import del_from_tags_str
 from pushmanager.core.util import EscapedDict
 from pushmanager.core.util import tags_contain
+from tornado.escape import xhtml_escape
 
 
 @contextmanager
@@ -152,6 +152,7 @@ def git_merge_context_manager(test_branch, master_repo_path):
 class GitTaskAction(object):
     VERIFY_BRANCH = 1
     TEST_PICKME_CONFLICT = 2
+    TEST_ALL_PICKMES = 3
 
 
 class GitQueueTask(object):
@@ -161,11 +162,15 @@ class GitQueueTask(object):
     - VERIFY_BRANCH: check that a branch can be found and is not a duplicate
     - TEST_PICKME_CONFLICT: check which (if any) branches also pickme'd for the
         same push cause merge conflicts with this branch
+    - TEST_ALL_PICKMES: Takes a push id, and queues every pushme with
+        TEST_PICKME_CONFLICT. Used when an item is de-pickmed to ensure that
+        anything it might have conlficted with is unmarked
     """
 
-    def __init__(self, task_type, request_id):
+    def __init__(self, task_type, request_id, **kwargs):
         self.task_type = task_type
         self.request_id = request_id
+        self.kwargs = kwargs
 
 
 class GitException(Exception):
@@ -430,6 +435,47 @@ class GitQueue(object):
         return req
 
     @classmethod
+    def _get_request_ids_in_push(cls, push_id):
+        """Return a list of IDs corresponding with the push requests
+        that have been pickmed for the push specified by push_id
+
+        :param push_id: Integer id of the push to get pickmes for
+        :return pickme_ids: List of pickme IDs from the database
+        """
+        pickme_list = []
+
+        def on_db_return(success, db_results):
+            assert success, "Database error."
+            for (request, _) in db_results:
+                pickme_list.append(str(request))
+
+        request_info_query = db.push_pushcontents.select().where(
+            db.push_pushcontents.c.push == int(push_id)
+        )
+        db.execute_cb(request_info_query, on_db_return)
+        return pickme_list
+
+    @classmethod
+    def _get_push_for_request(cls, request_id):
+        """Given the ID of a push request, find the push for which this
+        request has been pickmed.
+        """
+        result = [None]
+
+        def on_db_return(success, db_results):
+            assert success, "Database error."
+            result[0] = db_results.first()
+
+        request_info_query = db.push_pushcontents.select().where(
+            db.push_pushcontents.c.request == request_id
+        )
+        db.execute_cb(request_info_query, on_db_return)
+        req = result[0]
+        if req:
+            req = dict(req.items())
+        return req
+
+    @classmethod
     def _get_request_with_sha(cls, sha):
         result = [None]
 
@@ -478,8 +524,228 @@ class GitQueue(object):
         return updated_request
 
     @classmethod
-    def test_pickme_conflicts(clas, request_id):
-        raise NotImplementedError
+    def _test_pickme_conflict_pickme(cls, req, target_branch,
+                                     repo_path, requeue):
+        """Test for any pickmes that are broken by pickme'd request req
+
+        Precondition: We should already be on a test branch, and the pickme to
+        be tested against should already be successfully merged.
+
+        :param req: Details for pickme to test against
+        :param target_branch: Name of branch onto which to attempt merge
+        :param repo_path: On-disk path to local repository
+        :param requeue: Boolean whether or not to requeue pickmes that are conflicted with
+        """
+
+        push = cls._get_push_for_request(req['id'])
+        if push is None:
+            logging.warn(
+                "Couldn't test pickme %d - couldn't find corresponding push",
+                req['id']
+            )
+            return False, None
+
+        pickme_ids = cls._get_request_ids_in_push(push['push'])
+
+        pickme_ids = [p for p in pickme_ids if int(p) != int(req['id'])]
+
+        conflict_pickmes = []
+
+        # For each pickme, check if merging it on top throws an exception.
+        # If it does, keep track of the pickme in conflict_pickmes
+        for pickme in pickme_ids:
+            pickme_details = cls._get_request(pickme)
+            if not pickme_details:
+                logging.error(
+                    "Tried to test for conflicts against invalid request id %s",
+                    pickme
+                )
+                continue
+
+            # Don't bother trying to compare against pickmes that
+            # break master, as they will conflict by default
+            if "conflict-master" in pickme_details['tags']:
+                continue
+
+            try:
+                with git_merge_context_manager(target_branch,
+                                               repo_path):
+                    git_merge_pickme(pickme_details, repo_path)
+            except GitException, e:
+                conflict_pickmes.append((pickme, e.gitout, e.giterr))
+                # Requeue the conflicting pickme so that it also picks up the
+                # conflict. Pass on that it was requeued automatically and to
+                # NOT requeue things in that run, otherwise two tickets will
+                # requeue each other forever.
+                if requeue:
+                    GitQueue.enqueue_request(
+                        GitTaskAction.TEST_PICKME_CONFLICT,
+                        pickme,
+                        requeue=False
+                    )
+
+        # If there were no conflicts, don't update the request
+        if not conflict_pickmes:
+            return False, None
+
+        updated_tags = add_to_tags_str(req['tags'], 'conflict-pickme')
+        formatted_conflicts = ""
+        for broken_pickme, git_out, git_err in conflict_pickmes:
+            pickme_details = cls._get_request(broken_pickme)
+            formatted_pickme_err = (
+                """<strong>Conflict with <a href=\"/request?id={pickme_id}\">
+                {pickme_name}</a>: </strong><br/>{pickme_out}<br/>{pickme_err}
+                <br/><br/>"""
+            ).format(
+                pickme_id=broken_pickme,
+                pickme_err=xhtml_escape(git_err),
+                pickme_out=xhtml_escape(git_out),
+                pickme_name=xhtml_escape(pickme_details['title'])
+            )
+            formatted_conflicts += formatted_pickme_err
+
+        updated_values = {
+            'tags': updated_tags,
+            'conflicts': formatted_conflicts
+        }
+
+        updated_request = cls._update_request(req, updated_values)
+        if not updated_request:
+            raise Exception("Failed to update pickme details")
+        else:
+            return True, updated_request
+
+    @classmethod
+    def _clear_pickme_conflict_details(cls, req):
+        """Strips the conflict-pickme and conflict-master tags from a pickme, and
+        clears the detailed conflict field.
+
+        :param req: Details of pickme request to clear conflict details of
+        """
+        updated_tags = del_from_tags_str(req['tags'], 'conflict-master')
+        updated_tags = del_from_tags_str(updated_tags, 'conflict-pickme')
+        updated_values = {
+            'tags': updated_tags,
+            'conflicts': ''
+        }
+        updated_request = cls._update_request(req, updated_values)
+        if not updated_request:
+            raise Exception("Failed to update pickme")
+
+    @classmethod
+    def _test_pickme_conflict_master(
+            cls, req, target_branch,
+            repo_path, requeue):
+        """Test whether the pickme given by req can be successfully merged onto
+        master.
+
+        If the pickme was merged successfully, it calls
+        _test_pickme_conflict_pickme to check the pickme against others in the
+        same push.
+
+        :param req: Details of pickme request to test
+        :param target_branch: The name of the test branch to use for testing
+        :param repo_path: The location of the repository we are working in
+        """
+
+        # Create a test branch following master
+        with git_branch_context_manager(target_branch, repo_path):
+            # Merge the pickme we are testing onto the test branch
+            # If this fails, that means pickme conflicts with master
+            try:
+                with git_merge_context_manager(target_branch, repo_path):
+                    # Try to merge the pickme onto master
+                    git_merge_pickme(req, repo_path)
+
+                    # Check for conflicts with other pickmes
+                    return cls._test_pickme_conflict_pickme(
+                        req,
+                        target_branch,
+                        repo_path,
+                        requeue
+                    )
+
+            except GitException, e:
+                updated_tags = add_to_tags_str(req['tags'], 'conflict-master')
+                conflict_details = "<strong>Conflict with master:</strong><br/> %s" % e.gitout
+                updated_values = {
+                    'tags': updated_tags,
+                    'conflicts': conflict_details
+                }
+
+                updated_request = cls._update_request(req, updated_values)
+                if not updated_request:
+                    raise Exception("Failed to update pickme")
+                else:
+                    return True, updated_request
+
+    @classmethod
+    def test_pickme_conflicts(
+            cls,
+            request_id,
+            requeue=True):
+        """
+        Tests for conflicts between a pickme and both master and other pickmes
+        in the same push.
+
+        :param request_id: ID number of the pickme to be tested
+        :param requeue: Whether or not pickmes that this pickme conflicts with
+            should be added back into the GitQueue as a test conflict task.
+        """
+
+        req = cls._get_request(request_id)
+        if not req:
+            logging.error(
+                "Tried to test conflicts for invalid request id %s",
+                request_id
+            )
+            return
+
+        push = cls._get_push_for_request(request_id)
+        if not push:
+            logging.error(
+                "Request %s (%s) doesn't seem to be part of a push",
+                request_id,
+                req['title']
+            )
+            return
+        push_id = push['push']
+
+        #### Set up the environment as though we are preparing a deploy push
+        ## Create a branch pickme_test_PUSHID_PICKMEID
+
+        # Update local copy of the pickme'd repo and the master repo
+        cls.create_or_update_local_repo(req['repo'], branch=req['branch'])
+        cls.create_or_update_local_repo(
+            Settings['git']['main_repository'],
+            branch="master"
+        )
+
+        # Get base paths and names for the relevant repos
+        repo_path = cls._get_local_repository_uri(
+            Settings['git']['main_repository']
+        )
+        target_branch = "pickme_test_{push_id}_{pickme_id}".format(
+            push_id=push_id,
+            pickme_id=request_id
+        )
+
+        # Clear the pickme's conflict info
+        cls._clear_pickme_conflict_details(req)
+
+        # Check for conflicts with master
+        conflict, updated_pickme = cls._test_pickme_conflict_master(
+            req,
+            target_branch,
+            repo_path,
+            requeue
+        )
+        if conflict:
+            if updated_pickme is None:
+                raise Exception(
+                    "Encountered merge conflict but was not passed details"
+                )
+            return
 
     @classmethod
     def verify_branch(cls, request_id):
@@ -647,7 +913,10 @@ class GitQueue(object):
                 if task.task_type is GitTaskAction.VERIFY_BRANCH:
                     cls.verify_branch(task.request_id)
                 elif task.task_type is GitTaskAction.TEST_PICKME_CONFLICT:
-                    cls.test_pickme_conflicts(task.request_id)
+                    cls.test_pickme_conflicts(task.request_id, **task.kwargs)
+                elif task.task_type is GitTaskAction.TEST_ALL_PICKMES:
+                    for pickme_id in cls._get_request_ids_in_push(task.request_id):
+                        GitQueue.enqueue_request(GitTaskAction.TEST_PICKME_CONFLICT, pickme_id, requeue=False)
                 else:
                     logging.error(
                         "GitQueue encountered unknown task type %d",
@@ -659,8 +928,8 @@ class GitQueue(object):
                 cls.request_queue.task_done()
 
     @classmethod
-    def enqueue_request(cls, task_type, request_id):
-        cls.request_queue.put(GitQueueTask(task_type, request_id))
+    def enqueue_request(cls, task_type, request_id, **kwargs):
+        cls.request_queue.put(GitQueueTask(task_type, request_id, **kwargs))
 
 def webhook_req(left_type, left_token, right_type, right_token):
     webhook_url = Settings['web_hooks']['post_url']
