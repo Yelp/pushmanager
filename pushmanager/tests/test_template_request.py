@@ -20,6 +20,7 @@ class RequestTemplateTest(TemplateTestCase):
             'description': 'nondescript',
             'comments': 'nocomment',
             'watchers': None,
+            'conflicts': None
             }
 
     basic_kwargs = {
@@ -34,6 +35,7 @@ class RequestTemplateTest(TemplateTestCase):
             'edit_buttons': False,
             'show_ago': False,
             'tags': None,
+            'conflicts': None,
             'show_state_inline': False,
             'review': None,
             'repo_url': 'non://existent',

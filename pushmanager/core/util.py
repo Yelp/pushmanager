@@ -154,6 +154,7 @@ def request_to_jsonable(request):
             'branch',
             'revision',
             'tags',
+            'conflicts',
             'created',
             'modified',
             'title',
