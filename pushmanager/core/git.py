@@ -566,7 +566,9 @@ class GitQueue(object):
                     formatted_conflicts = "";
                     for broken_pickme, git_out, git_err in conflict_pickmes:
                         pickme_details = cls._get_request(broken_pickme)
-                        formatted_pickme_err = "Conflict with <a href='/request?id={pickme_id}'>{pickme_name}</a>: <br/>{pickme_out}<br/>{pickme_err}<br/><br/>".format(
+                        formatted_pickme_err = (
+                        """<strong>Conflict with <a href=\"/request?id={pickme_id}\">{pickme_name}</a>: </strong><br/>{pickme_out}<br/>{pickme_err}<br/><br/>"""
+                        ).format(
                             pickme_id = broken_pickme,
                             pickme_err = git_err,
                             pickme_out = git_out,
@@ -582,7 +584,8 @@ class GitQueue(object):
                     updated_request = cls._update_request(req, updated_values)
                     if not updated_request:
                         logging.error("Failed to update pickme")
-
+                    else:
+                        cls.pickme_conflict_detected(updated_request)
 
             except GitException, e:
                 logging.info("Pickme %s conflicted with master: %s"
@@ -596,6 +599,48 @@ class GitQueue(object):
                 updated_request = cls._update_request(req, updated_values)
                 if not updated_request:
                     logging.error("Failed to update pickme")
+                else:
+                    cls.pickme_conflict_detected(updated_request)
+
+    @classmethod
+    def pickme_conflict_detected(cls, updated_request):
+        msg = (
+        """
+        <p>
+            PushManager has detected that your pickme contains conflicts with %(conflicts_with)s.
+        </p>
+        <p>
+            <strong>%(user)s - %(title)s</strong><br />
+            <em>%(repo)s/%(branch)s</em><br />
+            <a href="https://%(pushmanager_servername)s%(pushmanager_port)s/request?id=%(id)s">https://%(pushmanager_servername)s%(pushmanager_port)s/request?id=%(id)s</a>
+        </p>
+        <p>
+            Review # (if specified): <a href="https://%(reviewboard_servername)s%(pushmanager_port)s/r/%(reviewid)s">%(reviewid)s</a>
+        </p>
+        <p>
+            <code>%(revision)s</code><br/>
+            <em>(If this is <strong>not</strong> the revision you expected,
+            make sure you've pushed your latest version to the correct repo!)</em>
+        </p>
+        <p>
+            %(no_escape_conflicts)s
+        </p>
+        <p>
+            Regards,<br/>
+            PushManager
+        </p>
+        """)
+        updated_request.update({
+            'conflicts_with': "master" if 'conflict-master' in updated_request['tags'] else "another pickme",
+            'conflicts': updated_request['conflicts'].replace('\n', '<br/>'),
+            'pushmanager_servername': Settings['main_app']['servername'],
+            'pushmanager_port': ':%d' % Settings['main_app']['port'] if Settings['main_app']['port'] != 443 else '',
+            'reviewboard_servername': Settings['reviewboard']['servername']
+        })
+        msg %= EscapedDict(updated_request)
+        subject = '[push][conflict] %s - %s' % (updated_request['user'], updated_request['title'])
+        user_to_notify = updated_request['user']
+        MailQueue.enqueue_user_email([user_to_notify], msg, subject)
 
     @classmethod
     def verify_branch(cls, request_id):
