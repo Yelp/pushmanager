@@ -25,12 +25,129 @@ from urllib import urlencode
 
 from . import db
 from .mail import MailQueue
+from contextlib import contextmanager
 from pushmanager.core.settings import Settings
 from pushmanager.core.util import add_to_tags_str
 from pushmanager.core.util import del_from_tags_str
 from pushmanager.core.util import EscapedDict
 from pushmanager.core.util import tags_contain
 
+
+@contextmanager
+def git_branch_context_manager(test_branch, master_repo_path):
+    """Context manager that creates / deletes a temporary git branch
+
+    :param test_branch: The name of the temporary branch to create
+    :param master_repo_path: The on-disk path to the master repository
+    """
+
+    # Create a new branch tracking master
+    make_test_branch = GitCommand(
+        "checkout",
+        "origin/master",
+        "-b",
+        test_branch,
+        cwd=master_repo_path
+    )
+    make_test_branch.run()
+
+    try:
+        yield
+    except Exception, e:
+        raise e
+    finally:
+        # Checkout master so that we can delete the test branch
+        checkout_master = GitCommand(
+            'checkout',
+            'master',
+            cwd=master_repo_path
+        )
+        checkout_master.run()
+
+        # Delete the branch that we were working on
+        delete_test_branch = GitCommand(
+            'branch',
+            '-D',
+            test_branch,
+            cwd=master_repo_path
+        )
+        delete_test_branch.run()
+
+
+def git_reset_to_ref(starting_ref, git_directory):
+    """
+    Resets a git repo to the specified ref.
+    Called as a cleanup fn by git_merge_context_manager.
+
+    :param starting_ref: Git hash of the commit to roll back to
+    """
+
+    reset_command = GitCommand(
+        'reset',
+        '--hard',
+        starting_ref,
+        cwd=git_directory
+    )
+    return reset_command.run()
+
+
+def git_merge_pickme(pickme_request, master_repo_path):
+    """Merges the branch specified by a pickme onto the current branch
+
+    :param pickme_request: Dictionary representing the pickme to merge
+    :param master_repo_path: On-disk path of the git repo to work in
+    """
+
+    # Locate and merge the branch we are testing
+    summary = "{branch_title}\n\n(Merged from {user}/{branch})".format(
+        branch_title=pickme_request['title'],
+        user=pickme_request['user'],
+        branch=pickme_request['branch']
+    )
+
+    pull_command = GitCommand(
+        "pull",
+        "--no-ff",
+        "--no-commit",
+        pickme_request['user'],
+        pickme_request['branch'],
+        cwd=master_repo_path)
+    pull_command.run()
+
+    commit_command = GitCommand(
+        "commit", "-m", summary,
+        "--no-verify", cwd=master_repo_path
+    )
+    commit_command.run()
+
+
+@contextmanager
+def git_merge_context_manager(test_branch, master_repo_path):
+    """Context manager for merging that rolls back on __exit__
+
+    :param test_branch: The name of the branch to merge onto
+    :param master_repo_path: The on-disk path to the master repository
+    """
+
+    # Store the starting ref so that we can hard reset if need be
+    get_starting_ref = GitCommand(
+        'rev-parse',
+        test_branch,
+        cwd=master_repo_path
+    )
+    _, stdout, _ = get_starting_ref.run()
+
+    starting_ref = stdout.strip()
+
+    try:
+        yield
+    except Exception, e:
+        raise e
+    finally:
+        git_reset_to_ref(
+            starting_ref,
+            master_repo_path
+        )
 
 class GitTaskAction(object):
     VERIFY_BRANCH = 1

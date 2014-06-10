@@ -209,6 +209,86 @@ class CoreGitTest(T.TestCase):
                 T.assert_equal(pushmanager.core.git.GitQueue.verify_branch_failure.call_count, 0)
                 T.assert_equal(pushmanager.core.git.GitQueue.verify_branch_successful.call_count, 0)
 
+    def test_branch_context_manager_success(self):
+        with mock.patch('pushmanager.core.git.GitCommand') as GC:
+            GC.return_value = GC
+            GC.run.return_value = (0, "hashashash", "")
+            with pushmanager.core.git.git_branch_context_manager(
+                    "name_of_test_branch",
+                    "path_to_master_repo"):
+                    pass
+            calls = [
+                mock.call('checkout', 'origin/master', '-b', 'name_of_test_branch', cwd='path_to_master_repo'),
+                mock.call.run(),
+                mock.call('checkout', 'master', cwd='path_to_master_repo'),
+                mock.call.run(),
+                mock.call('branch', '-D', 'name_of_test_branch', cwd='path_to_master_repo'),
+                mock.call.run()
+            ]
+            GC.assert_has_calls(calls)
+
+    def test_branch_context_manager_failure(self):
+        with mock.patch('pushmanager.core.git.GitCommand') as GC:
+            GC.return_value = GC
+            GC.run.return_value = (0, "hashashash", "")
+            with pushmanager.core.git.git_branch_context_manager(
+                    "name_of_test_branch",
+                    "path_to_master_repo"):
+                    pass
+            calls = [
+                mock.call('checkout', 'origin/master', '-b', 'name_of_test_branch', cwd='path_to_master_repo'),
+                mock.call.run(),
+                mock.call('checkout', 'master', cwd='path_to_master_repo'),
+                mock.call.run(),
+                mock.call('branch', '-D', 'name_of_test_branch', cwd='path_to_master_repo'),
+                mock.call.run()
+            ]
+            GC.assert_has_calls(calls)
+
+    def test_merge_context_manager_success(self):
+        with mock.patch('pushmanager.core.git.GitCommand') as GC:
+            GC.return_value = GC
+            GC.run.return_value = (0, "hashashash", "")
+            with pushmanager.core.git.git_merge_context_manager(
+                    "name_of_test_branch",
+                    "path_to_master_repo"):
+                    pass
+            calls = [
+                mock.call('rev-parse', 'name_of_test_branch', cwd='path_to_master_repo'),
+                mock.call.run(),
+                mock.call('reset', '--hard', 'hashashash', cwd='path_to_master_repo'),
+                mock.call.run()
+            ]
+            GC.assert_has_calls(calls)
+
+    def test_merge_context_manager_failure(self):
+        with mock.patch('pushmanager.core.git.GitCommand') as GC:
+            GC.return_value = GC
+            GC.run.return_value = (0, "hashashash", "")
+            try:
+                with pushmanager.core.git.git_merge_context_manager(
+                        "name_of_test_branch",
+                        "path_to_master_repo"):
+                        raise pushmanager.core.git.GitException("We tried to merge and it broke!")
+            except Exception:
+                pass
+
+            calls = [
+                mock.call('rev-parse', 'name_of_test_branch', cwd='path_to_master_repo'),
+                mock.call.run(),
+                mock.call('reset', '--hard', 'hashashash', cwd='path_to_master_repo'),
+                mock.call.run()
+            ]
+            GC.assert_has_calls(calls)
+
+    def test_git_reset_to_ref(self):
+        with mock.patch('pushmanager.core.git.GitCommand') as GC:
+            pushmanager.core.git.git_reset_to_ref('some_ref', 'git_dir')
+            calls = [
+                mock.call('reset', '--hard', 'some_ref', cwd='git_dir').run()
+            ]
+            GC.assert_has_calls(calls)
+
     def test_create_or_update_local_repo_master(self):
         expected_cwd = '/place/to/store/on-disk/git/repos/main-repository'
         with mock.patch('pushmanager.core.git.GitCommand') as GC:
@@ -228,7 +308,6 @@ class CoreGitTest(T.TestCase):
                 mock.call().run()
             ]
             GC.assert_has_calls(calls)
-
 
     def test_create_or_update_local_repo_dev(self):
         expected_cwd = '/place/to/store/on-disk/git/repos/main-repository'
