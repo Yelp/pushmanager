@@ -198,7 +198,7 @@ class GitMergeContextManager(object):
 
 
 class GitTaskAction:
-    VERIFY_BRANCH, TEST_PICKME_CONFLICT = range(2)
+    VERIFY_BRANCH, TEST_PICKME_CONFLICT, TEST_ALL_PICKMES = range(3)
 
 class GitQueueTask(object):
     """
@@ -207,11 +207,15 @@ class GitQueueTask(object):
     - VERIFY_BRANCH: check that a branch can be found and is not a duplicate
     - TEST_PICKME_CONFLICT: check which (if any) branches also pickme'd for the
         same push cause merge conflicts with this branch
+    - TEST_ALL_PICKMES: Takes a push id, and queues every pushme with
+        TEST_PICKME_CONFLICT. Used when an item is de-pickmed to ensure that
+        anything it might have conlficted with is unmarked
     """
 
-    def __init__(self, task_type, request_id):
+    def __init__(self, task_type, request_id, **kwargs):
         self.task_type = task_type
         self.request_id = request_id
+        self.kwargs = kwargs
 
 class GitCommand(subprocess.Popen):
 
@@ -478,7 +482,7 @@ class GitQueue(object):
         return updated_request
 
     @classmethod
-    def test_pickme_conflicts(cls, request_id):
+    def test_pickme_conflicts(cls, request_id, no_requeue=False):
         # Get the push this branch is associated with (requests can only be associated with one push)
         # Get other pickmes in that push
         # Apply this branch
@@ -545,6 +549,15 @@ class GitQueue(object):
                                     pass
                             except GitException, e:
                                 conflict_pickmes.append((pickme, e.gitout, e.giterr))
+                                # Requeue the conflicting pickme so that it also picks up the conflict
+                                # Pass on that it was requeued automatically and to NOT requeue things in that run,
+                                # otherwise two tickets will requeue each other forever
+                                if not no_requeue:
+                                    GitQueue.enqueue_request(
+                                        GitTaskAction.TEST_PICKME_CONFLICT,
+                                        pickme,
+                                        no_requeue=True
+                                    )
 
                     logging.info("Pickme %s conflicted with %d pickmes: %s"
                         % (request_id, len(conflict_pickmes), conflict_pickmes))
@@ -741,7 +754,10 @@ class GitQueue(object):
                 if task.task_type is GitTaskAction.VERIFY_BRANCH:
                     cls.verify_branch(task.request_id)
                 elif task.task_type is GitTaskAction.TEST_PICKME_CONFLICT:
-                    cls.test_pickme_conflicts(task.request_id)
+                    cls.test_pickme_conflicts(task.request_id, **task.kwargs)
+                elif task.task_type is GitTaskAction.TEST_ALL_PICKMES:
+                    for pickme_id in cls._get_request_ids_in_push(task.request_id):
+                        GitQueue.enqueue_request(GitTaskAction.TEST_PICKME_CONFLICT, pickme_id)
                 else:
                     logging.error("GitQueue encountered unknown task type %d" % task.task_type)
             except Exception:
@@ -750,8 +766,8 @@ class GitQueue(object):
                 cls.request_queue.task_done()
 
     @classmethod
-    def enqueue_request(cls, task_type, request_id):
-        cls.request_queue.put(GitQueueTask(task_type, request_id))
+    def enqueue_request(cls, task_type, request_id, **kwargs):
+        cls.request_queue.put(GitQueueTask(task_type, request_id, **kwargs))
 
 def webhook_req(left_type, left_token, right_type, right_token):
     webhook_url = Settings['web_hooks']['post_url']
