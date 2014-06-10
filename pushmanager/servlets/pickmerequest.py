@@ -88,3 +88,4 @@ class UnpickMeRequestServlet(RequestHandler):
 
     def on_db_complete(self, success, db_results):
         self.check_db_results(success, db_results)
+        GitQueue.enqueue_request(GitTaskAction.TEST_ALL_PICKMES, self.pushid)
