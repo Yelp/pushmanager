@@ -378,6 +378,37 @@ class GitQueue(object):
         return req
 
     @classmethod
+    def _get_request_ids_in_push(cls, push_id):
+        pickme_list = []
+
+        def on_db_return(success, db_results):
+            assert success, "Database error."
+            for (request, push) in db_results:
+                pickme_list.append(str(request))
+
+        request_info_query = db.push_pushcontents.select().where(
+            db.push_pushcontents.c.push == int(push_id)
+        )
+        db.execute_cb(request_info_query, on_db_return)
+        return pickme_list
+
+    @classmethod
+    def _get_push_for_request(cls, request_id):
+        result = [None]
+        def on_db_return(success, db_results):
+            assert success, "Database error."
+            result[0] = db_results.first()
+
+        request_info_query = db.push_pushcontents.select().where(
+            db.push_pushcontents.c.request == request_id
+        )
+        db.execute_cb(request_info_query, on_db_return)
+        req = result[0]
+        if req:
+            req = dict(req.items())
+        return req
+
+    @classmethod
     def _get_request_with_sha(cls, sha):
         result = [None]
         def on_db_return(success, db_results):
@@ -418,8 +449,110 @@ class GitQueue(object):
         return updated_request
 
     @classmethod
-    def test_pickme_conflicts(clas, request_id):
-        pass
+    def test_pickme_conflicts(cls, request_id):
+        # Get the push this branch is associated with (requests can only be associated with one push)
+        # Get other pickmes in that push
+        # Apply this branch
+        # Apply each of the others in turn, check for errors
+
+        req = cls._get_request(request_id)
+        if not req:
+            logging.error("Tried to test conflicts for non-existent request id %s" % request_id)
+            return
+
+        push = cls._get_push_for_request(request_id)
+        if not push:
+            logging.error("Request %d (%s) doesn't seem to be part of a push" % (request_id, req['title']))
+            return
+        push_id = push['push']
+
+        #### Set up the environment as though we are preparing a deploy push
+        ## Create a branch pickme_test_PUSHID_PICKMEID
+
+        # Update local copy of the pickme'd repo and the master repo
+        cls.create_or_update_local_repo(req['repo'], branch=req['branch'])
+        cls.create_or_update_local_repo(Settings['git']['main_repository'], branch="master")
+
+        # Get base paths and names for the relevant repos
+        repo_path = cls._get_local_repository_uri(Settings['git']['main_repository'])
+        target_branch = "pickme_test_{push_id}_{pickme_id}".format(
+            push_id = push_id,
+            pickme_id = request_id
+        )
+
+        # Remove the conflict-master and conflict-pickme tags
+        updated_tags = del_from_tags_str(req['tags'], 'conflict-master')
+        updated_tags = del_from_tags_str(updated_tags, 'conflict-pickme')
+
+        # Create a test branch following master
+        with GitBranchContextManager(target_branch, repo_path):
+            # Merge the pickme we are testing onto the test branch
+            # If this fails, that means pickme conflicts with master
+            try:
+                with GitMergeContextManager(target_branch, repo_path, req):
+                    # If we get here, it doesn't conflict with master
+                    # Get a list of (other) pickmes in the push
+                    pickme_ids = cls._get_request_ids_in_push(push_id)
+                    pickme_ids = [ p for    p in pickme_ids if p != request_id]
+
+                    conflict_pickmes = []
+
+                    logging.error("Comparing pickme %s with pickme(s): %s"
+                        % (request_id, pickme_ids))
+
+                    # For each pickme, check if merging it on top throws an exception.
+                    # If it does, keep track of the pickme in conflict_pickmes
+                    for pickme in pickme_ids:
+                        pickme_details = cls._get_request(pickme)
+                        if not pickme_details:
+                            logging.error("Tried to test for conflicts against non-existent request id %s" % request_id)
+                            continue
+
+                        # Don't bother trying to compare against pickmes that
+                        # break master, as they will conflict by default
+                        if not "conflict-master" in pickme_details['tags']:
+                            try:
+                                with GitMergeContextManager(target_branch, repo_path, pickme_details):
+                                    pass
+                            except Exception, e:
+                                conflict_pickmes.append((pickme, e))
+
+                    logging.info("Pickme %s conflicted with %d pickmes: %s"
+                        % (request_id, len(conflict_pickmes), conflict_pickmes))
+                    if len(conflict_pickmes) > 0:
+                        updated_tags = add_to_tags_str(updated_tags, 'conflict-pickme')
+                    formatted_conflicts = "";
+                    for broken_pickme, error in conflict_pickmes:
+                        pickme_details = cls._get_request(broken_pickme)
+                        formatted_pickme_err = "Conflict with <a href='/request?id={pickme_id}'>{pickme_name}</a>: <br/>{pickme_err}<br/><br/>".format(
+                            pickme_id = broken_pickme,
+                            pickme_err = error,
+                            pickme_name = pickme_details['title']
+                        )
+                        formatted_conflicts += formatted_pickme_err
+
+                    updated_values = {
+                        'tags': updated_tags,
+                        'conflicts': formatted_conflicts
+                    }
+
+                    updated_request = cls._update_request(req, updated_values)
+                    if not updated_request:
+                        logging.error("Failed to update pickme")
+
+
+            except Exception, e:
+                logging.info("Pickme %s conflicted with master: %s"
+                        % (request_id, repr(e)))
+                updated_tags = add_to_tags_str(updated_tags, 'conflict-master')
+                updated_values = {
+                        'tags': updated_tags,
+                        'conflicts': "<strong>Conflict with master:</strong><br/> %s" % repr(e)
+                    }
+
+                updated_request = cls._update_request(req, updated_values)
+                if not updated_request:
+                    logging.error("Failed to update pickme")
 
     @classmethod
     def verify_branch(cls, request_id):
