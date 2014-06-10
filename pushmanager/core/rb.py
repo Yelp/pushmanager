@@ -2,25 +2,25 @@ import base64
 import httplib
 import json
 import logging
-from Queue import Queue
-from threading import Thread
 import time
 from urllib import urlencode
+from multiprocessing import Process, JoinableQueue
 
 from pushmanager.core.settings import Settings
 
 class RBQueue(object):
 
-    review_queue = Queue()
-    worker_thread = None
+    review_queue = None
+    worker_process = None
 
     @classmethod
     def start_worker(cls):
-        if cls.worker_thread is not None:
+        if cls.worker_process is not None:
             return
-        cls.worker_thread = Thread(target=cls.process_queue, name='rb-queue')
-        cls.worker_thread.daemon = True
-        cls.worker_thread.start()
+        cls.review_queue = JoinableQueue()
+        cls.worker_process = Process(target=cls.process_queue, name='rb-queue')
+        cls.worker_process.daemon = True
+        cls.worker_process.start()
 
     @classmethod
     def process_queue(cls):
