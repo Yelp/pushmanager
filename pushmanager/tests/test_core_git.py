@@ -193,3 +193,44 @@ class CoreGitTest(T.TestCase):
             ):
                 T.assert_equal(pushmanager.core.git.GitQueue.verify_branch_failure.call_count, 0)
                 T.assert_equal(pushmanager.core.git.GitQueue.verify_branch_successful.call_count, 0)
+
+    class GitCommandFailMock(object):
+        def __init__(self, *args, **kwargs):
+            self.args = args
+            self.kwargs = kwargs
+
+        def run(self):
+            return 1, "", ""
+
+    @mock.patch('pushmanager.core.git.GitCommand', GitCommandFailMock)
+    def test_branch_ctx_manager(self):
+        with T.assert_raises(pushmanager.core.git.GitException):
+            with pushmanager.core.git.GitBranchContextManager("name_of_test_branch", "path_to_master_repo"):
+                pass
+
+    class GitCommandFailOnCommitMock(object):
+        def __init__(self, *args, **kwargs):
+            self.args = args
+            self.kwargs = kwargs
+
+        def run(self):
+            if self.args[0] is "commit":
+                return 1, "", ""
+            else :
+                return 0, "", ""
+
+    @mock.patch('pushmanager.core.git.GitCommand', GitCommandFailOnCommitMock)
+    def test_merge_ctx_manager(self):
+        with mock.patch('pushmanager.core.git.git_reset_to_ref', autospec=True) as self.mock_reset_ref:
+            with T.assert_raises(pushmanager.core.git.GitException):
+                with pushmanager.core.git.GitMergeContextManager(
+                    "name_of_test_branch",
+                    "path_to_master_repo",
+                    {
+                        'title':'Test Branch',
+                        'user':'infradev',
+                        'branch':'test_branch'
+                    }
+                ):
+                    pass
+        T.assert_equal(self.mock_reset_ref.call_count, 1)
