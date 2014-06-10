@@ -16,6 +16,157 @@ import urllib2
 
 from pushmanager.core.settings import Settings
 
+class GitBranchContextManager(object):
+    """
+    Context manager that creates / deletes a temporary git branch
+
+    :param test_branch: The name of the temporary branch to create
+    :param master_repo_path: The on-disk path to the master repository
+    """
+
+    def __init__(self, test_branch, master_repo_path):
+        self.test_branch = test_branch
+        self.master_repo_path = master_repo_path
+
+    def __enter__(self):
+        # Create a new branch tracking master
+        make_test_branch = GitCommand(
+            "checkout",
+            "origin/master",
+            "-b",
+            self.test_branch,
+            cwd=self.master_repo_path
+        )
+        rc, stdout, stderr = make_test_branch.run()
+        if rc:
+            raise Exception(
+                "GitBranchContextManager",
+                "Failed to create test branch: %s" % stderr
+            )
+
+    def __exit__(self, type, value, traceback):
+        # Checkout master so that we can delete the test branch
+        checkout_master = GitCommand(
+            "checkout",
+            "master",
+            cwd = self.master_repo_path
+        )
+        rc, stdout, stderr = checkout_master.run()
+        if rc:
+            raise Exception(
+                "GitBranchContextManager",
+                "Unable to checkout master: %s"
+                % self.test_branch
+            )
+
+        # Delete the branch that we were working on
+        delete_test_branch = GitCommand(
+            "branch",
+            "-D",
+            self.test_branch,
+            cwd = self.master_repo_path
+        )
+        rc, stdout, stderr = delete_test_branch.run()
+        if rc:
+            raise Exception(
+                "GitBranchContextManager",
+                "Unable to delete test branch: %s"
+                % self.test_branch
+            )
+
+def git_reset_to_ref(starting_ref, git_directory):
+    """
+    Resets a git repo to the specified ref.
+    Called as a cleanup fn by GitMergeContextManager.
+
+    :param starting_ref: Git hash of the commit to roll back to
+    """
+
+    reset_command = GitCommand(
+        "reset",
+        "--hard",
+        starting_ref,
+        cwd = git_directory
+    )
+    return reset_command.run()
+
+class GitMergeContextManager(object):
+    """
+    Contest manager for merging that rolls back on __exit__
+
+    :param test_branch: The name of the branch to merge onto
+    :param master_repo_path: The on-disk path to the master repository
+    :param pickme_request: A dictionary containing the details of the pickme
+    """
+
+    def __init__(self, test_branch, master_repo_path, pickme_request):
+        self.test_branch = test_branch
+        self.master_repo_path = master_repo_path
+        self.pickme_request = pickme_request
+
+    def __enter__(self):
+        # Store the starting ref so that we can hard reset if need be
+        get_starting_ref = GitCommand(
+            "rev-parse",
+            self.test_branch,
+            cwd=self.master_repo_path
+        )
+        rc, stdout, stderr = get_starting_ref.run()
+        if rc:
+            raise Exception(
+                "GitContextManager",
+                "Failed to get current ref: %s" % stderr
+            )
+        self.starting_ref = stdout.strip()
+
+        # Locate and merge the branch we are testing
+        summary = "{branch_title}\n\n(Merged from {user}/{branch})".format(
+            branch_title = self.pickme_request['title'],
+            user = self.pickme_request['user'],
+            branch = self.pickme_request['branch']
+        )
+        pickme_repo_uri = "/var/lib/pushmanager/repos/%s" % self.pickme_request['user']
+        pull_command = GitCommand(
+            "pull",
+            "--no-ff",
+            "--no-commit",
+            pickme_repo_uri,
+            self.pickme_request['branch'],
+            cwd = self.master_repo_path)
+        rc, stdout, stderr = pull_command.run()
+        if rc:
+            git_reset_to_ref(self.starting_ref, self.master_repo_path)
+            raise Exception(
+                "GitContextManager",
+                "Unable to merge branch %s" % self.pickme_request['branch']
+            )
+
+        ##TODO: Submodules
+
+        commit_command = GitCommand("commit", "-m", summary, "--no-verify", cwd=self.master_repo_path)
+        rc, stdout, stderr = commit_command.run()
+        if rc:
+            git_reset_to_ref(self.starting_ref, self.master_repo_path)
+            raise Exception(
+                "GitContextManager",
+                "Committing branch %s failed! One possible cause: a branch which contains no changes (nothing to commit)"
+                % self.pickme_request['branch']
+            )
+
+    def __exit__(self, type, value, traceback):
+        rc, stdout, stderr = git_reset_to_ref(
+            self.starting_ref,
+            self.master_repo_path
+        )
+        if rc:
+            raise Exception(
+                "GitContextManager",
+                "Failed to reset branch %s: %s"
+                % (self.pickme_request['branch'], stderr)
+            )
+
+
+
 class GitTaskAction:
     VERIFY_BRANCH, TEST_PICKME_CONFLICT = range(2)
 
