@@ -122,6 +122,13 @@ class PushManagerApp(Application):
         # HTTPS server
         sockets = tornado.netutil.bind_sockets(self.port, address=Settings['main_app']['servername'])
         redir_sockets = tornado.netutil.bind_sockets(self.redir_port, address=Settings['main_app']['servername'])
+
+        # Start the mail, git, reviewboard and XMPP queue handlers
+        MailQueue.start_worker()
+        RBQueue.start_worker()
+        XMPPQueue.start_worker()
+        GitQueue.start_worker()
+
         tornado.process.fork_processes(Settings['tornado']['num_workers'])
 
         server = tornado.httpserver.HTTPServer(self.main_app, ssl_options={
@@ -136,12 +143,6 @@ class PushManagerApp(Application):
         # HTTP server (to redirect to HTTPS)
         redir_server = tornado.httpserver.HTTPServer(self.redir_app)
         redir_server.add_sockets(redir_sockets)
-
-        # Start the mail, git, reviewboard and XMPP queue handlers
-        MailQueue.start_worker()
-        GitQueue.start_worker()
-        RBQueue.start_worker()
-        XMPPQueue.start_worker()
 
 
 def main():

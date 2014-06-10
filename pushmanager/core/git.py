@@ -18,8 +18,8 @@ import os
 import subprocess
 import time
 import urllib2
-from Queue import Queue
-from threading import Thread
+from multiprocessing import JoinableQueue
+from multiprocessing import Process
 from urllib import urlencode
 
 from . import db
@@ -222,8 +222,8 @@ class GitCommand(subprocess.Popen):
 
 class GitQueue(object):
 
-    request_queue = Queue()
-    worker_thread = None
+    request_queue = None
+    worker_process = None
 
     EXCLUDE_FROM_GIT_VERIFICATION = Settings['git']['exclude_from_verification']
 
@@ -236,11 +236,12 @@ class GitQueue(object):
 
     @classmethod
     def start_worker(cls):
-        if cls.worker_thread is not None:
+        if cls.worker_process is not None:
             return
-        cls.worker_thread = Thread(target=cls.process_queue, name='git-queue')
-        cls.worker_thread.daemon = True
-        cls.worker_thread.start()
+        cls.request_queue = JoinableQueue()
+        cls.worker_process = Process(target=cls.process_queue, name='git-queue')
+        cls.worker_process.daemon = True
+        cls.worker_process.start()
 
     @classmethod
     def create_or_update_local_repo(cls, repo_name, branch):
@@ -1005,6 +1006,9 @@ class GitQueue(object):
 
     @classmethod
     def enqueue_request(cls, task_type, request_id, **kwargs):
+        if not cls.request_queue:
+            logging.error("Attempted to put to nonexistent GitQueue!")
+            return
         cls.request_queue.put(GitQueueTask(task_type, request_id, **kwargs))
 
 def webhook_req(left_type, left_token, right_type, right_token):
