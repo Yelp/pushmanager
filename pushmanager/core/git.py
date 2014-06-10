@@ -3,9 +3,8 @@ from . import db
 from .mail import MailQueue
 import os
 import logging
-from Queue import Queue
 import subprocess
-from threading import Thread
+from multiprocessing import Process, JoinableQueue
 import time
 from pushmanager.core.util import add_to_tags_str
 from pushmanager.core.util import del_from_tags_str
@@ -234,7 +233,7 @@ class GitCommand(subprocess.Popen):
 
 class GitQueue(object):
 
-    request_queue = Queue()
+    request_queue = None
     worker_thread = None
 
     EXCLUDE_FROM_GIT_VERIFICATION = Settings['git']['exclude_from_verification']
@@ -248,9 +247,12 @@ class GitQueue(object):
 
     @classmethod
     def start_worker(cls):
+        if cls.request_queue is None:
+            cls.request_queue = JoinableQueue()
+
         if cls.worker_thread is not None:
             return
-        cls.worker_thread = Thread(target=cls.process_queue, name='git-queue')
+        cls.worker_thread = Process(target=cls.process_queue, name='git-queue')
         cls.worker_thread.daemon = True
         cls.worker_thread.start()
 
