@@ -2,13 +2,14 @@ import contextlib
 import json
 import lxml.html
 import mock
+import testify as T
 
 from pushmanager.core import util
 from pushmanager.core.settings import Settings
 from pushmanager.servlets.push import PushServlet
 from pushmanager.testing.testdb import FakeDataMixin
 from pushmanager.testing.testservlet import ServletTestMixin
-import pushmanager.testing as T
+
 
 class PushServletTestBase(T.TestCase, ServletTestMixin, FakeDataMixin):
     __test__ = False

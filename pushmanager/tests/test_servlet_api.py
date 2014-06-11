@@ -1,11 +1,13 @@
 import json
 import time
 
+import testify as T
+
 from pushmanager.core.util import get_servlet_urlspec
 from pushmanager.servlets.api import APIServlet
 from pushmanager.testing.testdb import FakeDataMixin
 from pushmanager.testing.testservlet import ServletTestMixin
-import pushmanager.testing as T
+
 
 class APITests(T.TestCase, ServletTestMixin, FakeDataMixin):
 

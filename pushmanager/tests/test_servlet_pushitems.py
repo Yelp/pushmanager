@@ -1,11 +1,12 @@
 import contextlib
 import json
 import mock
+import testify as T
 
 from pushmanager.core.util import get_servlet_urlspec
 from pushmanager.servlets.pushitems import PushItemsServlet
 from pushmanager.testing.testservlet import ServletTestMixin
-import pushmanager.testing as T
+
 
 class PushsItemsServletTest(T.TestCase, ServletTestMixin):
 

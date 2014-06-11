@@ -8,18 +8,20 @@ from sqlalchemy.sql.compiler import SQLCompiler
 from sqlalchemy.types import Integer
 import mock
 import sqlalchemy as SA
+import testify as T
 
 from pushmanager.core import db
 from pushmanager.testing.mocksettings import MockedSettings
+from pushmanager.testing import testdb
 from pushmanager.testing.testdb import FakeDataMixin
-import pushmanager.testing as T
+
 
 class CoreDBTest(T.TestCase, FakeDataMixin):
 
     @T.class_setup
     def setup_db_settings(self):
-        self.db_file_path = T.testdb.create_temp_db_file()
-        MockedSettings['db_uri'] = T.testdb.get_temp_db_uri(self.db_file_path)
+        self.db_file_path = testdb.create_temp_db_file()
+        MockedSettings['db_uri'] = testdb.get_temp_db_uri(self.db_file_path)
         with mock.patch.dict(db.Settings, MockedSettings):
             db.init_db()
             self.populate_database()

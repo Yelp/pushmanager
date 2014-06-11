@@ -1,6 +1,7 @@
 from contextlib import contextmanager
 import logging
 import os
+import testify as T
 import types
 
 import mock
@@ -11,10 +12,10 @@ from tornado.testing import AsyncHTTPTestCase
 from pushmanager.core import db
 from pushmanager.core.requesthandler import RequestHandler
 from testify.utils import turtle
+from pushmanager.testing import testdb
 from pushmanager.testing.mocksettings import MockedSettings
 import pushmanager.ui_modules as ui_modules
 import pushmanager.ui_methods as ui_methods
-import pushmanager.testing as T
 
 FORMAT = "%(asctime)-15s %(message)s"
 logging.basicConfig(format=FORMAT)
@@ -94,8 +95,8 @@ class ServletTestMixin(AsyncTestCase):
     def setup_db(self):
         self.setup_async_test_case()
 
-        self.db_file = T.testdb.make_test_db()
-        MockedSettings['db_uri'] = T.testdb.get_temp_db_uri(self.db_file)
+        self.db_file = testdb.make_test_db()
+        MockedSettings['db_uri'] = testdb.get_temp_db_uri(self.db_file)
         MockedSettings['irc'] = {
             "nickname": "pushhamster+test",
             "channel": "pushmanagertest"
