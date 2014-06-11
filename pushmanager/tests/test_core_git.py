@@ -73,7 +73,7 @@ class CoreGitTest(T.TestCase):
                 return_value=duplicate_req
             ),
         ):
-            pushmanager.core.git.GitQueue.update_request(req['id'])
+            pushmanager.core.git.GitQueue.verify_branch(req['id'])
             yield
 
     def test_get_repository_uri_basic(self):
@@ -105,13 +105,13 @@ class CoreGitTest(T.TestCase):
     def test_process_queue_successful(self):
         """Update the request with its sha"""
         with nested(
-            mock.patch("%s.pushmanager.core.git.GitQueue.update_request_failure" % __name__),
-            mock.patch("%s.pushmanager.core.git.GitQueue.update_request_successful" % __name__),
+            mock.patch("%s.pushmanager.core.git.GitQueue.verify_branch_failure" % __name__),
+            mock.patch("%s.pushmanager.core.git.GitQueue.verify_branch_successful" % __name__),
             self.mocked_update_request(self.fake_request)
         ):
-            # Successful call to update_request should trigger update_request_successful
-            T.assert_equal(pushmanager.core.git.GitQueue.update_request_failure.call_count, 0)
-            T.assert_equal(pushmanager.core.git.GitQueue.update_request_successful.call_count, 1)
+            # Successful call to update_request should trigger verify_branch_successful
+            T.assert_equal(pushmanager.core.git.GitQueue.verify_branch_failure.call_count, 0)
+            T.assert_equal(pushmanager.core.git.GitQueue.verify_branch_successful.call_count, 1)
 
         result = [None]
         def on_db_return(success, db_results):
@@ -127,8 +127,8 @@ class CoreGitTest(T.TestCase):
 
     def test_process_queue_duplicate(self):
         with nested(
-            mock.patch("%s.pushmanager.core.git.GitQueue.update_request_failure" % __name__),
-            mock.patch("%s.pushmanager.core.git.GitQueue.update_request_successful" % __name__),
+            mock.patch("%s.pushmanager.core.git.GitQueue.verify_branch_failure" % __name__),
+            mock.patch("%s.pushmanager.core.git.GitQueue.verify_branch_successful" % __name__),
             # This will fail, stop logging errors
             mock.patch("%s.pushmanager.core.git.logging.error" % __name__),
             mock.patch(
@@ -140,56 +140,97 @@ class CoreGitTest(T.TestCase):
             # GitQueue._get_request_with_sha returning a value means
             # we have a duplicated request. This should trigger a
             # failure
-            T.assert_equal(pushmanager.core.git.GitQueue.update_request_failure.call_count, 1)
-            T.assert_equal(pushmanager.core.git.GitQueue.update_request_successful.call_count, 0)
+            T.assert_equal(pushmanager.core.git.GitQueue.verify_branch_failure.call_count, 1)
+            T.assert_equal(pushmanager.core.git.GitQueue.verify_branch_successful.call_count, 0)
 
             # Match the error message for duplicate revision. error_msg
             # should be the last item of the first call object's *args list
             # (from mock library).
             T.assert_in(
                 "another request with the same revision sha",
-                pushmanager.core.git.GitQueue.update_request_failure.call_args_list[0][0][-1]
+                pushmanager.core.git.GitQueue.verify_branch_failure.call_args_list[0][0][-1]
             )
 
     def test_update_duplicate_request_discarded(self):
         duplicate_req = copy.deepcopy(self.fake_request)
         duplicate_req['state'] = "discarded"
         with nested(
-            mock.patch("%s.pushmanager.core.git.GitQueue.update_request_failure" % __name__),
-            mock.patch("%s.pushmanager.core.git.GitQueue.update_request_successful" % __name__),
+            mock.patch("%s.pushmanager.core.git.GitQueue.verify_branch_failure" % __name__),
+            mock.patch("%s.pushmanager.core.git.GitQueue.verify_branch_successful" % __name__),
             self.mocked_update_request(self.fake_request, duplicate_req)
         ):
-            T.assert_equal(pushmanager.core.git.GitQueue.update_request_failure.call_count, 0)
-            T.assert_equal(pushmanager.core.git.GitQueue.update_request_successful.call_count, 1)
+            T.assert_equal(pushmanager.core.git.GitQueue.verify_branch_failure.call_count, 0)
+            T.assert_equal(pushmanager.core.git.GitQueue.verify_branch_successful.call_count, 1)
 
-    def test_update_request_successful(self):
+    def test_verify_branch_successful(self):
         with nested(
             mock.patch("%s.pushmanager.core.git.MailQueue.enqueue_user_email" % __name__),
             mock.patch("%s.pushmanager.core.git.webhook_req" % __name__)
         ):
-            pushmanager.core.git.GitQueue.update_request_successful(self.fake_request)
+            pushmanager.core.git.GitQueue.verify_branch_successful(self.fake_request)
             T.assert_equal(pushmanager.core.git.MailQueue.enqueue_user_email.call_count, 1)
             T.assert_equal(pushmanager.core.git.webhook_req.call_count, 3)
 
-    def test_update_request_failure(self):
+    def test_verify_branch_failure(self):
         with nested(
             mock.patch("%s.pushmanager.core.git.MailQueue.enqueue_user_email" % __name__),
             mock.patch("%s.pushmanager.core.git.webhook_req" % __name__),
             mock.patch("%s.pushmanager.core.git.logging.error" % __name__),
         ):
-            pushmanager.core.git.GitQueue.update_request_failure(self.fake_request, "fake failure")
+            pushmanager.core.git.GitQueue.verify_branch_failure(self.fake_request, "fake failure")
             T.assert_equal(pushmanager.core.git.MailQueue.enqueue_user_email.call_count, 1)
 
-    def test_update_request_excluded_from_git_verification(self):
+    def test_verify_branch_excluded_from_git_verification(self):
         for tag in pushmanager.core.git.GitQueue.EXCLUDE_FROM_GIT_VERIFICATION:
             req = copy.deepcopy(self.fake_request)
             req['branch'] = None
             req['tags'] = tag
 
             with nested(
-                mock.patch("%s.pushmanager.core.git.GitQueue.update_request_failure" % __name__),
-                mock.patch("%s.pushmanager.core.git.GitQueue.update_request_successful" % __name__),
+                mock.patch("%s.pushmanager.core.git.GitQueue.verify_branch_failure" % __name__),
+                mock.patch("%s.pushmanager.core.git.GitQueue.verify_branch_successful" % __name__),
                 self.mocked_update_request(req)
             ):
-                T.assert_equal(pushmanager.core.git.GitQueue.update_request_failure.call_count, 0)
-                T.assert_equal(pushmanager.core.git.GitQueue.update_request_successful.call_count, 0)
+                T.assert_equal(pushmanager.core.git.GitQueue.verify_branch_failure.call_count, 0)
+                T.assert_equal(pushmanager.core.git.GitQueue.verify_branch_successful.call_count, 0)
+
+    class GitCommandFailMock(object):
+        def __init__(self, *args, **kwargs):
+            self.args = args
+            self.kwargs = kwargs
+
+        def run(self):
+            return 1, "", ""
+
+    @mock.patch('pushmanager.core.git.GitCommand', GitCommandFailMock)
+    def test_branch_ctx_manager(self):
+        with T.assert_raises(pushmanager.core.git.GitException):
+            with pushmanager.core.git.GitBranchContextManager("name_of_test_branch", "path_to_master_repo"):
+                pass
+
+    class GitCommandFailOnCommitMock(object):
+        def __init__(self, *args, **kwargs):
+            self.args = args
+            self.kwargs = kwargs
+
+        def run(self):
+            if self.args[0] is "commit":
+                return 1, "", ""
+            else :
+                return 0, "", ""
+
+    @mock.patch('pushmanager.core.git.GitCommand', GitCommandFailOnCommitMock)
+    def test_merge_ctx_manager(self):
+        with mock.patch('pushmanager.core.git.git_reset_to_ref', autospec=True) as self.mock_reset_ref:
+            with T.assert_raises(pushmanager.core.git.GitException):
+                with pushmanager.core.git.GitMergeContextManager(
+                    "name_of_test_branch",
+                    "path_to_master_repo",
+                    {
+                        'title':'Test Branch',
+                        'user':'infradev',
+                        'branch':'test_branch'
+                    }
+                ):
+                    pass
+        T.assert_equal(self.mock_reset_ref.call_count, 1)
