@@ -10,6 +10,7 @@ from pushmanager.core.util import add_to_tags_str
 from pushmanager.core.util import del_from_tags_str
 from pushmanager.core.util import EscapedDict
 from pushmanager.core.util import tags_contain
+from pushmanager.core.xmppclient import XMPPQueue
 from urllib import urlencode
 import urllib2
 
@@ -596,6 +597,16 @@ class GitQueue(object):
         subject = '[push][conflict] %s - %s' % (updated_request['user'], updated_request['title'])
         user_to_notify = updated_request['user']
         MailQueue.enqueue_user_email([user_to_notify], msg, subject)
+
+        msg = """PushManager has detected that your pickme for %(pickme_name)s contains conflicts with %(conflicts_with)s
+            https://%(pushmanager_servername)s%(pushmanager_port)s/request?id=%(pickme_id)s""" % {
+            'conflicts_with': "master" if 'conflict-master' in updated_request['tags'] else "another pickme",
+            'pickme_name': updated_request['branch'],
+            'pickme_id': updated_request['id'],
+            'pushmanager_servername': Settings['main_app']['servername'],
+            'pushmanager_port': ':%d' % Settings['main_app']['port'] if Settings['main_app']['port'] != 443 else ''
+        }
+        XMPPQueue.enqueue_user_xmpp([user_to_notify], msg)
 
     @classmethod
     def verify_branch(cls, request_id):
