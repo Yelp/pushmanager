@@ -50,6 +50,7 @@ mail:
 # Credentials for XMPP notifications
 xmpp:
     default_domain: "example.com"
+    server: "xmpp_server"
     username: "someone@example.com"
     password: "abc123"
 

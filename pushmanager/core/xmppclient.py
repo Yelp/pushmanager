@@ -75,7 +75,7 @@ class XMPPQueue(object):
 
         logging.info("Connecting to XMPP server...")
         jabber_client = xmpp.Client(jabber_id.getDomain(), debug=[])
-        connected = jabber_client.connect(server=('talk.google.com', 5222))
+        connected = jabber_client.connect(server=(Settings['xmpp']['server'], 5222))
         if not connected:
             logging.error("Unable to connect to XMPP server!")
             return None
