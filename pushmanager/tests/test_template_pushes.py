@@ -1,5 +1,7 @@
+import testify as T
+
 from pushmanager.testing.testservlet import TemplateTestCase
-import pushmanager.testing as T
+
 
 class PushesTemplateTest(TemplateTestCase):
 

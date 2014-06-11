@@ -2,7 +2,7 @@ from contextlib import nested
 from contextlib import contextmanager
 
 import mock
-import pushmanager.testing as T
+import testify as T
 import types
 
 from pushmanager.core import db
@@ -15,6 +15,7 @@ from pushmanager.servlets.newpush import NewPushServlet
 from pushmanager.servlets.newpush import send_notifications
 from pushmanager.testing.mocksettings import MockedSettings
 from pushmanager.testing.testservlet import ServletTestMixin
+
 
 class NewPushServletTest(T.TestCase, ServletTestMixin):
 

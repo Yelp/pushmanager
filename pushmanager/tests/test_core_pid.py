@@ -5,8 +5,8 @@ import errno
 from exceptions import OSError
 
 import mock
+import testify as T
 
-import pushmanager.testing as T
 from pushmanager.core import pid
 
 

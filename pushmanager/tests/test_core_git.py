@@ -5,19 +5,21 @@ import copy
 import os
 
 import mock
+import testify as T
 
+import pushmanager.core.git
 from pushmanager.core import db
 from pushmanager.core.settings import Settings
+from pushmanager.testing import testdb
 from pushmanager.testing.mocksettings import MockedSettings
-import pushmanager.core.git
-import pushmanager.testing as T
+
 
 class CoreGitTest(T.TestCase):
 
     @T.class_setup
     def setup_db(self):
-        self.db_file = T.testdb.make_test_db()
-        MockedSettings['db_uri'] = T.testdb.get_temp_db_uri(self.db_file)
+        self.db_file = testdb.make_test_db()
+        MockedSettings['db_uri'] = testdb.get_temp_db_uri(self.db_file)
         MockedSettings['irc'] = {
             "nickname": "pushhamster+test",
             "channel": "pushmanagertest"

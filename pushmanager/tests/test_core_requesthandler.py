@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 import mock
+import testify as T
 
-import pushmanager.testing as T
 from pushmanager.core.settings import Settings
 from pushmanager.core.requesthandler import RequestHandler
 from pushmanager.testing.mocksettings import MockedSettings

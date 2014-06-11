@@ -2,10 +2,11 @@ import urllib
 import logging
 
 import mock
+import testify as T
 
 from pushmanager.handlers import LoginHandler
 from pushmanager.testing.testservlet import ServletTestMixin
-import pushmanager.testing as T
+
 
 class LoginTest(T.TestCase, ServletTestMixin):
 

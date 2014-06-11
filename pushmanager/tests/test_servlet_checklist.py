@@ -4,6 +4,7 @@ import urllib
 import re
 
 import mock
+import testify as T
 
 from pushmanager.core import db
 from pushmanager.core.util import get_servlet_urlspec
@@ -12,7 +13,7 @@ from pushmanager.servlets.checklist import ChecklistToggleServlet
 from pushmanager.testing.mocksettings import MockedSettings
 from pushmanager.testing.testdb import FakeDataMixin
 from pushmanager.testing.testservlet import ServletTestMixin
-import pushmanager.testing as T
+
 
 @contextmanager
 def fake_checklist_request():
@@ -33,7 +34,6 @@ def fake_checklist_request():
 
 def on_db_return(success, db_results):
     assert success
-
 
 
 class ChecklistServletTest(T.TestCase, ServletTestMixin, FakeDataMixin):

@@ -2,13 +2,14 @@
 from functools import partial
 import os
 
+import testify as T
 from mock import patch
 
 from pushmanager.core import db
 from tools import rename_checklist_type
+from pushmanager.testing import testdb
 from pushmanager.testing.mocksettings import MockedSettings
 from pushmanager.testing.testdb import FakeDataMixin
-import pushmanager.testing as T
 
 
 class RenameTagTest(T.TestCase, FakeDataMixin):
@@ -25,8 +26,8 @@ class RenameTagTest(T.TestCase, FakeDataMixin):
 
     @T.setup_teardown
     def setup_db(self):
-        self.db_file_path = T.testdb.create_temp_db_file()
-        MockedSettings['db_uri'] = T.testdb.get_temp_db_uri(self.db_file_path)
+        self.db_file_path = testdb.create_temp_db_file()
+        MockedSettings['db_uri'] = testdb.get_temp_db_uri(self.db_file_path)
         with patch.dict(db.Settings, MockedSettings):
             db.init_db()
             self.insert_checklists()

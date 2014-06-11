@@ -2,13 +2,15 @@ from contextlib import nested
 import mock
 import urllib
 
+import testify as T
+
 from pushmanager.core import db
 from pushmanager.core.util import get_servlet_urlspec
 from pushmanager.servlets.addrequest import AddRequestServlet
 from pushmanager.testing.mocksettings import MockedSettings
 from pushmanager.testing.testservlet import ServletTestMixin
-import pushmanager.testing as T
 import types
+
 
 class AddRequestServletTest(T.TestCase, ServletTestMixin):
 

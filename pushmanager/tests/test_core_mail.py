@@ -1,7 +1,7 @@
 import mock
+import testify as T
 
 import pushmanager.core.mail
-import pushmanager.testing as T
 
 class MailQueueTest(T.TestCase):
 

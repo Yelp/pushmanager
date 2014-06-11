@@ -3,6 +3,8 @@ from contextlib import nested
 import mock
 import urllib
 
+import testify as T
+
 from pushmanager.core import db
 from pushmanager.core.util import get_servlet_urlspec
 from pushmanager.servlets.checklist import checklist_reminders
@@ -10,7 +12,7 @@ from pushmanager.servlets.newrequest import NewRequestServlet
 from pushmanager.testing.mocksettings import MockedSettings
 from pushmanager.testing.testdb import FakeDataMixin
 from pushmanager.testing.testservlet import ServletTestMixin
-import pushmanager.testing as T
+
 
 class NewRequestServletTest(T.TestCase, ServletTestMixin, FakeDataMixin):
 

@@ -1,10 +1,11 @@
 from contextlib import nested
 import mock
+import testify as T
 
 from pushmanager.core.util import get_servlet_urlspec
 from pushmanager.servlets.summaryforbranch import SummaryForBranchServlet
 from pushmanager.testing.testservlet import ServletTestMixin
-import pushmanager.testing as T
+
 
 class SummaryForBranchServletTest(T.TestCase, ServletTestMixin):
 
