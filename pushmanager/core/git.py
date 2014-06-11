@@ -16,6 +16,24 @@ import urllib2
 
 from pushmanager.core.settings import Settings
 
+class GitException(Exception):
+    """
+    Exception class to be thrown by Git Context managers.
+    Has fields for git output on top of  basic exception information.
+
+    :param gitrc: Return code from the failing Git process
+    :param gitout: Stdout for the git process
+    :param giterr: Stderr for the git process
+    """
+    def __init__(self, details, gitrc=None, gitout=None, giterr=None):
+        self.details = details
+        self.gitrc = gitrc
+        self.gitout = gitout
+        self.giterr = giterr
+
+    def __str__(self):
+        return repr(self.details)
+
 class GitBranchContextManager(object):
     """
     Context manager that creates / deletes a temporary git branch
@@ -39,9 +57,11 @@ class GitBranchContextManager(object):
         )
         rc, stdout, stderr = make_test_branch.run()
         if rc:
-            raise Exception(
-                "GitBranchContextManager",
-                "Failed to create test branch: %s" % stderr
+            raise GitException(
+                "GitBranchContextManager: Failed to create test branch: %s" % stderr,
+                gitrc = rc,
+                gitout = stdout,
+                giterr = stderr
             )
 
     def __exit__(self, type, value, traceback):
@@ -53,10 +73,11 @@ class GitBranchContextManager(object):
         )
         rc, stdout, stderr = checkout_master.run()
         if rc:
-            raise Exception(
-                "GitBranchContextManager",
-                "Unable to checkout master: %s"
-                % self.test_branch
+            raise GitException(
+                "GitBranchContextManager: Unable to checkout master: %s" % stderr,
+                gitrc = rc,
+                gitout = stdout,
+                giterr = stderr
             )
 
         # Delete the branch that we were working on
@@ -68,10 +89,11 @@ class GitBranchContextManager(object):
         )
         rc, stdout, stderr = delete_test_branch.run()
         if rc:
-            raise Exception(
-                "GitBranchContextManager",
-                "Unable to delete test branch: %s"
-                % self.test_branch
+            raise GitException(
+                "GitBranchContextManager: Unable to delete test branch: %s" % self.test_branch,
+                gitrc = rc,
+                gitout = stdout,
+                giterr = stderr
             )
 
 def git_reset_to_ref(starting_ref, git_directory):
@@ -113,9 +135,11 @@ class GitMergeContextManager(object):
         )
         rc, stdout, stderr = get_starting_ref.run()
         if rc:
-            raise Exception(
-                "GitContextManager",
-                "Failed to get current ref: %s" % stderr
+            raise GitException(
+                "GitMergeContextManager: Failed to get current ref: %s" % stderr,
+                gitrc = rc,
+                gitout = stdout,
+                giterr = stderr
             )
         self.starting_ref = stdout.strip()
 
@@ -136,9 +160,11 @@ class GitMergeContextManager(object):
         rc, stdout, stderr = pull_command.run()
         if rc:
             git_reset_to_ref(self.starting_ref, self.master_repo_path)
-            raise Exception(
-                "GitContextManager",
-                "Unable to merge branch %s" % self.pickme_request['branch']
+            raise GitException(
+                "GitMergeContextManager: Unable to merge branch %s" % self.pickme_request['branch'],
+                gitrc = rc,
+                gitout = stdout,
+                giterr = stderr
             )
 
         ##TODO: Submodules
@@ -147,10 +173,12 @@ class GitMergeContextManager(object):
         rc, stdout, stderr = commit_command.run()
         if rc:
             git_reset_to_ref(self.starting_ref, self.master_repo_path)
-            raise Exception(
-                "GitContextManager",
-                "Committing branch %s failed! One possible cause: a branch which contains no changes (nothing to commit)"
-                % self.pickme_request['branch']
+            raise GitException(
+                "GitMergeContextManager: Committing branch %s failed! One possible cause: a branch which contains no changes (nothing to commit)"
+                % self.pickme_request['branch'],
+                gitrc = rc,
+                gitout = stdout,
+                giterr = stderr
             )
 
     def __exit__(self, type, value, traceback):
@@ -159,10 +187,11 @@ class GitMergeContextManager(object):
             self.master_repo_path
         )
         if rc:
-            raise Exception(
-                "GitContextManager",
-                "Failed to reset branch %s: %s"
-                % (self.pickme_request['branch'], stderr)
+            raise GitException(
+                "GitMergeContextManager: Failed to reset branch %s: %s" % (self.pickme_request['branch'], stderr),
+                gitrc = rc,
+                gitout = stdout,
+                giterr = stderr
             )
 
 
@@ -513,19 +542,20 @@ class GitQueue(object):
                             try:
                                 with GitMergeContextManager(target_branch, repo_path, pickme_details):
                                     pass
-                            except Exception, e:
-                                conflict_pickmes.append((pickme, e))
+                            except GitException, e:
+                                conflict_pickmes.append((pickme, e.gitout, e.giterr))
 
                     logging.info("Pickme %s conflicted with %d pickmes: %s"
                         % (request_id, len(conflict_pickmes), conflict_pickmes))
                     if len(conflict_pickmes) > 0:
                         updated_tags = add_to_tags_str(updated_tags, 'conflict-pickme')
                     formatted_conflicts = "";
-                    for broken_pickme, error in conflict_pickmes:
+                    for broken_pickme, git_out, git_err in conflict_pickmes:
                         pickme_details = cls._get_request(broken_pickme)
-                        formatted_pickme_err = "Conflict with <a href='/request?id={pickme_id}'>{pickme_name}</a>: <br/>{pickme_err}<br/><br/>".format(
+                        formatted_pickme_err = "Conflict with <a href='/request?id={pickme_id}'>{pickme_name}</a>: <br/>{pickme_out}<br/>{pickme_err}<br/><br/>".format(
                             pickme_id = broken_pickme,
-                            pickme_err = error,
+                            pickme_err = git_err,
+                            pickme_out = git_out,
                             pickme_name = pickme_details['title']
                         )
                         formatted_conflicts += formatted_pickme_err
@@ -540,13 +570,13 @@ class GitQueue(object):
                         logging.error("Failed to update pickme")
 
 
-            except Exception, e:
+            except GitException, e:
                 logging.info("Pickme %s conflicted with master: %s"
                         % (request_id, repr(e)))
                 updated_tags = add_to_tags_str(updated_tags, 'conflict-master')
                 updated_values = {
                         'tags': updated_tags,
-                        'conflicts': "<strong>Conflict with master:</strong><br/> %s" % repr(e)
+                        'conflicts': "<strong>Conflict with master:</strong><br/> %s" % e.gitout
                     }
 
                 updated_request = cls._update_request(req, updated_values)
