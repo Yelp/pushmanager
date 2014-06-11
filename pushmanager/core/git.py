@@ -16,6 +16,25 @@ import urllib2
 
 from pushmanager.core.settings import Settings
 
+class GitException(Exception):
+    """
+    Exception class to be thrown by Git Context managers.
+    Has fields for git output on top of  basic exception information.
+
+    :param gitrc: Return code from the failing Git process
+    :param gitout: Stdout for the git process
+    :param giterr: Stderr for the git process
+    """
+    def __init__(self, details, gitrc=None, gitout=None, giterr=None, gitcwd=None):
+        self.details = details
+        self.gitrc = gitrc
+        self.gitout = gitout
+        self.giterr = giterr
+        self.gitcwd = gitcwd
+
+    def __str__(self):
+        return repr((self.details, self.gitout, self.giterr, self.gitcwd))
+
 class GitBranchContextManager(object):
     """
     Context manager that creates / deletes a temporary git branch
@@ -37,12 +56,7 @@ class GitBranchContextManager(object):
             self.test_branch,
             cwd=self.master_repo_path
         )
-        rc, stdout, stderr = make_test_branch.run()
-        if rc:
-            raise Exception(
-                "GitBranchContextManager",
-                "Failed to create test branch: %s" % stderr
-            )
+        make_test_branch.run()
 
     def __exit__(self, type, value, traceback):
         # Checkout master so that we can delete the test branch
@@ -51,13 +65,7 @@ class GitBranchContextManager(object):
             "master",
             cwd = self.master_repo_path
         )
-        rc, stdout, stderr = checkout_master.run()
-        if rc:
-            raise Exception(
-                "GitBranchContextManager",
-                "Unable to checkout master: %s"
-                % self.test_branch
-            )
+        checkout_master.run()
 
         # Delete the branch that we were working on
         delete_test_branch = GitCommand(
@@ -66,13 +74,7 @@ class GitBranchContextManager(object):
             self.test_branch,
             cwd = self.master_repo_path
         )
-        rc, stdout, stderr = delete_test_branch.run()
-        if rc:
-            raise Exception(
-                "GitBranchContextManager",
-                "Unable to delete test branch: %s"
-                % self.test_branch
-            )
+        delete_test_branch.run()
 
 def git_reset_to_ref(starting_ref, git_directory):
     """
@@ -112,11 +114,7 @@ class GitMergeContextManager(object):
             cwd=self.master_repo_path
         )
         rc, stdout, stderr = get_starting_ref.run()
-        if rc:
-            raise Exception(
-                "GitContextManager",
-                "Failed to get current ref: %s" % stderr
-            )
+
         self.starting_ref = stdout.strip()
 
         # Locate and merge the branch we are testing
@@ -125,45 +123,32 @@ class GitMergeContextManager(object):
             user = self.pickme_request['user'],
             branch = self.pickme_request['branch']
         )
-        pickme_repo_uri = cls._get_local_repository_uri(self.pickme_request['user'])
-        pull_command = GitCommand(
-            "pull",
-            "--no-ff",
-            "--no-commit",
-            pickme_repo_uri,
-            self.pickme_request['branch'],
-            cwd = self.master_repo_path)
-        rc, stdout, stderr = pull_command.run()
-        if rc:
-            git_reset_to_ref(self.starting_ref, self.master_repo_path)
-            raise Exception(
-                "GitContextManager",
-                "Unable to merge branch %s" % self.pickme_request['branch']
-            )
+        pickme_repo_uri = GitQueue._get_local_repository_uri(self.pickme_request['user'])
 
-        ##TODO: Submodules
+        try:
+            pull_command = GitCommand(
+                "pull",
+                "--no-ff",
+                "--no-commit",
+                pickme_repo_uri,
+                self.pickme_request['branch'],
+                cwd = self.master_repo_path)
+            pull_command.run()
 
-        commit_command = GitCommand("commit", "-m", summary, "--no-verify", cwd=self.master_repo_path)
-        rc, stdout, stderr = commit_command.run()
-        if rc:
-            git_reset_to_ref(self.starting_ref, self.master_repo_path)
-            raise Exception(
-                "GitContextManager",
-                "Committing branch %s failed! One possible cause: a branch which contains no changes (nothing to commit)"
-                % self.pickme_request['branch']
+            commit_command = GitCommand("commit", "-m", summary, "--no-verify", cwd=self.master_repo_path)
+            commit_command.run()
+        except GitException, e:
+            git_reset_to_ref(
+                self.starting_ref,
+                self.master_repo_path
             )
+            raise e
 
     def __exit__(self, type, value, traceback):
-        rc, stdout, stderr = git_reset_to_ref(
+        git_reset_to_ref(
             self.starting_ref,
             self.master_repo_path
         )
-        if rc:
-            raise Exception(
-                "GitContextManager",
-                "Failed to reset branch %s: %s"
-                % (self.pickme_request['branch'], stderr)
-            )
 
 
 
@@ -186,6 +171,8 @@ class GitQueueTask(object):
 class GitCommand(subprocess.Popen):
 
     def __init__(self, *args, **kwargs):
+        self.args = args
+        self.kwargs = kwargs
         _args = ['git'] + list(args)
         _kwargs = {
             'stdout': subprocess.PIPE,
@@ -196,6 +183,14 @@ class GitCommand(subprocess.Popen):
 
     def run(self):
         stdout, stderr = self.communicate()
+        if self.returncode:
+            raise GitException(
+                "GitException: git %s " % ' '.join(self.args),
+                gitrc = self.returncode,
+                giterr = stderr,
+                gitout = stdout,
+                gitcwd = self.kwargs['cwd'] if 'cwd' in self.kwargs else None
+            )
         return self.returncode, stdout, stderr
 
 class GitQueue(object):
@@ -237,42 +232,25 @@ class GitQueue(object):
                 cls._get_repository_uri(repo_name),
                 repo_path
             )
-            rc, stdout, stderr = clone_repo.run()
-            if rc:
-                logging.error("Failed to create local clone with code %d: %s" % (rc, stderr))
-                return rc
+            clone_repo.run()
 
         # Fetch all new repo info
         fetch_updates = GitCommand('fetch', '--all', cwd=repo_path)
-        rc, stdout, stderr = fetch_updates.run()
-        if rc:
-            logging.error("Failed to update local git repo (code %d): %s" % (rc, stderr))
-            return rc
+        fetch_updates.run()
 
         # Checkout the branch
         checkout_branch = GitCommand('checkout', branch, cwd=repo_path)
-        rc, stdout, stderr = checkout_branch.run()
-        if rc:
-            logging.error(
-                "Failed to check out branch %s from %s (code %d): %s"
-                % (branch, repo_name, rc, stderr)
-            )
-            return rc
+        checkout_branch.run()
 
         # Try to fast-forward any updates to the branch
         fetch_updates = GitCommand('pull', '--ff-only', cwd=repo_path)
-        rc, stdout, stderr = fetch_updates.run()
-        if rc:
-            logging.error("Failed to update local git repo (code %d): %s" % (rc, stderr))
-            return rc
+        fetch_updates.run()
 
         # Update submodules
         sync_submodule = GitCommand("submodule", "--quiet", "sync", cwd=repo_path)
         sync_submodule.run()
         update_submodules = GitCommand("submodule", "--quiet", "update", "--init", cwd=repo_path)
         update_submodules.run()
-
-        return 0
 
     @classmethod
     def _get_local_repository_uri(cls, repository):
@@ -295,21 +273,21 @@ class GitQueue(object):
     @classmethod
     def _get_branch_sha_from_repo(cls, req):
         # Update local copy of the repo
-        cls.create_or_update_local_repo(req['repo'], branch=req['branch'])
+        try:
+            cls.create_or_update_local_repo(req['repo'], branch=req['branch'])
 
-        user_to_notify = req['user']
-        repository = cls._get_local_repository_uri(req['repo'])
-        ls_remote = GitCommand('ls-remote', '-h', repository, req['branch'])
-        rc, stdout, stderr = ls_remote.run()
-        stdout = stdout.strip()
-        query_details = {
-            'user': req['user'],
-            'title': req['title'],
-            'repo': req['repo'],
-            'branch': req['branch'],
-            'stderr': stderr,
-        }
-        if rc:
+            user_to_notify = req['user']
+            repository = cls._get_local_repository_uri(req['repo'])
+            ls_remote = GitCommand('ls-remote', '-h', repository, req['branch'])
+            rc, stdout, stderr = ls_remote.run()
+            stdout = stdout.strip()
+            query_details = {
+                'user': req['user'],
+                'title': req['title'],
+                'repo': req['repo'],
+                'branch': req['branch'],
+            }
+        except GitException, e:
             msg = (
                 """
                 <p>
@@ -331,6 +309,7 @@ class GitQueue(object):
                     PushManager
                 </p>
                 """)
+            query_details['stderr'] = e.giterr
             msg %= EscapedDict(query_details)
             subject = '[push error] %s - %s' % (req['user'], req['title'])
             MailQueue.enqueue_user_email([user_to_notify], msg, subject)
@@ -519,19 +498,20 @@ class GitQueue(object):
                             try:
                                 with GitMergeContextManager(target_branch, repo_path, pickme_details):
                                     pass
-                            except Exception, e:
-                                conflict_pickmes.append((pickme, e))
+                            except GitException, e:
+                                conflict_pickmes.append((pickme, e.gitout, e.giterr))
 
                     logging.info("Pickme %s conflicted with %d pickmes: %s"
                         % (request_id, len(conflict_pickmes), conflict_pickmes))
                     if len(conflict_pickmes) > 0:
                         updated_tags = add_to_tags_str(updated_tags, 'conflict-pickme')
                     formatted_conflicts = "";
-                    for broken_pickme, error in conflict_pickmes:
+                    for broken_pickme, git_out, git_err in conflict_pickmes:
                         pickme_details = cls._get_request(broken_pickme)
-                        formatted_pickme_err = "Conflict with <a href='/request?id={pickme_id}'>{pickme_name}</a>: <br/>{pickme_err}<br/><br/>".format(
+                        formatted_pickme_err = "Conflict with <a href='/request?id={pickme_id}'>{pickme_name}</a>: <br/>{pickme_out}<br/>{pickme_err}<br/><br/>".format(
                             pickme_id = broken_pickme,
-                            pickme_err = error,
+                            pickme_err = git_err,
+                            pickme_out = git_out,
                             pickme_name = pickme_details['title']
                         )
                         formatted_conflicts += formatted_pickme_err
@@ -546,13 +526,13 @@ class GitQueue(object):
                         logging.error("Failed to update pickme")
 
 
-            except Exception, e:
+            except GitException, e:
                 logging.info("Pickme %s conflicted with master: %s"
                         % (request_id, repr(e)))
                 updated_tags = add_to_tags_str(updated_tags, 'conflict-master')
                 updated_values = {
                         'tags': updated_tags,
-                        'conflicts': "<strong>Conflict with master:</strong><br/> %s" % repr(e)
+                        'conflicts': "<strong>Conflict with master:</strong><br/> %s" % e.gitout
                     }
 
                 updated_request = cls._update_request(req, updated_values)
