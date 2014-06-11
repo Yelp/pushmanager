@@ -14,9 +14,15 @@ class MsgServlet(RequestHandler):
         if not message:
             return self.send_error(500)
 
-        irc_nick = Settings['irc']['nickname'].format(pushmaster=self.current_user)
+        irc_nick = Settings['irc']['nickname'].format(
+            pushmaster=self.current_user
+        )
 
-        irc_message = '%s: %s' % (', '.join(people), message) if people else message
+        irc_message = u'[[pushmaster {0}]] {1}{2}'.format(
+            self.current_user,
+            ', '.join(people) + ': ' if people else '',
+            message,
+        )
         subprocess.call([
                 '/nail/sys/bin/nodebot',
                 '-i',
