@@ -278,6 +278,12 @@ class GitQueue(object):
     @classmethod
     def _get_branch_sha_from_repo(cls, req):
         # Update local copy of the repo
+        query_details = {
+            'user': req['user'],
+            'title': req['title'],
+            'repo': req['repo'],
+            'branch': req['branch'],
+        }
         try:
             cls.create_or_update_local_repo(req['repo'], branch=req['branch'])
 
@@ -286,12 +292,6 @@ class GitQueue(object):
             ls_remote = GitCommand('ls-remote', '-h', repository, req['branch'])
             rc, stdout, stderr = ls_remote.run()
             stdout = stdout.strip()
-            query_details = {
-                'user': req['user'],
-                'title': req['title'],
-                'repo': req['repo'],
-                'branch': req['branch'],
-            }
         except GitException, e:
             msg = (
                 """
@@ -438,11 +438,152 @@ class GitQueue(object):
         return updated_request
 
     @classmethod
+    def _test_pickme_conflict_pickme(cls, req, target_branch, repo_path, no_requeue):
+        """
+        Test for any pickmes that are broken by pickme'd request req
+
+        Precondition: We should already be on a test branch, and the pickme to
+        be tested against should already be successfully merged.
+
+        :param req: Details for pickme to test against
+        """
+
+        push = cls._get_push_for_request(req['id'])
+        pickme_ids = cls._get_request_ids_in_push(push['push'])
+        logging.error("Candidate pickmes to compare against: %s", pickme_ids)
+
+        pickme_ids = [ p for p in pickme_ids if int(p) != int(req['id'])]
+
+        conflict_pickmes = []
+        logging.error("Comparing pickme %s with pickme(s): %s"
+            % (req['id'], pickme_ids))
+
+        # For each pickme, check if merging it on top throws an exception.
+        # If it does, keep track of the pickme in conflict_pickmes
+        for pickme in pickme_ids:
+            pickme_details = cls._get_request(pickme)
+            if not pickme_details:
+                logging.error("Tried to test for conflicts against non-existent request id %s" % pickme)
+                continue
+
+            # Don't bother trying to compare against pickmes that
+            # break master, as they will conflict by default
+            if "conflict-master" in pickme_details['tags']:
+                continue
+
+            try:
+                with GitMergeContextManager(target_branch, repo_path, pickme_details):
+                    pass
+            except GitException, e:
+                conflict_pickmes.append((pickme, e.gitout, e.giterr))
+                # Requeue the conflicting pickme so that it also picks up the conflict
+                # Pass on that it was requeued automatically and to NOT requeue things in that run,
+                # otherwise two tickets will requeue each other forever
+                if not no_requeue:
+                    GitQueue.enqueue_request(
+                        GitTaskAction.TEST_PICKME_CONFLICT,
+                        pickme,
+                        no_requeue=True
+                    )
+
+        # If there were no conflicts, don't update the request
+        if len(conflict_pickmes) == 0:
+            return False, None
+
+        updated_tags = add_to_tags_str(req['tags'], 'conflict-pickme')
+        formatted_conflicts = "";
+        for broken_pickme, git_out, git_err in conflict_pickmes:
+            pickme_details = cls._get_request(broken_pickme)
+            formatted_pickme_err = (
+            """<strong>Conflict with <a href=\"/request?id={pickme_id}\">{pickme_name}</a>: </strong><br/>{pickme_out}<br/>{pickme_err}<br/><br/>"""
+            ).format(
+                pickme_id = broken_pickme,
+                pickme_err = git_err,
+                pickme_out = git_out,
+                pickme_name = pickme_details['title']
+            )
+            formatted_conflicts += formatted_pickme_err
+
+        updated_values = {
+            'tags': updated_tags,
+            'conflicts': formatted_conflicts
+        }
+
+        updated_request = cls._update_request(req, updated_values)
+        if not updated_request:
+            raise Exception("Failed to update pickme details")
+        else:
+            return True, updated_request
+
+    @classmethod
+    def _clear_pickme_conflict_details(cls, req):
+        """
+        Strips the conflict-pickme and conflict-master tags from a pickme, and
+        clears the detailed conflict field.
+
+        :param req: Details of pickme request to clear conflict details of
+        """
+        updated_tags = del_from_tags_str(req['tags'], 'conflict-master')
+        updated_tags = del_from_tags_str(updated_tags, 'conflict-pickme')
+        updated_values = {
+            'tags': updated_tags,
+            'conflicts': ''
+        }
+        updated_request = cls._update_request(req, updated_values)
+        if not updated_request:
+            raise Exception("Failed to update pickme")
+
+    @classmethod
+    def _test_pickme_conflict_master(cls, req, target_branch, repo_path, no_requeue):
+        """
+        Test whether the pickme given by req can be successfully merged onto
+        master.
+
+        If the pickme was merged successfully, it calls _test_pickme_conflict_pickme
+        to check the pickme against others in the same push.
+
+        :param req: Details of pickme request to test
+        :param target_branch: The name of the test branch to use for testing
+        :param repo_path: The location of the repository we are working in
+        """
+
+        # Create a test branch following master
+        with GitBranchContextManager(target_branch, repo_path):
+            # Merge the pickme we are testing onto the test branch
+            # If this fails, that means pickme conflicts with master
+            try:
+                with GitMergeContextManager(target_branch, repo_path, req):
+                    # Check for conflicts with other pickmes
+                    return cls._test_pickme_conflict_pickme(
+                        req,
+                        target_branch,
+                        repo_path,
+                        no_requeue
+                    )
+
+            except GitException, e:
+                updated_tags = add_to_tags_str(req['tags'], 'conflict-master')
+                updated_values = {
+                        'tags': updated_tags,
+                        'conflicts': "<strong>Conflict with master:</strong><br/> %s" % e.gitout
+                    }
+
+                updated_request = cls._update_request(req, updated_values)
+                if not updated_request:
+                    raise Exception("Failed to update pickme")
+                else:
+                    return True, updated_request
+
+    @classmethod
     def test_pickme_conflicts(cls, request_id, no_requeue=False):
-        # Get the push this branch is associated with (requests can only be associated with one push)
-        # Get other pickmes in that push
-        # Apply this branch
-        # Apply each of the others in turn, check for errors
+        """
+        Tests for conflicts between a pickme and both master and other pickmes
+        in the same push.
+
+        :param request_id: ID number of the pickme to be tested
+        :param no_requeue: Whether or not pickmes that this pickme conflicts with
+            should be added back into the GitQueue as a test conflict task.
+        """
 
         req = cls._get_request(request_id)
         if not req:
@@ -469,94 +610,21 @@ class GitQueue(object):
             pickme_id = request_id
         )
 
-        # Remove the conflict-master and conflict-pickme tags
-        updated_tags = del_from_tags_str(req['tags'], 'conflict-master')
-        updated_tags = del_from_tags_str(updated_tags, 'conflict-pickme')
+        # Clear the pickme's conflict info
+        cls._clear_pickme_conflict_details(req)
 
-        # Create a test branch following master
-        with GitBranchContextManager(target_branch, repo_path):
-            # Merge the pickme we are testing onto the test branch
-            # If this fails, that means pickme conflicts with master
-            try:
-                with GitMergeContextManager(target_branch, repo_path, req):
-                    # If we get here, it doesn't conflict with master
-                    # Get a list of (other) pickmes in the push
-                    pickme_ids = cls._get_request_ids_in_push(push_id)
-                    pickme_ids = [ p for    p in pickme_ids if p != request_id]
-
-                    conflict_pickmes = []
-
-                    logging.error("Comparing pickme %s with pickme(s): %s"
-                        % (request_id, pickme_ids))
-
-                    # For each pickme, check if merging it on top throws an exception.
-                    # If it does, keep track of the pickme in conflict_pickmes
-                    for pickme in pickme_ids:
-                        pickme_details = cls._get_request(pickme)
-                        if not pickme_details:
-                            logging.error("Tried to test for conflicts against non-existent request id %s" % request_id)
-                            continue
-
-                        # Don't bother trying to compare against pickmes that
-                        # break master, as they will conflict by default
-                        if not "conflict-master" in pickme_details['tags']:
-                            try:
-                                with GitMergeContextManager(target_branch, repo_path, pickme_details):
-                                    pass
-                            except GitException, e:
-                                conflict_pickmes.append((pickme, e.gitout, e.giterr))
-                                # Requeue the conflicting pickme so that it also picks up the conflict
-                                # Pass on that it was requeued automatically and to NOT requeue things in that run,
-                                # otherwise two tickets will requeue each other forever
-                                if not no_requeue:
-                                    GitQueue.enqueue_request(
-                                        GitTaskAction.TEST_PICKME_CONFLICT,
-                                        pickme,
-                                        no_requeue=True
-                                    )
-
-                    logging.info("Pickme %s conflicted with %d pickmes: %s"
-                        % (request_id, len(conflict_pickmes), conflict_pickmes))
-                    if len(conflict_pickmes) > 0:
-                        updated_tags = add_to_tags_str(updated_tags, 'conflict-pickme')
-                    formatted_conflicts = "";
-                    for broken_pickme, git_out, git_err in conflict_pickmes:
-                        pickme_details = cls._get_request(broken_pickme)
-                        formatted_pickme_err = (
-                        """<strong>Conflict with <a href=\"/request?id={pickme_id}\">{pickme_name}</a>: </strong><br/>{pickme_out}<br/>{pickme_err}<br/><br/>"""
-                        ).format(
-                            pickme_id = broken_pickme,
-                            pickme_err = git_err,
-                            pickme_out = git_out,
-                            pickme_name = pickme_details['title']
-                        )
-                        formatted_conflicts += formatted_pickme_err
-
-                    updated_values = {
-                        'tags': updated_tags,
-                        'conflicts': formatted_conflicts
-                    }
-
-                    updated_request = cls._update_request(req, updated_values)
-                    if not updated_request:
-                        logging.error("Failed to update pickme")
-                    else:
-                        cls.pickme_conflict_detected(updated_request)
-
-            except GitException, e:
-                logging.info("Pickme %s conflicted with master: %s"
-                        % (request_id, repr(e)))
-                updated_tags = add_to_tags_str(updated_tags, 'conflict-master')
-                updated_values = {
-                        'tags': updated_tags,
-                        'conflicts': "<strong>Conflict with master:</strong><br/> %s" % e.gitout
-                    }
-
-                updated_request = cls._update_request(req, updated_values)
-                if not updated_request:
-                    logging.error("Failed to update pickme")
-                else:
-                    cls.pickme_conflict_detected(updated_request)
+        # Check for conflicts with master
+        conflict, updated_pickme = cls._test_pickme_conflict_master(
+            req,
+            target_branch,
+            repo_path,
+            no_requeue
+        )
+        if conflict:
+            if updated_pickme is None:
+                raise Exception("Encountered merge conflict but was not passed details")
+            cls.pickme_conflict_detected(updated_pickme)
+            return
 
     @classmethod
     def pickme_conflict_detected(cls, updated_request):
