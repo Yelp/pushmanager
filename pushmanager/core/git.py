@@ -236,13 +236,24 @@ class GitQueue(object):
         if repo_name is Settings['git']['main_repository']:
             repo_name = 'origin'
 
+        # Check if the main repo does not exist and needs to be created
         if not os.path.isdir(repo_path):
+            # If we are using a reference mirror, add --reference [path] to
+            # the list of gitcommand args
+            clone_args = ['clone', cls._get_repository_uri(repo_name)]
+
+            logging.error("Use local git mirror? %s" % repr(Settings['git']['use_local_mirror']))
+
+            if Settings['git']['use_local_mirror']:
+                if os.path.isdir(Settings['git']['local_mirror']):
+                    clone_args.extend([
+                        '--reference',
+                        Settings['git']['local_mirror']
+                    ])
+
+            clone_args.append(repo_path)
             # Clone the main repo into repo_path. Will take time!
-            clone_repo = GitCommand(
-                'clone',
-                cls._get_repository_uri(repo_name),
-                repo_path
-            )
+            clone_repo = GitCommand(*clone_args)
             clone_repo.run()
 
         # If we are dealing with a dev repo, make sure it is added as a remote
