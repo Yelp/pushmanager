@@ -123,14 +123,13 @@ class GitMergeContextManager(object):
             user = self.pickme_request['user'],
             branch = self.pickme_request['branch']
         )
-        pickme_repo_uri = GitQueue._get_local_repository_uri(self.pickme_request['user'])
 
         try:
             pull_command = GitCommand(
                 "pull",
                 "--no-ff",
                 "--no-commit",
-                pickme_repo_uri,
+                self.pickme_request['user'],
                 self.pickme_request['branch'],
                 cwd = self.master_repo_path)
             pull_command.run()
@@ -223,12 +222,19 @@ class GitQueue(object):
     @classmethod
     def create_or_update_local_repo(cls, repo_name, branch):
         """
-        Clones or fetches the repository specified by repo_name into the local_repo_path
-        speficied in the configuration.
-        If branch is specified, it will also checkout that branch.
+        Clones the main repository if it does not exist.
+        If repo_name is not the main repo, add that repo as a remote and fetch
+        refs before checking out the specified branch.
         """
 
-        repo_path = cls._get_local_repository_uri(repo_name)
+        # Since we are keeping everything in the same repo, repo_path should always be
+        # the same
+        repo_path = cls._get_local_repository_uri(Settings['git']['main_repository'])
+
+        # repo_name is the remote to use. If we are dealing with the main repository,
+        # set the remote to origin.
+        if repo_name is Settings['git']['main_repository']:
+            repo_name = 'origin'
 
         if not os.path.isdir(repo_path):
             # Clone the main repo into repo_path. Will take time!
@@ -239,17 +245,26 @@ class GitQueue(object):
             )
             clone_repo.run()
 
+        # If we are dealing with a dev repo, make sure it is added as a remote
+        dev_repo_uri = cls._get_repository_uri(repo_name)
+        add_remote = GitCommand('remote', 'add', repo_name, dev_repo_uri, cwd=repo_path)
+        try:
+            add_remote.run()
+        except GitException, e:
+            # If the remote already exists, git will return err 128
+            if e.gitrc is 128:
+                pass
+            else:
+                raise e
+
         # Fetch all new repo info
         fetch_updates = GitCommand('fetch', '--all', cwd=repo_path)
         fetch_updates.run()
 
         # Checkout the branch
-        checkout_branch = GitCommand('checkout', branch, cwd=repo_path)
+        full_branch = "%s/%s" % (repo_name, branch)
+        checkout_branch = GitCommand('checkout', full_branch, cwd=repo_path)
         checkout_branch.run()
-
-        # Try to fast-forward any updates to the branch
-        fetch_updates = GitCommand('pull', '--ff-only', cwd=repo_path)
-        fetch_updates.run()
 
         # Update submodules
         sync_submodule = GitCommand("submodule", "--quiet", "sync", cwd=repo_path)
@@ -288,8 +303,7 @@ class GitQueue(object):
             cls.create_or_update_local_repo(req['repo'], branch=req['branch'])
 
             user_to_notify = req['user']
-            repository = cls._get_local_repository_uri(req['repo'])
-            ls_remote = GitCommand('ls-remote', '-h', repository, req['branch'])
+            ls_remote = GitCommand('ls-remote', '-h', req['user'], req['branch'])
             rc, stdout, stderr = ls_remote.run()
             stdout = stdout.strip()
         except GitException, e:
