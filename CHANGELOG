@@ -1,0 +1,6 @@
+0.2.1   UNRELEASED
+
+ IMPROVEMENTS
+
+ * Add pushmaster name to IRC messages (asotille, #63)
+ * Clean up imports (asotille)
