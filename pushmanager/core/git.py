@@ -30,6 +30,7 @@ from pushmanager.core.util import add_to_tags_str
 from pushmanager.core.util import del_from_tags_str
 from pushmanager.core.util import EscapedDict
 from pushmanager.core.util import tags_contain
+from pushmanager.core.xmppclient import XMPPQueue
 from tornado.escape import xhtml_escape
 
 
@@ -745,7 +746,82 @@ class GitQueue(object):
                 raise Exception(
                     "Encountered merge conflict but was not passed details"
                 )
-            return
+            cls.pickme_conflict_detected(updated_pickme, requeue)
+
+    @classmethod
+    def pickme_conflict_detected(cls, updated_request, send_notifications):
+        msg = (
+            """
+            <p>
+                PushManager has detected that your pickme contains conflicts with %(conflicts_with)s.
+            </p>
+            <p>
+                <strong>%(user)s - %(title)s</strong><br />
+                <em>%(repo)s/%(branch)s</em><br />
+                <a href="https://%(pushmanager_servername)s%(pushmanager_port)s/request?id=%(id)s">https://%(pushmanager_servername)s%(pushmanager_port)s/request?id=%(id)s</a>
+            </p>
+            <p>
+                Review # (if specified): <a href="https://%(reviewboard_servername)s%(pushmanager_port)s/r/%(reviewid)s">%(reviewid)s</a>
+            </p>
+            <p>
+                <code>%(revision)s</code><br/>
+                <em>(If this is <strong>not</strong> the revision you expected,
+                make sure you've pushed your latest version to the correct repo!)</em>
+            </p>
+            <p>
+                %(conflicts)s
+            </p>
+            <p>
+                Regards,<br/>
+                PushManager
+            </p>
+            """
+        )
+        updated_request.update(
+            {
+                'conflicts_with': (
+                    "master"
+                    if 'conflict-master' in updated_request['tags']
+                    else "another pickme"
+                ),
+                'conflicts': updated_request['conflicts'].replace('\n', '<br/>'),
+                'pushmanager_servername': Settings['main_app']['servername'],
+                'pushmanager_port': (
+                    (':%d' % Settings['main_app']['port'])
+                    if Settings['main_app']['port'] != 443
+                    else ''
+                ),
+                'reviewboard_servername': Settings['reviewboard']['servername']
+
+            }
+        )
+        escaped_request = EscapedDict(updated_request)
+        escaped_request.unescape_key('conflicts')
+        msg %= escaped_request
+        subject = (
+            '[push conflict] %s - %s'
+            % (updated_request['user'], updated_request['title'])
+        )
+        user_to_notify = updated_request['user']
+        MailQueue.enqueue_user_email([user_to_notify], msg, subject)
+
+        msg = """PushManager has detected that your pickme for %(pickme_name)s contains conflicts with %(conflicts_with)s
+            https://%(pushmanager_servername)s%(pushmanager_port)s/request?id=%(pickme_id)s""" % {
+                'conflicts_with': (
+                    "master"
+                    if 'conflict-master' in updated_request['tags']
+                    else "another pickme"
+                ),
+                'pickme_name': updated_request['branch'],
+                'pickme_id': updated_request['id'],
+                'pushmanager_servername': Settings['main_app']['servername'],
+                'pushmanager_port': (
+                    (':%d' % Settings['main_app']['port'])
+                    if Settings['main_app']['port'] != 443
+                    else ''
+                )
+            }
+        XMPPQueue.enqueue_user_xmpp([user_to_notify], msg)
 
     @classmethod
     def verify_branch(cls, request_id):

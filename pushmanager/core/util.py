@@ -4,13 +4,29 @@ import datetime
 from tornado.escape import xhtml_escape
 
 
-class EscapedDict:
-    """A wrapper for a dict that HTML-escapes values as you ask for them"""
+class EscapedDict(object):
+    """
+    A wrapper for a dict that (by default) HTML-escapes values as you ask for
+    them. If a value should not be escaped because it is going to be used as
+    HTML, it can be specified as such using unescape_key.
+    """
     def __init__(self, doc):
         self.doc = doc
+        self.no_escape = {}
+
+    def unescape_key(self, key):
+        self.no_escape[key] = True
+
+    def escape_key(self, key):
+        self.no_escape[key] = False
+
     def __getitem__(self, key):
+        escape = True
+        if key in self.no_escape and self.no_escape[key] == True:
+            escape = False
+
         item = self.doc[key]
-        if isinstance(item, str):
+        if isinstance(item, str) and escape:
             return xhtml_escape(self.doc[key])
         else:
             return self.doc[key]
