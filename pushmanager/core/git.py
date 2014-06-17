@@ -121,6 +121,145 @@ def git_merge_pickme(pickme_request, master_repo_path):
     )
     commit_command.run()
 
+    # Verify that submodules are OK
+    _stale_submodule_check(master_repo_path)
+
+
+def _stale_submodule_check(cwd):
+    """
+    Checks that no submodules in the git repository path specified by cwd are
+    out of date or too new.
+
+    If any out of date submodules are found, update them.
+
+    Once all submodules are up to date, calls _check_submodule on each
+    changed submodule.
+    :param cwd: On-disk path of the git repo to work with
+    """
+
+    stale_submodules = GitCommand('submodule', 'status', cwd=cwd)
+    _, submodule_out, _ = stale_submodules.run()
+    submodule_out = submodule_out.strip()
+
+    # If nothing was returned, there are no submodules to check
+    if len(submodule_out) == 0:
+        return
+
+    submodule_lines = submodule_out.split('\n')
+    stale_submodules = []
+    for submodule_line in submodule_lines:
+        try:
+            _, path, _ = submodule_line.strip().split(' ')
+            if submodule_line[0] == '-' or submodule_line[0] == '+':
+                stale_submodules.append(path)
+        except ValueError:
+            logging.error("Failed to unpack line %s", submodule_line)
+
+    # If there are no stale submodules, nothing to do
+    if len(stale_submodules) == 0:
+        return
+
+    logging.info("Submodules touched in this branch: %s",
+                 ' '.join(stale_submodules))
+    old_shas = GitCommand(
+        'submodule', 'foreach', '--quiet',
+        'echo "$path\t$(git rev-parse HEAD | cut -c-7)"',
+        cwd=cwd
+    )
+    _, old_shas_out, _ = old_shas.run()
+    old_shas_out = old_shas_out.strip()
+    old_sha_list = old_shas_out.split('\n')
+
+    GitCommand('submodule', '--quiet', 'sync', cwd=cwd).run()
+
+    # Only fetch changed submodules
+    for submodule in stale_submodules:
+        GitCommand('submodule', 'update', '--init', submodule, cwd=cwd).run()
+        GitCommand('--git-dir=%s/.git' % submodule, 'fetch', cwd=cwd).run()
+
+    _check_submodule(cwd, stale_submodules, old_sha_list)
+
+
+def _check_submodule(cwd, submodule_names, old_shas):
+    """
+    Checks that submodules
+        - Have a master branch
+        - Have been pushed to their master
+        - if the local and remote version differ, ensure that they can be
+          fast-forwarded.
+
+    If any of these fail, raise a GitException with some details.
+
+    :param cwd: On-disk path of the git repo to work with
+    :param submodule_names: List of names (relative paths) of submodules to check
+    :param old_shas: List of SHAs of the current versions of the submodules
+    """
+
+    for name in submodule_names:
+        if _check_submodule_has_a_master(cwd, name):
+            if not _check_submodule_head_is_in_master(cwd, name):
+                exn_text = (
+                    "Submodule error: %s has not been pushed to 'master'"
+                    % name
+                )
+                raise GitException(
+                    exn_text,
+                    gitret=-1,
+                    gitout=exn_text,
+                    giterr=exn_text
+                    )
+
+        # Find the sha that corresponds to the outdated submodule
+        old_sha = None
+        for sha in old_shas:
+            if sha.startswith(name):
+                old_sha = sha.split('\t')[1]
+
+        if not _check_submodule_is_fast_forward(cwd, name, old_sha):
+            exn_text = (
+                "Submodule Error: %s is not a fast forward of %s"
+                % (name, old_sha)
+            )
+            raise GitException(
+                exn_text,
+                gitret=-1,
+                gitout=exn_text,
+                giterr=exn_text
+            )
+
+
+def _check_submodule_is_fast_forward(cwd, submodule_name, old_sha):
+    submodule_path = os.path.join(cwd, submodule_name)
+    _, new_sha, _ = GitCommand('rev-parse', 'HEAD', cwd=submodule_path).run()
+    _, submodule_out, _ = GitCommand(
+        'rev-list', '-n1', '%s..%s'
+        % (new_sha.strip(), old_sha), cwd=submodule_path
+    ).run()
+    if len(submodule_out.strip()) > 0:
+        return False
+    return True
+
+
+def _check_submodule_has_a_master(cwd, submodule_name):
+    submodule_path = os.path.join(cwd, submodule_name)
+    _, branch_output, _ = GitCommand('branch', '-r', cwd=submodule_path).run()
+    if "origin/master" in branch_output:
+        return True
+    else:
+        return False
+
+
+def _check_submodule_head_is_in_master(cwd, submodule_name):
+    submodule_path = os.path.join(cwd, submodule_name)
+
+    _, head_sha, _ = GitCommand('rev-parse', 'HEAD', cwd=submodule_path).run()
+    _, branch_output, _ = GitCommand(
+        'branch', '-r', '--contains', head_sha.strip(),
+        cwd=submodule_path
+    ).run()
+
+    return len(branch_output.strip()) > 0
+
 
 @contextmanager
 def git_merge_context_manager(test_branch, master_repo_path):

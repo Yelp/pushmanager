@@ -11,6 +11,7 @@ import tempfile
 import testify as T
 from pushmanager.core import db
 from pushmanager.core.git import GitCommand
+from pushmanager.core.git import GitException
 from pushmanager.core.settings import Settings
 from pushmanager.testing import testdb
 from pushmanager.testing.mocksettings import MockedSettings
@@ -499,3 +500,62 @@ class CoreGitTest(T.TestCase):
             updated_request = update_req.call_args
             T.assert_equal('conflict-master' in updated_request[0][1]['tags'], True)
             T.assert_equal('master' in updated_request[0][1]['conflicts'], True)
+
+    def test_stale_module_check(self):
+        test_settings = copy.deepcopy(Settings)
+        repo_path = tempfile.mkdtemp(prefix="pushmanager")
+        submodule_path = tempfile.mkdtemp(prefix="pushmanager")
+        self.temp_git_dirs.append(repo_path)
+        self.temp_git_dirs.append(submodule_path)
+        test_settings['git']['local_repo_path'] = repo_path
+
+        # Create main repo
+        GitCommand('init', repo_path, cwd=repo_path).run()
+        # Prevent Git complaints about names
+        GitCommand('config', 'user.email', 'test@pushmanager', cwd=repo_path).run()
+        GitCommand('config', 'user.name', 'pushmanager tester', cwd=repo_path).run()
+        with open(os.path.join(repo_path, "code.py"), 'w') as f:
+            f.write('#!/usr/bin/env python\n\nprint("Hello World!")\nPrint("Goodbye!")\n')
+        GitCommand('add', repo_path, cwd=repo_path).run()
+        GitCommand('commit', '-a', '-m', 'Master Commit', cwd=repo_path).run()
+
+        # Create repo to use as submodule
+        GitCommand('init', submodule_path, cwd=submodule_path).run()
+        # Prevent Git complaints about names
+        GitCommand('config', 'user.email', 'test@pushmanager', cwd=submodule_path).run()
+        GitCommand('config', 'user.name', 'pushmanager tester', cwd=submodule_path).run()
+        with open(os.path.join(submodule_path, "codemodule.py"), 'w') as f:
+            f.write('#!/usr/bin/env python\n\nprint("Hello World!")\nPrint("Goodbye!")\n')
+        GitCommand('add', submodule_path, cwd=submodule_path).run()
+        GitCommand('commit', '-a', '-m', 'Master Commit', cwd=submodule_path).run()
+
+        ## Make two incompatible branches in the submodule
+        GitCommand('checkout', '-b', 'change_german', cwd=submodule_path).run()
+        with open(os.path.join(submodule_path, "codemodule.py"), 'w') as f:
+            f.write('#!/usr/bin/env python\n\nprint("Hallo Welt!")\nPrint("Goodbye!")\n')
+        GitCommand('commit', '-a', '-m', 'verpflichten', cwd=submodule_path).run()
+        GitCommand('checkout', 'master', cwd=submodule_path).run()
+
+        GitCommand('checkout', '-b', 'change_welsh', cwd=submodule_path).run()
+        with open(os.path.join(submodule_path, "codemodule.py"), 'w') as f:
+            f.write('#!/usr/bin/env python\n\nprint("Helo Byd!")\nPrint("Goodbye!")\n')
+        GitCommand('commit', '-a', '-m', 'ymrwymo', cwd=submodule_path).run()
+        GitCommand('checkout', 'master', cwd=submodule_path).run()
+
+        # Add submodule at master to main repo
+        GitCommand('submodule', 'add', submodule_path, cwd=repo_path).run()
+        GitCommand('commit', '-a', '-m', 'Add submodule', cwd=repo_path).run()
+
+        # Create branches in main repo, have each switch submodule to different branch
+        internal_submodule_path = os.path.join(repo_path, submodule_path.split("/")[-1:][0])
+        GitCommand('checkout', '-b', 'change_german', cwd=repo_path).run()
+        GitCommand('checkout', 'change_german', cwd=internal_submodule_path).run()
+        GitCommand('commit', '-a', '-m', 'verpflichten', cwd=repo_path).run()
+        GitCommand('checkout', 'master', cwd=repo_path).run()
+
+        GitCommand('checkout', '-b', 'change_welsh', cwd=repo_path).run()
+        GitCommand('commit', '-a', '-m', 'ymrwymo', cwd=repo_path).run()
+        GitCommand('checkout', 'change_welsh', cwd=internal_submodule_path).run()
+        GitCommand('checkout', 'master', cwd=repo_path).run()
+
+        T.assert_raises(GitException, pushmanager.core.git._stale_submodule_check, repo_path)
