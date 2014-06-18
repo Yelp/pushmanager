@@ -43,7 +43,7 @@ class NewRequestTemplateTest(TemplateTestCase):
         T.assert_sorted_equal(name_attr, found_name)
 
     tags = ['feature', 'fix' ,'cleanup', 'buildbot', 'caches', 'pushplans',
-        'special', 'urgent', 'messages_submodule', 'hoods', 'stagea', 'stageb',
+        'special', 'urgent', 'submodule-messages', 'hoods', 'stagea', 'stageb',
         'no-verify']
 
     def test_request_quicktags(self):
