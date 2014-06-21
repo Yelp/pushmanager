@@ -730,6 +730,7 @@ class GitQueue(object):
             return False, None
 
         updated_tags = add_to_tags_str(req['tags'], 'conflict-pickme')
+        updated_tags = del_from_tags_str(updated_tags, 'no-conflicts')
         formatted_conflicts = ""
         for broken_pickme, git_out, git_err in conflict_pickmes:
             pickme_details = cls._get_request(broken_pickme)
@@ -758,13 +759,14 @@ class GitQueue(object):
 
     @classmethod
     def _clear_pickme_conflict_details(cls, req):
-        """Strips the conflict-pickme and conflict-master tags from a pickme, and
-        clears the detailed conflict field.
+        """Strips the conflict-pickme, conflict-master and no-conflicts tags from a
+        pickme, and clears the detailed conflict field.
 
         :param req: Details of pickme request to clear conflict details of
         """
         updated_tags = del_from_tags_str(req['tags'], 'conflict-master')
         updated_tags = del_from_tags_str(updated_tags, 'conflict-pickme')
+        updated_tags = del_from_tags_str(updated_tags, 'no-conflicts')
         updated_values = {
             'tags': updated_tags,
             'conflicts': ''
@@ -808,6 +810,7 @@ class GitQueue(object):
 
             except GitException, e:
                 updated_tags = add_to_tags_str(req['tags'], 'conflict-master')
+                updated_tags = del_from_tags_str(updated_tags, 'no-conflicts')
                 conflict_details = "<strong>Conflict with master:</strong><br/> %s" % e.gitout
                 updated_values = {
                     'tags': updated_tags,
@@ -887,6 +890,19 @@ class GitQueue(object):
                     "Encountered merge conflict but was not passed details"
                 )
             cls.pickme_conflict_detected(updated_pickme, requeue)
+        else:
+            # If the request does not conflict here or anywhere else, mark it as
+            # no-conflicts
+            req = cls._get_request(request_id)
+            if 'conflict' in req['tags']:
+                return
+            updated_tags = add_to_tags_str(req['tags'], 'no-conflicts')
+            updated_values = {
+                'tags': updated_tags,
+            }
+            updated_request = cls._update_request(req, updated_values)
+            if not updated_request:
+                raise Exception("Failed to update pickme")
 
     @classmethod
     def pickme_conflict_detected(cls, updated_request, send_notifications):
