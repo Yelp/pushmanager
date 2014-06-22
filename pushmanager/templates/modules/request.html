@@ -43,6 +43,11 @@
 	<li><span class="label">Modified</span><span class="value">{{ escape(modify_time) }}</span></li>
 	{% end %}
 
+    {% if request['conflicts'] %}
+    <p>Conflicts:</p>
+    <div class="request-conflicts">{{ request['conflicts'].replace('\n', '<br />') }}</div>
+	{% end %}
+
 	{% if request['description'] %}
 	<p>Description:</p>
 	<div class="request-description">{{ escape(request['description']) }}</div>

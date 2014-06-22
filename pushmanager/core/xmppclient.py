@@ -1,9 +1,7 @@
 import logging
-from Queue import Queue
-from threading import Lock
-from threading import Thread
 import time
 import xmpp
+from multiprocessing import Process, JoinableQueue, Lock
 
 from pushmanager.core.settings import Settings
 
@@ -13,12 +11,17 @@ class XMPPQueue(object):
     retry_messages = {}
     retry_messages_lock = Lock()
 
-    message_queue = Queue()
+    message_queue = None
+    worker_process = None
 
     @classmethod
     def start_worker(cls):
-        worker_thread = Thread(target=cls.process_queue, name='xmpp-queue')
-        worker_thread.start()
+        if cls.worker_process is not None:
+            return
+        cls.message_queue = JoinableQueue()
+        cls.worker_process = Process(target=cls.process_queue, name='xmpp-queue')
+        cls.worker_process.daemon = True
+        cls.worker_process.start()
 
     @classmethod
     def _retry_message(cls, msg):
@@ -72,7 +75,7 @@ class XMPPQueue(object):
 
         logging.info("Connecting to XMPP server...")
         jabber_client = xmpp.Client(jabber_id.getDomain(), debug=[])
-        connected = jabber_client.connect(server=('talk.google.com', 5222))
+        connected = jabber_client.connect(server=(Settings['xmpp']['server'], 5222))
         if not connected:
             logging.error("Unable to connect to XMPP server!")
             return None
@@ -122,7 +125,10 @@ class XMPPQueue(object):
             for recipient in recipients:
                 cls.enqueue_xmpp(recipient, message)
         elif isinstance(recipients, (str,unicode)):
-            cls.message_queue.put( (recipients, message) )
+            if cls.message_queue is not None:
+                cls.message_queue.put( (recipients, message) )
+            else:
+                logging.error("Could not enqueue XMPP message: XMPPQueue has not been initialized!")
         else:
             raise ValueError('Recipient(s) must be a string or iterable of strings')
 

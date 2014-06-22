@@ -142,9 +142,9 @@ class PushManagerApp(Application):
 
         # Start the mail, git, reviewboard and XMPP queue handlers
         MailQueue.start_worker()
-        GitQueue.start_worker()
         RBQueue.start_worker()
         XMPPQueue.start_worker()
+        GitQueue.start_worker()
 
 
 def main():
