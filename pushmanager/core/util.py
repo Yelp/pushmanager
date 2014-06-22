@@ -4,12 +4,20 @@ import datetime
 from tornado.escape import xhtml_escape
 
 class EscapedDict:
-    """A wrapper for a dict that HTML-escapes values as you ask for them"""
+    """
+    A wrapper for a dict that HTML-escapes values as you ask for them
+    Keys prefixed with no_escape_ will not be escaped
+    """
     def __init__(self, doc):
         self.doc = doc
     def __getitem__(self, key):
+        escape = True
+        if key.startswith("no_escape_"):
+            escape = False
+            key = key[len("no_escape_"):]
+
         item = self.doc[key]
-        if isinstance(item, str):
+        if isinstance(item, str) and escape:
             return xhtml_escape(self.doc[key])
         else:
             return self.doc[key]
@@ -154,6 +162,7 @@ def request_to_jsonable(request):
             'branch',
             'revision',
             'tags',
+            'conflicts',
             'created',
             'modified',
             'title',
