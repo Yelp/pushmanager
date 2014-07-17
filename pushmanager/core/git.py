@@ -1,4 +1,19 @@
 # -*- coding: utf-8 -*-
+"""
+Core Git Module
+
+This module provides a GitQueue to pushmanager, into which three types of task
+can be enqueued:
+- Verify Branch: Check that a given branch exists
+- Test Pickme Conflict: Check if a pickme conflicts with other pickmes in the
+  same push
+- Test All Pickmes: Recheck every pickme in a push against every other pickme in
+  the push.
+
+Notifications for verify failures and pickme conflicts are sent to the XMPP and
+Mail queues.
+"""
+
 import logging
 import subprocess
 import time
