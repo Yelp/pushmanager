@@ -31,9 +31,31 @@ from pushmanager.core.util import EscapedDict
 from pushmanager.core.util import tags_contain
 
 
+class GitException(Exception):
+    """
+    Exception class to be thrown in Git contexts
+    Has fields for git output on top of  basic exception information.
+
+    :param gitret: Return code from the failing Git process
+    :param gitout: Stdout for the git process
+    :param giterr: Stderr for the git process
+    :param gitkwargs: Keyword arguments that were passed to the Git subprocess
+    """
+    def __init__(self, details, gitret=None, gitout=None,
+                 giterr=None, gitkwargs=None):
+        super(GitException, self).__init__(details, gitout, giterr, gitkwargs)
+        self.details = details
+        self.gitret = gitret
+        self.gitout = gitout
+        self.giterr = giterr
+        self.gitkwargs = gitkwargs
+
+
 class GitCommand(subprocess.Popen):
 
     def __init__(self, *args, **kwargs):
+        self.args = args
+        self.kwargs = kwargs
         _args = ['git'] + list(args)
         _kwargs = {
             'stdout': subprocess.PIPE,
@@ -44,6 +66,14 @@ class GitCommand(subprocess.Popen):
 
     def run(self):
         stdout, stderr = self.communicate()
+        if self.returncode:
+            raise GitException(
+                "GitException: git %s " % ' '.join(self.args),
+                gitret=self.returncode,
+                giterr=stderr,
+                gitout=stdout,
+                gitkwargs=self.kwargs
+            )
         return self.returncode, stdout, stderr
 
 
