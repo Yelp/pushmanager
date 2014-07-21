@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 
-from datetime import datetime, timedelta
 import os
 import sqlite3
 import tempfile
 import time
+from datetime import datetime
+from datetime import timedelta
 
 from pushmanager.core import db
+
 
 def create_temp_db_file():
     fd, db_file_path = tempfile.mkstemp(suffix="pushmanager.db")

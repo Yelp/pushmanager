@@ -1,11 +1,12 @@
 import sqlalchemy as SA
-from tornado.escape import xhtml_escape
 
 import pushmanager.core.db as db
+import pushmanager.core.util
 from pushmanager.core.mail import MailQueue
 from pushmanager.core.requesthandler import RequestHandler
-import pushmanager.core.util
 from pushmanager.core.xmppclient import XMPPQueue
+from tornado.escape import xhtml_escape
+
 
 class CommentRequestServlet(RequestHandler):
 

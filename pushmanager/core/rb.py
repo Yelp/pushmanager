@@ -9,6 +9,7 @@ from urllib import urlencode
 
 from pushmanager.core.settings import Settings
 
+
 class RBQueue(object):
 
     review_queue = Queue()

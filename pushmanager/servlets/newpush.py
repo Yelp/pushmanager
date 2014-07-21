@@ -2,11 +2,12 @@ import subprocess
 import time
 
 import pushmanager.core.db as db
-from pushmanager.core.mail import MailQueue
-from pushmanager.core.settings import Settings
-from pushmanager.core.requesthandler import RequestHandler
 import pushmanager.core.util
+from pushmanager.core.mail import MailQueue
+from pushmanager.core.requesthandler import RequestHandler
+from pushmanager.core.settings import Settings
 from pushmanager.core.xmppclient import XMPPQueue
+
 
 def send_notifications(people, pushtype, pushurl):
     pushmanager_servername = Settings['main_app']['servername']

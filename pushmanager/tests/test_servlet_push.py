@@ -1,9 +1,10 @@
 import contextlib
 import json
+
 import lxml.html
+
 import mock
 import testify as T
-
 from pushmanager.core import util
 from pushmanager.core.settings import Settings
 from pushmanager.servlets.push import PushServlet

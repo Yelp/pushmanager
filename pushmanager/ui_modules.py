@@ -1,10 +1,10 @@
 import datetime
 import os
 
-from tornado.web import UIModule
-
 from pushmanager.core import util
 from pushmanager.core.settings import Settings
+from tornado.web import UIModule
+
 
 class Request(UIModule):
     """Displays an individual request entry with expandable details/comments."""

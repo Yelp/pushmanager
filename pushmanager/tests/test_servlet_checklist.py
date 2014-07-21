@@ -1,11 +1,10 @@
+import re
+import urllib
 from contextlib import contextmanager
 from contextlib import nested
-import urllib
-import re
 
 import mock
 import testify as T
-
 from pushmanager.core import db
 from pushmanager.core.util import get_servlet_urlspec
 from pushmanager.servlets.checklist import ChecklistServlet

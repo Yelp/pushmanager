@@ -3,6 +3,7 @@ import subprocess
 from pushmanager.core.requesthandler import RequestHandler
 from pushmanager.core.settings import Settings
 
+
 class MsgServlet(RequestHandler):
 
     def post(self):

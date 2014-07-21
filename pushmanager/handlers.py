@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 from __future__ import with_statement
-import tornado.httpserver
-import tornado.web
+
 import urlparse
 
+import tornado.httpserver
+import tornado.web
 from pushmanager.core.auth import authenticate
 from pushmanager.core.requesthandler import RequestHandler
 from pushmanager.core.settings import Settings

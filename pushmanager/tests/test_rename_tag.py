@@ -1,15 +1,14 @@
 # -*- coding: utf-8 -*-
-from functools import partial
 import os
+from functools import partial
 
 import testify as T
 from mock import patch
-
-from tools import rename_tag
 from pushmanager.core import db
 from pushmanager.testing import testdb
 from pushmanager.testing.mocksettings import MockedSettings
 from pushmanager.testing.testdb import FakeDataMixin
+from tools import rename_tag
 
 
 class RenameTagTest(T.TestCase, FakeDataMixin):

@@ -1,9 +1,9 @@
+import pushmanager.core.db as db
+import pushmanager.core.util
 import tornado.gen
 import tornado.web
-
-import pushmanager.core.db as db
 from pushmanager.core.requesthandler import RequestHandler
-import pushmanager.core.util
+
 
 class PingMeServlet(RequestHandler):
 

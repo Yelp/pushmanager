@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
-from contextlib import contextmanager
-from contextlib import nested
 import copy
 import os
+from contextlib import contextmanager
+from contextlib import nested
 
 import mock
-import testify as T
-
 import pushmanager.core.git
+import testify as T
 from pushmanager.core import db
 from pushmanager.core.settings import Settings
 from pushmanager.testing import testdb
@@ -43,12 +42,12 @@ class CoreGitTest(T.TestCase):
             'description': 'I approve this fix!',
         }
         self.fake_settings = {
-          'scheme': 'git',
-          'auth': '',
-          'port': '',
-          'servername': 'example',
-          'main_repository': 'main_repository',
-          'dev_repositories_dir': 'dev_directory'
+            'scheme': 'git',
+            'auth': '',
+            'port': '',
+            'servername': 'example',
+            'main_repository': 'main_repository',
+            'dev_repositories_dir': 'dev_directory'
         }
 
     @T.class_teardown
@@ -81,28 +80,40 @@ class CoreGitTest(T.TestCase):
     def test_get_repository_uri_basic(self):
         MockedSettings["git"] = self.fake_settings
         with mock.patch.dict(Settings, MockedSettings):
-            T.assert_equal(pushmanager.core.git.GitQueue._get_repository_uri("main_repository"),
-              "git://example/main_repository")
-            T.assert_equal(pushmanager.core.git.GitQueue._get_repository_uri("second_repository"),
-              "git://example/dev_directory/second_repository")
+            T.assert_equal(
+                pushmanager.core.git.GitQueue._get_repository_uri("main_repository"),
+                "git://example/main_repository"
+            )
+            T.assert_equal(
+                pushmanager.core.git.GitQueue._get_repository_uri("second_repository"),
+                "git://example/dev_directory/second_repository"
+            )
 
     def test_get_repository_uri_with_auth(self):
         MockedSettings["git"] = self.fake_settings
         MockedSettings["git"]["auth"] = "myuser:mypass"
         with mock.patch.dict(Settings, MockedSettings):
-            T.assert_equal(pushmanager.core.git.GitQueue._get_repository_uri("main_repository"),
-              "git://myuser:mypass@example/main_repository")
-            T.assert_equal(pushmanager.core.git.GitQueue._get_repository_uri("second_repository"),
-              "git://myuser:mypass@example/dev_directory/second_repository")
+            T.assert_equal(
+                pushmanager.core.git.GitQueue._get_repository_uri("main_repository"),
+                "git://myuser:mypass@example/main_repository"
+            )
+            T.assert_equal(
+                pushmanager.core.git.GitQueue._get_repository_uri("second_repository"),
+                "git://myuser:mypass@example/dev_directory/second_repository"
+            )
 
     def test_get_repository_uri_with_port(self):
         MockedSettings["git"] = self.fake_settings
         MockedSettings["git"]["port"] = "0"
         with mock.patch.dict(Settings, MockedSettings):
-            T.assert_equal(pushmanager.core.git.GitQueue._get_repository_uri("main_repository"),
-              "git://example:0/main_repository")
-            T.assert_equal(pushmanager.core.git.GitQueue._get_repository_uri("second_repository"),
-              "git://example:0/dev_directory/second_repository")
+            T.assert_equal(
+                pushmanager.core.git.GitQueue._get_repository_uri("main_repository"),
+                "git://example:0/main_repository"
+            )
+            T.assert_equal(
+                pushmanager.core.git.GitQueue._get_repository_uri("second_repository"),
+                "git://example:0/dev_directory/second_repository"
+            )
 
     def test_process_queue_successful(self):
         """Update the request with its sha"""
@@ -135,7 +146,7 @@ class CoreGitTest(T.TestCase):
             mock.patch("%s.pushmanager.core.git.logging.error" % __name__),
             mock.patch(
                 "%s.pushmanager.core.git.GitQueue._get_request_with_sha" % __name__,
-                return_value = {'id': 10, 'state': 'requested'}
+                return_value={'id': 10, 'state': 'requested'}
             ),
             self.mocked_update_request(self.fake_request, self.fake_request)
         ):

@@ -1,11 +1,13 @@
-import sqlalchemy as SA
-import time
 import re
+import time
+
+import sqlalchemy as SA
 
 import pushmanager.core.db as db
+import pushmanager.core.util
 from pushmanager.core.git import GitQueue
 from pushmanager.core.requesthandler import RequestHandler
-import pushmanager.core.util
+
 
 TAGS_RE = re.compile(r'[a-zA-Z0-9_-]+')
 

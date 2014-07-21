@@ -1,9 +1,11 @@
 import json
+
 import sqlalchemy as SA
 
 from pushmanager.core import db
 from pushmanager.core import util
 from pushmanager.core.requesthandler import RequestHandler
+
 
 class APIServlet(RequestHandler):
 

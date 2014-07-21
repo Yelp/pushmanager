@@ -1,17 +1,17 @@
-from abc import ABCMeta
-from abc import abstractmethod
-import daemon
 import logging
 import os
-from optparse import OptionParser
 import pwd
 import sys
 import time
+from abc import ABCMeta
+from abc import abstractmethod
+from optparse import OptionParser
 
+import daemon
 import tornado.ioloop
-
 from pushmanager.core import pid
 from pushmanager.core.settings import Settings
+
 
 logging.basicConfig(
     level=logging.WARNING,

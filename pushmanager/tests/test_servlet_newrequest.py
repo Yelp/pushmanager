@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
-from contextlib import nested
-import mock
 import urllib
+from contextlib import nested
 
+import mock
 import testify as T
-
 from pushmanager.core import db
 from pushmanager.core.util import get_servlet_urlspec
 from pushmanager.servlets.checklist import checklist_reminders

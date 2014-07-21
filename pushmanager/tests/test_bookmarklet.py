@@ -1,9 +1,9 @@
 import contextlib
+
 import mock
 import testify as T
-
-from pushmanager.handlers import CreateRequestBookmarkletHandler
 from pushmanager.handlers import CheckSitesBookmarkletHandler
+from pushmanager.handlers import CreateRequestBookmarkletHandler
 from pushmanager.testing.testservlet import AsyncTestCase
 
 

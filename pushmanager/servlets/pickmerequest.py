@@ -1,8 +1,9 @@
 import sqlalchemy as SA
 
 import pushmanager.core.db as db
-from pushmanager.core.requesthandler import RequestHandler
 import pushmanager.core.util
+from pushmanager.core.requesthandler import RequestHandler
+
 
 class PickMeRequestServlet(RequestHandler):
 

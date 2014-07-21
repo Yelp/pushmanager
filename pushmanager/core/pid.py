@@ -1,8 +1,9 @@
 # pid.py - module to help manage PID files
-import os
-import logging
-import fcntl
 import errno
+import fcntl
+import logging
+import os
+
 
 def is_process_alive(pid):
     """Sends null signal to a process to check if it's alive"""

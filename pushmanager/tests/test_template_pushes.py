@@ -1,5 +1,4 @@
 import testify as T
-
 from pushmanager.testing.testservlet import TemplateTestCase
 
 

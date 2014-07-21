@@ -1,7 +1,6 @@
 import time
 
 import testify as T
-
 from pushmanager.core.settings import Settings
 from pushmanager.testing.testservlet import TemplateTestCase
 

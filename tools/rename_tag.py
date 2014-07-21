@@ -13,15 +13,16 @@ Some tag renames may need to be accompanied with a checklist_type rename as
 well. Tags handled specially in the pushmanager will also need corresponding
 code changes.
 """
+import sys
 from functools import partial
 from optparse import OptionParser
-import sys
 
 import pushmanager.core.db as db
 from pushmanager.core.util import add_to_tags_str
 from pushmanager.core.util import del_from_tags_str
 from pushmanager.core.util import tags_contain
 from pushmanager.servlets.checklist import checklist_reminders
+
 
 def main():
     usage = 'usage: %prog <oldtype> <newtype>'

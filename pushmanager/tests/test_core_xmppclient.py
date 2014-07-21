@@ -2,10 +2,9 @@ from contextlib import contextmanager
 from contextlib import nested
 
 import mock
-import testify as T
-
-from pushmanager.testing.mocksettings import MockedSettings
 import pushmanager.core.xmppclient
+import testify as T
+from pushmanager.testing.mocksettings import MockedSettings
 
 
 class CoreXMPPClientTest(T.TestCase):

@@ -3,6 +3,7 @@ import datetime
 
 from tornado.escape import xhtml_escape
 
+
 class EscapedDict:
     """A wrapper for a dict that HTML-escapes values as you ask for them"""
     def __init__(self, doc):

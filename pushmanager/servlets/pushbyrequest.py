@@ -1,8 +1,8 @@
+import pushmanager.core.util
 import tornado.gen
 import tornado.web
-
 from pushmanager.core.requesthandler import RequestHandler
-import pushmanager.core.util
+
 
 class PushByRequestServlet(RequestHandler):
 

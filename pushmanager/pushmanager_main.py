@@ -1,41 +1,41 @@
 #!/usr/bin/env python
-from __future__ import with_statement
 import os
+
+import pushmanager.core.db as db
 import tornado.httpserver
 import tornado.web
-
+import pushmanager.ui_methods as ui_methods
+import pushmanager.ui_modules as ui_modules
 from pushmanager.core.application import Application
-import pushmanager.core.db as db
 from pushmanager.core.git import GitQueue
 from pushmanager.core.mail import MailQueue
 from pushmanager.core.rb import RBQueue
 from pushmanager.core.settings import Settings
 from pushmanager.core.util import get_servlet_urlspec
 from pushmanager.core.xmppclient import XMPPQueue
-
 from pushmanager.handlers import CheckSitesBookmarkletHandler
 from pushmanager.handlers import CreateRequestBookmarkletHandler
 from pushmanager.handlers import LoginHandler
 from pushmanager.handlers import LogoutHandler
 from pushmanager.handlers import NullRequestHandler
 from pushmanager.handlers import RedirHandler
-
 from pushmanager.servlets.addrequest import AddRequestServlet
 from pushmanager.servlets.api import APIServlet
+from pushmanager.servlets.blesspush import BlessPushServlet
 from pushmanager.servlets.checklist import ChecklistServlet
 from pushmanager.servlets.checklist import ChecklistToggleServlet
 from pushmanager.servlets.commentrequest import CommentRequestServlet
-from pushmanager.servlets.editpush import EditPushServlet
-from pushmanager.servlets.newrequest import NewRequestServlet
 from pushmanager.servlets.delayrequest import DelayRequestServlet
+from pushmanager.servlets.deploypush import DeployPushServlet
 from pushmanager.servlets.discardpush import DiscardPushServlet
 from pushmanager.servlets.discardrequest import DiscardRequestServlet
-from pushmanager.servlets.deploypush import DeployPushServlet
-from pushmanager.servlets.blesspush import BlessPushServlet
+from pushmanager.servlets.editpush import EditPushServlet
 from pushmanager.servlets.livepush import LivePushServlet
 from pushmanager.servlets.msg import MsgServlet
 from pushmanager.servlets.newpush import NewPushServlet
-from pushmanager.servlets.pickmerequest import PickMeRequestServlet, UnpickMeRequestServlet
+from pushmanager.servlets.newrequest import NewRequestServlet
+from pushmanager.servlets.pickmerequest import PickMeRequestServlet
+from pushmanager.servlets.pickmerequest import UnpickMeRequestServlet
 from pushmanager.servlets.pingme import PingMeServlet
 from pushmanager.servlets.push import PushServlet
 from pushmanager.servlets.pushbyrequest import PushByRequestServlet
@@ -49,9 +49,6 @@ from pushmanager.servlets.summaryforbranch import SummaryForBranchServlet
 from pushmanager.servlets.undelayrequest import UndelayRequestServlet
 from pushmanager.servlets.userlist import UserListServlet
 from pushmanager.servlets.verifyrequest import VerifyRequestServlet
-
-import pushmanager.ui_modules as ui_modules
-import pushmanager.ui_methods as ui_methods
 
 
 # Servlet dispatch rules

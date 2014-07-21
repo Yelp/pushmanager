@@ -1,8 +1,9 @@
 from collections import defaultdict
+
 import tornado.gen
 import tornado.web
-
 from pushmanager.core.requesthandler import RequestHandler
+
 
 class UserListServlet(RequestHandler):
 

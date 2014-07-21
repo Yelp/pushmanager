@@ -1,10 +1,11 @@
 import sqlalchemy as SA
 
 import pushmanager.core.db as db
-from pushmanager.core.settings import Settings
-from pushmanager.core.requesthandler import RequestHandler
 import pushmanager.core.util
+from pushmanager.core.requesthandler import RequestHandler
+from pushmanager.core.settings import Settings
 from pushmanager.core.xmppclient import XMPPQueue
+
 
 class VerifyRequestServlet(RequestHandler):
 

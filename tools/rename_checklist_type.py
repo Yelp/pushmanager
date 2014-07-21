@@ -13,9 +13,9 @@ Note:
 
 Checklist type renames will mostly require code changes.
 """
+import sys
 from functools import partial
 from optparse import OptionParser
-import sys
 
 import pushmanager.core.db as db
 

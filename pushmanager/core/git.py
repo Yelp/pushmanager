@@ -1,19 +1,20 @@
 # -*- coding: utf-8 -*-
+import logging
+import subprocess
+import time
+import urllib2
+from Queue import Queue
+from threading import Thread
+from urllib import urlencode
+
 from . import db
 from .mail import MailQueue
-import logging
-from Queue import Queue
-import subprocess
-from threading import Thread
-import time
+from pushmanager.core.settings import Settings
 from pushmanager.core.util import add_to_tags_str
 from pushmanager.core.util import del_from_tags_str
 from pushmanager.core.util import EscapedDict
 from pushmanager.core.util import tags_contain
-from urllib import urlencode
-import urllib2
 
-from pushmanager.core.settings import Settings
 
 class GitCommand(subprocess.Popen):
 
@@ -29,6 +30,7 @@ class GitCommand(subprocess.Popen):
     def run(self):
         stdout, stderr = self.communicate()
         return self.returncode, stdout, stderr
+
 
 class GitQueue(object):
 
@@ -61,9 +63,18 @@ class GitQueue(object):
         if Settings['git']['port']:
             netloc = '%s:%s' % (netloc, Settings['git']['port'])
         if repository == Settings['git']['main_repository']:
-            repository = '%s://%s/%s' % (scheme, netloc, Settings['git']['main_repository'])
+            repository = (
+                '%s://%s/%s'
+                % (scheme, netloc, Settings['git']['main_repository'])
+            )
         else:
-            repository = '%s://%s/%s/%s' % (scheme, netloc, Settings['git']['dev_repositories_dir'], repository)
+            repository = (
+                '%s://%s/%s/%s' % (
+                    scheme, netloc,
+                    Settings['git']['dev_repositories_dir'],
+                    repository
+                )
+            )
         return repository
 
     @classmethod
@@ -81,8 +92,7 @@ class GitQueue(object):
             'stderr': stderr,
         }
         if rc:
-            msg = (
-                """
+            msg = """
                 <p>
                     There was an error verifying your push request in Git:
                 </p>
@@ -101,7 +111,7 @@ class GitQueue(object):
                     Regards,<br/>
                     PushManager
                 </p>
-                """)
+                """
             msg %= EscapedDict(query_details)
             subject = '[push error] %s - %s' % (req['user'], req['title'])
             MailQueue.enqueue_user_email([user_to_notify], msg, subject)
@@ -109,37 +119,38 @@ class GitQueue(object):
 
         # successful ls-remote, build up the refs list
         tokens = (tok for tok in stdout.split())
-        refs = zip(tokens,tokens)
+        refs = zip(tokens, tokens)
         for sha, ref in refs:
             if ref == ('refs/heads/%s' % req['branch']):
                 return sha
-        else:
-            msg = (
-                """
-                <p>
-                    There was an error verifying your push request in Git:
-                </p>
-                <p>
-                    <strong>%(user)s - %(title)s</strong><br />
-                    <em>%(repo)s/%(branch)s</em>
-                </p>
-                <p>
-                    The specified branch (%(branch)s) was not found in the repository.
-                </p>
-                <p>
-                    Regards,<br/>
-                    PushManager
-                </p>
-                """)
-            msg %= EscapedDict(query_details)
-            subject = '[push error] %s - %s' % (req['user'], req['title'])
-            #MailQueue.enqueue_user_email([request_info['user']], msg, subject)
-            MailQueue.enqueue_user_email([user_to_notify], msg, subject)
-            return None
+
+        msg = (
+            """
+            <p>
+                There was an error verifying your push request in Git:
+            </p>
+            <p>
+                <strong>%(user)s - %(title)s</strong><br />
+                <em>%(repo)s/%(branch)s</em>
+            </p>
+            <p>
+                The specified branch (%(branch)s) was not found in the
+                repository.
+            </p>
+            <p>
+                Regards,<br/>
+                PushManager
+            </p>
+            """)
+        msg %= EscapedDict(query_details)
+        subject = '[push error] %s - %s' % (req['user'], req['title'])
+        MailQueue.enqueue_user_email([user_to_notify], msg, subject)
+        return None
 
     @classmethod
     def _get_request(cls, request_id):
         result = [None]
+
         def on_db_return(success, db_results):
             assert success, "Database error."
             result[0] = db_results.first()
@@ -156,6 +167,7 @@ class GitQueue(object):
     @classmethod
     def _get_request_with_sha(cls, sha):
         result = [None]
+
         def on_db_return(success, db_results):
             assert success, "Database error."
             result[0] = db_results.first()
@@ -172,24 +184,31 @@ class GitQueue(object):
     @classmethod
     def _update_request(cls, req, updated_values):
         result = [None]
+
         def on_db_return(success, db_results):
-            result[0]  = db_results[1].first()
+            result[0] = db_results[1].first()
             assert success, "Database error."
 
         update_query = db.push_requests.update().where(
-                db.push_requests.c.id == req['id']
-            ).values(updated_values)
+            db.push_requests.c.id == req['id']
+        ).values(updated_values)
         select_query = db.push_requests.select().where(
-                db.push_requests.c.id == req['id']
-            )
+            db.push_requests.c.id == req['id']
+        )
         db.execute_transaction_cb([update_query, select_query], on_db_return)
 
         updated_request = result[0]
         if updated_request:
             updated_request = dict(updated_request.items())
         if not updated_request:
-            logging.error("Git-queue worker failed to update the request (id %s)." %  req['id'])
-            logging.error("Updated Request values were: %s" % repr(updated_values))
+            logging.error(
+                "Git-queue worker failed to update the request (id %s).",
+                req['id']
+            )
+            logging.error(
+                "Updated Request values were: %s",
+                repr(updated_values)
+            )
 
         return updated_request
 
@@ -216,7 +235,7 @@ class GitQueue(object):
             return cls.update_request_failure(req, error_msg)
 
         duplicate_req = cls._get_request_with_sha(sha)
-        if duplicate_req and duplicate_req.has_key('state') and not duplicate_req['state'] == "discarded":
+        if duplicate_req and 'state' in duplicate_req and not duplicate_req['state'] == "discarded":
             error_msg = "Git queue worker found another request with the same revision sha (ids %s and %s)" % (
                 duplicate_req['id'],
                 request_id
@@ -234,35 +253,43 @@ class GitQueue(object):
     @classmethod
     def update_request_successful(cls, updated_request):
         msg = (
-        """
-        <p>
-            PushManager has verified the branch for your request.
-        </p>
-        <p>
-            <strong>%(user)s - %(title)s</strong><br />
-            <em>%(repo)s/%(branch)s</em><br />
-            <a href="https://%(pushmanager_servername)s%(pushmanager_port)s/request?id=%(id)s">https://%(pushmanager_servername)s%(pushmanager_port)s/request?id=%(id)s</a>
-        </p>
-        <p>
-            Review # (if specified): <a href="https://%(reviewboard_servername)s%(pushmanager_port)s/r/%(reviewid)s">%(reviewid)s</a>
-        </p>
-        <p>
-            Verified revision: <code>%(revision)s</code><br/>
-            <em>(If this is <strong>not</strong> the revision you expected,
-            make sure you've pushed your latest version to the correct repo!)</em>
-        </p>
-        <p>
-            Regards,<br/>
-            PushManager
-        </p>
-        """)
+            """
+            <p>
+                PushManager has verified the branch for your request.
+            </p>
+            <p>
+                <strong>%(user)s - %(title)s</strong><br />
+                <em>%(repo)s/%(branch)s</em><br />
+                <a href="https://%(pushmanager_servername)s%(pushmanager_port)s/request?id=%(id)s">https://%(pushmanager_servername)s%(pushmanager_port)s/request?id=%(id)s</a>
+            </p>
+            <p>
+                Review # (if specified): <a href="https://%(reviewboard_servername)s%(pushmanager_port)s/r/%(reviewid)s">%(reviewid)s</a>
+            </p>
+            <p>
+                Verified revision: <code>%(revision)s</code><br/>
+                <em>(If this is <strong>not</strong> the revision you expected,
+                make sure you've pushed your latest version to the correct repo!)</em>
+            </p>
+            <p>
+                Regards,<br/>
+                PushManager
+            </p>
+            """
+        )
         updated_request.update({
             'pushmanager_servername': Settings['main_app']['servername'],
-            'pushmanager_port': ':%d' % Settings['main_app']['port'] if Settings['main_app']['port'] != 443 else '',
+            'pushmanager_port': (
+                (':%d' % Settings['main_app']['port'])
+                if Settings['main_app']['port'] != 443
+                else ''
+            ),
             'reviewboard_servername': Settings['reviewboard']['servername']
         })
         msg %= EscapedDict(updated_request)
-        subject = '[push] %s - %s' % (updated_request['user'], updated_request['title'])
+        subject = '[push] %s - %s' % (
+            updated_request['user'],
+            updated_request['title']
+        )
         user_to_notify = updated_request['user']
         MailQueue.enqueue_user_email([user_to_notify], msg, subject)
 
@@ -298,32 +325,33 @@ class GitQueue(object):
         cls._update_request(request, updated_values)
 
         msg = (
-        """
-        <p>
-            <em>PushManager could <strong>not</strong> verify the branch for your request.</em>
-        </p>
-        <p>
-            <strong>%(user)s - %(title)s</strong><br />
-            <em>%(repo)s/%(branch)s</em><br />
-            <a href="https://%(pushmanager_servername)s/request?id=%(id)s">https://%(pushmanager_servername)s/request?id=%(id)s</a>
-        </p>
-        <p>
-            <strong>Error message</strong>:<br />
-            %(failure_msg)s
-        </p>
-        <p>
-            Review # (if specified): <a href="https://%(reviewboard_servername)s/r/%(reviewid)s">%(reviewid)s</a>
-        </p>
-        <p>
-            Verified revision: <code>%(revision)s</code><br/>
-            <em>(If this is <strong>not</strong> the revision you expected,
-            make sure you've pushed your latest version to the correct repo!)</em>
-        </p>
-        <p>
-            Regards,<br/>
-            PushManager
-        </p>
-        """)
+            """
+            <p>
+                <em>PushManager could <strong>not</strong> verify the branch for your request.</em>
+            </p>
+            <p>
+                <strong>%(user)s - %(title)s</strong><br />
+                <em>%(repo)s/%(branch)s</em><br />
+                <a href="https://%(pushmanager_servername)s/request?id=%(id)s">https://%(pushmanager_servername)s/request?id=%(id)s</a>
+            </p>
+            <p>
+                <strong>Error message</strong>:<br />
+                %(failure_msg)s
+            </p>
+            <p>
+                Review # (if specified): <a href="https://%(reviewboard_servername)s/r/%(reviewid)s">%(reviewid)s</a>
+            </p>
+            <p>
+                Verified revision: <code>%(revision)s</code><br/>
+                <em>(If this is <strong>not</strong> the revision you expected,
+                make sure you've pushed your latest version to the correct repo!)</em>
+            </p>
+            <p>
+                Regards,<br/>
+                PushManager
+            </p>
+            """
+        )
         request.update({
             'failure_msg': failure_msg,
             'pushmanager_servername': Settings['main_app']['servername'],
@@ -354,7 +382,7 @@ class GitQueue(object):
 
 def webhook_req(left_type, left_token, right_type, right_token):
     webhook_url = Settings['web_hooks']['post_url']
-    body=urlencode({
+    body = urlencode({
         'reason': 'pushmanager',
         'left_type': left_type,
         'left_token': left_token,
