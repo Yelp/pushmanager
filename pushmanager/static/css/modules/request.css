@@ -101,6 +101,16 @@ div.request-module {
 	display: block;
 }
 
+.request-conflicts {
+	background: #ee4048;
+	color: #000;
+	font-family: monospace;
+	border: 1px solid #eee;
+	padding: 5px;
+	margin-top: 5px;
+	display: block;
+}
+
 .request-module span.timeago {
 	color: #888;
 }

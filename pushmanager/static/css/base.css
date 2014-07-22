@@ -717,6 +717,8 @@ ul.tags > .tag-buildbot	{ background: #de9; }
 ul.tags > .tag-pushplans	{ background: #ccf; }
 ul.tags > .tag-git-ok		{ background: #fec; }
 ul.tags > .tag-git-error	{ background: #f00; }
+ul.tags > .tag-conflict-master	{ background: #ff000b; }
+ul.tags > .tag-conflict-pickme	{ background: #fe8d34; }
 ul.tags > .tag-accepting	{ background: #ddf; }
 ul.tags > .tag-live		{ background: #dfd; }
 ul.tags > .tag-search-backend { background: #dcc; }
