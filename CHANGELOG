@@ -1,6 +1,12 @@
-0.2.1   UNRELEASED
+0.2.1   2014-08-04
 
  IMPROVEMENTS
 
  * Add pushmaster name to IRC messages (asotille, #63)
  * Clean up imports (asotille)
+ * New submodule-bump tag for requests that include submodule
+   changes (jagg81, #60)
+
+ DEPRECATED
+
+ * l10n and l10n-only tags are no longer used (jagg81, #60)
