@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
-import ldap
 import logging
 import os
 
+import ldap
+
 from pushmanager.core.settings import Settings
+
 
 os.environ['LDAPTLS_REQCERT'] = 'demand'
 os.environ['LDAPTLS_CACERT'] = Settings['auth_ldap']['cert_file']

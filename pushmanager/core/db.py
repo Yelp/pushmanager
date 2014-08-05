@@ -1,13 +1,17 @@
 import logging
 
 import sqlalchemy as SA
+from sqlalchemy import Column
+from sqlalchemy import Integer
+from sqlalchemy import SmallInteger
+from sqlalchemy import String
 from sqlalchemy.dialects import mysql
-from sqlalchemy import Column, Integer, SmallInteger, String
 from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql.expression import Insert
 
 from pushmanager.core.settings import Settings
+
 
 engine = None
 Base = declarative_base()
@@ -86,6 +90,7 @@ class PushRequests(Base):
     branch = Column(String)
     revision = Column(String(40), nullable=True)
     tags = Column(String)
+    conflicts = Column(String)
     created = Column(Integer, nullable=True)
     modified = Column(Integer, nullable=True)
     title = Column(String)

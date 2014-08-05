@@ -3,8 +3,8 @@ import logging
 
 import mock
 import testify as T
-
 from pushmanager.core import auth
+
 
 class TestAuthenticaton(T.TestCase):
 

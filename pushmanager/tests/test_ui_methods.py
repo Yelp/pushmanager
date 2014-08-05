@@ -1,5 +1,4 @@
 import testify as T
-
 from pushmanager.ui_methods import authorized_to_manage_request
 
 

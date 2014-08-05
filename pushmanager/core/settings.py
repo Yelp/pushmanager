@@ -2,9 +2,10 @@
 import logging
 import os
 import sys
-import yaml
 
+import yaml
 from pushmanager.core.util import dict_copy_keys
+
 
 configuration_file = os.environ.get('SERVICE_ENV_CONFIG_PATH')
 

@@ -1,21 +1,22 @@
-from contextlib import contextmanager
 import logging
 import os
-import testify as T
 import types
+from contextlib import contextmanager
+
+from lxml import etree
 
 import mock
+import testify as T
 import tornado.web
-from lxml import etree
-from tornado.testing import AsyncHTTPTestCase
-
+import pushmanager.ui_methods as ui_methods
+import pushmanager.ui_modules as ui_modules
 from pushmanager.core import db
 from pushmanager.core.requesthandler import RequestHandler
-from testify.utils import turtle
 from pushmanager.testing import testdb
 from pushmanager.testing.mocksettings import MockedSettings
-import pushmanager.ui_modules as ui_modules
-import pushmanager.ui_methods as ui_methods
+from testify.utils import turtle
+from tornado.testing import AsyncHTTPTestCase
+
 
 FORMAT = "%(asctime)-15s %(message)s"
 logging.basicConfig(format=FORMAT)

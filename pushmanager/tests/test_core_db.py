@@ -2,17 +2,17 @@
 
 import os
 
+import sqlalchemy as SA
 from sqlalchemy.schema import Column
 from sqlalchemy.schema import Table
 from sqlalchemy.sql.compiler import SQLCompiler
 from sqlalchemy.types import Integer
-import mock
-import sqlalchemy as SA
-import testify as T
 
+import mock
+import testify as T
 from pushmanager.core import db
-from pushmanager.testing.mocksettings import MockedSettings
 from pushmanager.testing import testdb
+from pushmanager.testing.mocksettings import MockedSettings
 from pushmanager.testing.testdb import FakeDataMixin
 
 

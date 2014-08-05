@@ -1,16 +1,15 @@
-from contextlib import nested
+import types
 from contextlib import contextmanager
+from contextlib import nested
 
 import mock
+import pushmanager.servlets.newpush
 import testify as T
-import types
-
 from pushmanager.core import db
-from pushmanager.core.settings import Settings
 from pushmanager.core.mail import MailQueue
+from pushmanager.core.settings import Settings
 from pushmanager.core.util import get_servlet_urlspec
 from pushmanager.core.xmppclient import XMPPQueue
-import pushmanager.servlets.newpush
 from pushmanager.servlets.newpush import NewPushServlet
 from pushmanager.servlets.newpush import send_notifications
 from pushmanager.testing.mocksettings import MockedSettings

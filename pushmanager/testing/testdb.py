@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 
-from datetime import datetime, timedelta
 import os
 import sqlite3
 import tempfile
 import time
+from datetime import datetime
+from datetime import timedelta
 
 from pushmanager.core import db
+
 
 def create_temp_db_file():
     fd, db_file_path = tempfile.mkstemp(suffix="pushmanager.db")
@@ -53,14 +55,14 @@ class FakeDataMixin(object):
     fake_revision = "0"*40
 
     request_data = [
-        [10, 'keysersoze', 'requested', 'keysersoze', 'usual_fix', '', now, now, 'Fix stuff', 'no comment', 12345, '', fake_revision, ''],
-        [11, 'bmetin', 'requested', 'bmetin', 'fix1', '', now, now, 'Fixing more stuff', 'yes comment', 234, '', fake_revision, 'testuser3'],
-        [12, 'testuser1', 'requested', 'testuser2', 'fix1', 'search', now, now, 'Fixing1', 'no comment', 123, '', fake_revision, 'testuser3, testuser4'],
-        [13, 'testuser2', 'requested', 'testuser2', 'fix2', 'search', now, now, 'Fixing2', 'yes comment', 456, '', fake_revision, 'testuser5'],
+        [10, 'keysersoze', 'requested', 'keysersoze', 'usual_fix', '', '',  now, now, 'Fix stuff', 'no comment', 12345, '', fake_revision, ''],
+        [11, 'bmetin', 'requested', 'bmetin', 'fix1', '', '',  now, now, 'Fixing more stuff', 'yes comment', 234, '', fake_revision, 'testuser3'],
+        [12, 'testuser1', 'requested', 'testuser2', 'fix1', 'search', '',  now, now, 'Fixing1', 'no comment', 123, '', fake_revision, 'testuser3, testuser4'],
+        [13, 'testuser2', 'requested', 'testuser2', 'fix2', 'search', '',  now, now, 'Fixing2', 'yes comment', 456, '', fake_revision, 'testuser5'],
 
     ]
     request_keys = [
-        'id', 'user', 'state', 'repo', 'branch', 'tags', 'created', 'modified',
+        'id', 'user', 'state', 'repo', 'branch', 'tags', 'conflicts', 'created', 'modified',
         'title', 'comments', 'reviewid', 'description', 'revision', 'watchers'
     ]
 

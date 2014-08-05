@@ -4,15 +4,14 @@ import copy
 import datetime
 
 import testify as T
-
+from pushmanager.core.util import add_to_tags_str
+from pushmanager.core.util import del_from_tags_str
+from pushmanager.core.util import dict_copy_keys
 from pushmanager.core.util import EscapedDict
 from pushmanager.core.util import get_servlet_urlspec
 from pushmanager.core.util import pretty_date
-from pushmanager.core.util import add_to_tags_str
-from pushmanager.core.util import del_from_tags_str
 from pushmanager.core.util import tags_contain
 from pushmanager.core.util import tags_str_as_set
-from pushmanager.core.util import dict_copy_keys
 from pushmanager.servlets.pushes import PushesServlet
 
 

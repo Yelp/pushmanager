@@ -1,15 +1,16 @@
 #!/usr/bin/env python
 from __future__ import with_statement
+
 import os
+
+import pushmanager.core.db as db
 import tornado.httpserver
 import tornado.process
-
+import pushmanager.ui_modules as ui_modules
 from pushmanager.core.application import Application
-import pushmanager.core.db as db
 from pushmanager.core.settings import Settings
 from pushmanager.core.util import get_servlet_urlspec
 from pushmanager.servlets.api import APIServlet
-import pushmanager.ui_modules as ui_modules
 
 
 api_application = tornado.web.Application(

@@ -1,10 +1,11 @@
 import operator
+
+import pushmanager.core.util
 import tornado.gen
 import tornado.web
-
 from pushmanager.core.requesthandler import RequestHandler
 from pushmanager.core.settings import Settings
-import pushmanager.core.util
+
 
 class SummaryForBranchServlet(RequestHandler):
 

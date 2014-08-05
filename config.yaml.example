@@ -50,6 +50,7 @@ mail:
 # Credentials for XMPP notifications
 xmpp:
     default_domain: "example.com"
+    server: "xmpp_server"
     username: "someone@example.com"
     password: "abc123"
 
@@ -74,6 +75,10 @@ git:
     gitweb_servername: "gitweb.example.com"
     main_repository: "main-repository"
     dev_repositories_dir: "devs"
+    local_repo_path: "/place/to/store/on-disk/git/repos/"
+    local_mirror: "/rererence/repository/for/main_repository"
+    use_local_mirror: False
+
     # A background worker tries to verify the given branch in a push
     # request by checking the SHA of the branch in the repository and
     # in DB - to see if there was already a request for the

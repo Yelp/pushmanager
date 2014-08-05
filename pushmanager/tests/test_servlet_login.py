@@ -1,9 +1,8 @@
-import urllib
 import logging
+import urllib
 
 import mock
 import testify as T
-
 from pushmanager.handlers import LoginHandler
 from pushmanager.testing.testservlet import ServletTestMixin
 

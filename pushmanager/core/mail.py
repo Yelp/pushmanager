@@ -1,24 +1,27 @@
 # -*- coding: utf-8 -*-
 import email.mime.text
-from Queue import Queue, Empty
+import logging
 import smtplib
-from threading import Thread
+from Queue import Empty
+from multiprocessing import JoinableQueue
+from multiprocessing import Process
 
 from pushmanager.core.settings import Settings
 
 class MailQueue(object):
 
-    message_queue = Queue()
-    worker_thread = None
+    message_queue = None
+    worker_process = None
     smtp = None
 
     @classmethod
     def start_worker(cls):
-        if cls.worker_thread is not None:
+        if cls.worker_process is not None:
             return
-        cls.worker_thread = Thread(target=cls.process_queue, name='mail-queue')
-        cls.worker_thread.daemon = True
-        cls.worker_thread.start()
+        cls.message_queue = JoinableQueue()
+        cls.worker_process = Process(target=cls.process_queue, name='mail-queue')
+        cls.worker_process.daemon = True
+        cls.worker_process.start()
 
     @classmethod
     def process_queue(cls):
@@ -63,7 +66,10 @@ class MailQueue(object):
             for recipient in recipients:
                 cls.enqueue_email(recipient, message, subject, from_email)
         elif isinstance(recipients, (str,unicode)):
-            cls.message_queue.put( (recipients, message, subject, from_email) )
+            if cls.message_queue is not None:
+                cls.message_queue.put( (recipients, message, subject, from_email) )
+            else:
+                logging.error("Failed to enqueue email: MailQueue not initialized")
         else:
             raise ValueError('Recipient(s) must be a string or iterable of strings')
 

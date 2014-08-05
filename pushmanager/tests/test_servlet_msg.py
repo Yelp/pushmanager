@@ -3,16 +3,15 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import contextlib
-import mock
 import subprocess
 
+import mock
 import testify as T
-
 from pushmanager.core import db
 from pushmanager.core.util import get_servlet_urlspec
 from pushmanager.servlets.msg import MsgServlet
-from pushmanager.testing.testservlet import ServletTestMixin
 from pushmanager.testing.mocksettings import MockedSettings
+from pushmanager.testing.testservlet import ServletTestMixin
 
 
 class MsgServletTest(T.TestCase, ServletTestMixin):

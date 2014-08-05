@@ -1,5 +1,5 @@
-from pushmanager.testing.testservlet import TemplateTestCase
 import testify as T
+from pushmanager.testing.testservlet import TemplateTestCase
 
 
 class NewRequestTemplateTest(TemplateTestCase):

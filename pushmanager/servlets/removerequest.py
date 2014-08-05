@@ -1,12 +1,14 @@
-import sqlalchemy as SA
 import time
-import tornado.web
+
+import sqlalchemy as SA
 
 import pushmanager.core.db as db
+import pushmanager.core.util
+import tornado.web
 from pushmanager.core.mail import MailQueue
 from pushmanager.core.requesthandler import RequestHandler
-import pushmanager.core.util
 from pushmanager.core.xmppclient import XMPPQueue
+
 
 class RemoveRequestServlet(RequestHandler):
 

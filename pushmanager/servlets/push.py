@@ -1,11 +1,11 @@
 import os
 
+import pushmanager.core.util
 import tornado.gen
 import tornado.web
-
 from pushmanager.core.requesthandler import RequestHandler
 from pushmanager.core.settings import Settings
-import pushmanager.core.util
+
 
 def _repo(base):
     dev_repos_dir = Settings['git']['dev_repositories_dir']

@@ -1,8 +1,11 @@
 import sqlalchemy as SA
 
 import pushmanager.core.db as db
-from pushmanager.core.requesthandler import RequestHandler
 import pushmanager.core.util
+from pushmanager.core.git import GitQueue
+from pushmanager.core.git import GitTaskAction
+from pushmanager.core.requesthandler import RequestHandler
+
 
 class PickMeRequestServlet(RequestHandler):
 
@@ -57,6 +60,8 @@ class PickMeRequestServlet(RequestHandler):
 
     def on_db_complete(self, success, db_results):
         self.check_db_results(success, db_results)
+        for request_id in self.request_ids:
+            GitQueue.enqueue_request(GitTaskAction.TEST_PICKME_CONFLICT, request_id)
 
 class UnpickMeRequestServlet(RequestHandler):
 
@@ -85,3 +90,4 @@ class UnpickMeRequestServlet(RequestHandler):
 
     def on_db_complete(self, success, db_results):
         self.check_db_results(success, db_results)
+        GitQueue.enqueue_request(GitTaskAction.TEST_ALL_PICKMES, self.pushid)

@@ -1,13 +1,14 @@
 import contextlib
 import json
-import tornado.httpclient
-import tornado.stack_context
-import tornado.web
 import urllib
 import urlparse
 
-from pushmanager.core.settings import Settings
+import tornado.httpclient
+import tornado.stack_context
+import tornado.web
 from pushmanager.core.settings import JSSettings
+from pushmanager.core.settings import Settings
+
 
 @contextlib.contextmanager
 def async_api_call_error():

@@ -1,9 +1,8 @@
-from contextlib import nested
-import mock
 import types
+from contextlib import nested
 
+import mock
 import testify as T
-
 from pushmanager.core import db
 from pushmanager.core.util import get_servlet_urlspec
 from pushmanager.servlets.removerequest import RemoveRequestServlet
