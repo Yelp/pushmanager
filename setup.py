@@ -4,12 +4,12 @@
 from setuptools import find_packages
 from setuptools import setup
 
-import pushmanager
+from pushmanager.__about__ import __version__
 
 
 setup(
     name='pushmanager',
-    version=pushmanager.__version__,
+    version=__version__,
     provides=['pushmanager'],
     author='Yelp',
     author_email='yelplabs@yelp.com',

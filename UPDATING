@@ -1,8 +1,19 @@
-2013.10.39
-  AFFECTS: Users with existing installs before commit UPDATEME
+2014.08.12
+  AFFECTS: Users with existing installs before 3.0.0
   AUTHOR: milki
 
-  As of commit UPDATEME, a new column 'stageenv' has been added to the
+  As of 3.0.0, a new column has been added to the db and
+  several new config options have been added.
+
+  The 'config.yaml.sample' has been updated to reflect the new config
+  options and a convenient script, 'pushplans/add_conflicts.sql' has
+  been included to facilitate the database update.
+
+2013.10.39
+  AFFECTS: Users with existing installs before commit ecb989b7
+  AUTHOR: milki
+
+  As of commit ecb989b7, a new column 'stageenv' has been added to the
   'pull_pushes' table. Existing installs will 500 error until the
   database has been updated.
 
