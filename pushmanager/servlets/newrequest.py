@@ -22,7 +22,7 @@ class NewRequestServlet(RequestHandler):
         if not self.current_user:
             return self.send_error(403)
         self.requestid = self._arg('request-id')
-        self.tag_list = [x for x in TAGS_RE.findall(self._arg('request-tags')) if x]
+        self.tag_list = [x for x in TAGS_RE.findall(self._arg('request-tags')) if x and 'conflict' not in x]
 
         reviewid = self._arg('request-review')
         if reviewid:
@@ -142,5 +142,11 @@ class NewRequestServlet(RequestHandler):
 
         if self.requestid:
             GitQueue.enqueue_request(GitTaskAction.VERIFY_BRANCH, self.requestid)
+
+            # Check if the request is already pickme'd for a push, and if
+            # so also enqueue it to be checked for conflicts.
+            request_push_id = GitQueue._get_push_for_request(self.requestid)
+            if request_push_id:
+                GitQueue.enqueue_request(GitTaskAction.TEST_PICKME_CONFLICT, self.requestid)
 
         return self.redirect("/requests?user=%s" % self.request_user)
