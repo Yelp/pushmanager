@@ -137,6 +137,27 @@ class NewRequestServletTest(T.TestCase, ServletTestMixin, FakeDataMixin):
             basic_request.update({'user': 'testtakeoveruser'})
             self.assert_request(basic_request, edit_req)
 
+    def test_editrequest_clear_conflict_tags(self):
+        conflict_request = dict(self.basic_request)
+        conflict_request.update({'request-tags': 'super-safe,conflict-pickme,logs', 'user': 'testuser'})
+        last_req = self.assert_submit_request(conflict_request)
+
+        basic_request = dict(self.basic_request)
+        basic_request.update({'user': 'testuser'})
+        self.assert_request(basic_request, last_req)
+
+    def test_editrequest_requeues_pickmed_request(self):
+        with mock.patch('pushmanager.core.git.GitQueue.enqueue_request') as mock_enqueue:
+            with mock.patch('pushmanager.core.git.GitQueue._get_push_for_request') as mock_getpush:
+                conflict_request = dict(self.basic_request)
+                conflict_request.update({
+                    'request-tags': 'super-safe,conflict-pickme,logs',
+                    'user': 'testuser'
+                })
+                mock_getpush.return_value = 3
+                self.assert_submit_request(conflict_request)
+                T.assert_equal(mock_enqueue.call_count, 2)
+
 
 class NewRequestChecklistMixin(ServletTestMixin, FakeDataMixin):
 
