@@ -1,3 +1,9 @@
+0.3.0   2014-08-12
+
+ NEW FEATURES
+
+ * Automatic merge conflict detection (rschlaikjer, #66)
+
 0.2.1   2014-08-04
 
  IMPROVEMENTS
