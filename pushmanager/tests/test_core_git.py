@@ -416,7 +416,9 @@ class CoreGitTest(T.TestCase):
         GitCommand('checkout', '-b', 'test_pcp', cwd=repo_path).run()
 
         # Merge on the first pickme
-        pushmanager.core.git.git_merge_pickme(german_req, repo_path)
+        with mock.patch('pushmanager.core.git.GitQueue.create_or_update_local_repo') as update_repo:
+            pushmanager.core.git.GitQueue.git_merge_pickme(german_req, repo_path)
+            update_repo.assert_called_with('.', 'change_german', checkout=False)
 
         with nested (
                 mock.patch('pushmanager.core.git.GitQueue._get_push_for_request'),
