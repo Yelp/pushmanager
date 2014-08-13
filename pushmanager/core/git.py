@@ -83,13 +83,26 @@ def git_reset_to_ref(starting_ref, git_directory):
     :param starting_ref: Git hash of the commit to roll back to
     """
 
-    reset_command = GitCommand(
+    GitCommand(
         'reset',
         '--hard',
         starting_ref,
         cwd=git_directory
-    )
-    return reset_command.run()
+    ).run()
+
+    GitCommand(
+        'submodule',
+        '--quiet',
+        'sync',
+        cwd=git_directory
+    ).run()
+
+    GitCommand(
+        'submodule',
+        '--quiet',
+        'update',
+        cwd=git_directory
+    ).run()
 
 
 def git_merge_pickme(pickme_request, master_repo_path):
