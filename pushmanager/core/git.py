@@ -83,46 +83,26 @@ def git_reset_to_ref(starting_ref, git_directory):
     :param starting_ref: Git hash of the commit to roll back to
     """
 
-    reset_command = GitCommand(
+    GitCommand(
         'reset',
         '--hard',
         starting_ref,
         cwd=git_directory
-    )
-    return reset_command.run()
+    ).run()
 
+    GitCommand(
+        'submodule',
+        '--quiet',
+        'sync',
+        cwd=git_directory
+    ).run()
 
-def git_merge_pickme(pickme_request, master_repo_path):
-    """Merges the branch specified by a pickme onto the current branch
-
-    :param pickme_request: Dictionary representing the pickme to merge
-    :param master_repo_path: On-disk path of the git repo to work in
-    """
-
-    # Locate and merge the branch we are testing
-    summary = "{branch_title}\n\n(Merged from {user}/{branch})".format(
-        branch_title=pickme_request['title'],
-        user=pickme_request['user'],
-        branch=pickme_request['branch']
-    )
-
-    pull_command = GitCommand(
-        "pull",
-        "--no-ff",
-        "--no-commit",
-        pickme_request['user'],
-        pickme_request['branch'],
-        cwd=master_repo_path)
-    pull_command.run()
-
-    commit_command = GitCommand(
-        "commit", "-m", summary,
-        "--no-verify", cwd=master_repo_path
-    )
-    commit_command.run()
-
-    # Verify that submodules are OK
-    _stale_submodule_check(master_repo_path)
+    GitCommand(
+        'submodule',
+        '--quiet',
+        'update',
+        cwd=git_directory
+    ).run()
 
 
 def _stale_submodule_check(cwd):
@@ -383,7 +363,48 @@ class GitQueue(object):
         cls.worker_process.start()
 
     @classmethod
-    def create_or_update_local_repo(cls, repo_name, branch):
+    def git_merge_pickme(cls, pickme_request, master_repo_path):
+        """Merges the branch specified by a pickme onto the current branch
+
+        :param pickme_request: Dictionary representing the pickme to merge
+        :param master_repo_path: On-disk path of the git repo to work in
+        """
+
+        # Ensure that the branch we are merging is present
+        cls.create_or_update_local_repo(
+            pickme_request['repo'],
+            pickme_request['branch'],
+            checkout=False
+        )
+
+        # Locate and merge the branch we are testing
+        summary = "{branch_title}\n\n(Merged from {repo}/{branch})".format(
+            branch_title=pickme_request['title'],
+            repo=pickme_request['repo'],
+            branch=pickme_request['branch']
+        )
+
+        pull_command = GitCommand(
+            "pull",
+            "--no-ff",
+            "--no-commit",
+            pickme_request['repo'],
+            pickme_request['branch'],
+            cwd=master_repo_path)
+        pull_command.run()
+
+        commit_command = GitCommand(
+            "commit", "-m", summary,
+            "--no-verify", cwd=master_repo_path
+        )
+        commit_command.run()
+
+        # Verify that submodules are OK
+        _stale_submodule_check(master_repo_path)
+
+
+    @classmethod
+    def create_or_update_local_repo(cls, repo_name, branch, checkout=True):
         """Clones the main repository if it does not exist.
         If repo_name is not the main repo, add that repo as a remote and fetch
         refs before checking out the specified branch.
@@ -439,22 +460,23 @@ class GitQueue(object):
         fetch_updates = GitCommand('fetch', '--all', '--prune', cwd=repo_path)
         fetch_updates.run()
 
-        # Checkout the branch
-        full_branch = "%s/%s" % (repo_name, branch)
-        checkout_branch = GitCommand('checkout', full_branch, cwd=repo_path)
-        checkout_branch.run()
+        if checkout:
+            # Checkout the branch
+            full_branch = "%s/%s" % (repo_name, branch)
+            checkout_branch = GitCommand('checkout', full_branch, cwd=repo_path)
+            checkout_branch.run()
 
-        # Update submodules
-        sync_submodule = GitCommand(
-            "submodule", "--quiet", "sync",
-            cwd=repo_path
-        )
-        sync_submodule.run()
-        update_submodules = GitCommand(
-            "submodule", "--quiet", "update", "--init",
-            cwd=repo_path
-        )
-        update_submodules.run()
+            # Update submodules
+            sync_submodule = GitCommand(
+                "submodule", "--quiet", "sync",
+                cwd=repo_path
+            )
+            sync_submodule.run()
+            update_submodules = GitCommand(
+                "submodule", "--quiet", "update", "--init",
+                cwd=repo_path
+            )
+            update_submodules.run()
 
     @classmethod
     def _get_local_repository_uri(cls, repository):
@@ -497,7 +519,7 @@ class GitQueue(object):
             cls.create_or_update_local_repo(req['repo'], branch=req['branch'])
             ls_remote = GitCommand(
                 'ls-remote', '-h',
-                cls._get_repository_uri(req['user']), req['branch']
+                cls._get_repository_uri(req['repo']), req['branch']
             )
             _, stdout, _ = ls_remote.run()
             stdout = stdout.strip()
@@ -711,7 +733,7 @@ class GitQueue(object):
             try:
                 with git_merge_context_manager(target_branch,
                                                repo_path):
-                    git_merge_pickme(pickme_details, repo_path)
+                    cls.git_merge_pickme(pickme_details, repo_path)
             except GitException, e:
                 conflict_pickmes.append((pickme, e.gitout, e.giterr))
                 # Requeue the conflicting pickme so that it also picks up the
@@ -798,7 +820,7 @@ class GitQueue(object):
             try:
                 with git_merge_context_manager(target_branch, repo_path):
                     # Try to merge the pickme onto master
-                    git_merge_pickme(req, repo_path)
+                    cls.git_merge_pickme(req, repo_path)
 
                     # Check for conflicts with other pickmes
                     return cls._test_pickme_conflict_pickme(

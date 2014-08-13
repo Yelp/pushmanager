@@ -403,20 +403,22 @@ class CoreGitTest(T.TestCase):
             f.write('#!/usr/bin/env python\n\nprint("Hallo Welt!")\nPrint("Goodbye!")\n')
         GitCommand('commit', '-a', '-m', 'verpflichten', cwd=repo_path).run()
         GitCommand('checkout', 'master', cwd=repo_path).run()
-        german_req = {'id': 1, 'tags':'git-ok', 'title':'German', 'user':'.', 'branch':'change_german'}
+        german_req = {'id': 1, 'tags':'git-ok', 'title':'German', 'repo':'.', 'branch':'change_german'}
 
         GitCommand('checkout', '-b', 'change_welsh', cwd=repo_path).run()
         with open(os.path.join(repo_path, "code.py"), 'w') as f:
             f.write('#!/usr/bin/env python\n\nprint("Helo Byd!")\nPrint("Goodbye!")\n')
         GitCommand('commit', '-a', '-m', 'ymrwymo', cwd=repo_path).run()
         GitCommand('checkout', 'master', cwd=repo_path).run()
-        welsh_req = {'id': 2, 'tags':'git-ok', 'title':'Welsh', 'user':'.', 'branch':'change_welsh'}
+        welsh_req = {'id': 2, 'tags':'git-ok', 'title':'Welsh', 'repo':'.', 'branch':'change_welsh'}
 
         # Create a test branch for merging
         GitCommand('checkout', '-b', 'test_pcp', cwd=repo_path).run()
 
         # Merge on the first pickme
-        pushmanager.core.git.git_merge_pickme(german_req, repo_path)
+        with mock.patch('pushmanager.core.git.GitQueue.create_or_update_local_repo') as update_repo:
+            pushmanager.core.git.GitQueue.git_merge_pickme(german_req, repo_path)
+            update_repo.assert_called_with('.', 'change_german', checkout=False)
 
         with nested (
                 mock.patch('pushmanager.core.git.GitQueue._get_push_for_request'),
@@ -461,7 +463,7 @@ class CoreGitTest(T.TestCase):
         with open(os.path.join(repo_path, "code.py"), 'w') as f:
             f.write('#!/usr/bin/env python\n\nprint("Hallo Welt!")\nPrint("Goodbye!")\n')
         GitCommand('commit', '-a', '-m', 'verpflichten', cwd=repo_path).run()
-        german_req = {'id': 1, 'tags':'git-ok', 'title':'German', 'user':'.', 'branch':'change_german'}
+        german_req = {'id': 1, 'tags':'git-ok', 'title':'German', 'repo':'.', 'branch':'change_german'}
 
         # Back on master, make a conflicting change
         GitCommand('checkout', 'master', cwd=repo_path).run()
