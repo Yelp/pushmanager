@@ -372,15 +372,15 @@ class GitQueue(object):
 
         # Ensure that the branch we are merging is present
         cls.create_or_update_local_repo(
-            pickme_request['user'],
+            pickme_request['repo'],
             pickme_request['branch'],
             checkout=False
         )
 
         # Locate and merge the branch we are testing
-        summary = "{branch_title}\n\n(Merged from {user}/{branch})".format(
+        summary = "{branch_title}\n\n(Merged from {repo}/{branch})".format(
             branch_title=pickme_request['title'],
-            user=pickme_request['user'],
+            repo=pickme_request['repo'],
             branch=pickme_request['branch']
         )
 
@@ -388,7 +388,7 @@ class GitQueue(object):
             "pull",
             "--no-ff",
             "--no-commit",
-            pickme_request['user'],
+            pickme_request['repo'],
             pickme_request['branch'],
             cwd=master_repo_path)
         pull_command.run()
@@ -519,7 +519,7 @@ class GitQueue(object):
             cls.create_or_update_local_repo(req['repo'], branch=req['branch'])
             ls_remote = GitCommand(
                 'ls-remote', '-h',
-                cls._get_repository_uri(req['user']), req['branch']
+                cls._get_repository_uri(req['repo']), req['branch']
             )
             _, stdout, _ = ls_remote.run()
             stdout = stdout.strip()
