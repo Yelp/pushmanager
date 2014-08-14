@@ -182,6 +182,34 @@ class CoreGitTest(T.TestCase):
             T.assert_equal(pushmanager.core.git.GitQueue.verify_branch_failure.call_count, 0)
             T.assert_equal(pushmanager.core.git.GitQueue.verify_branch_successful.call_count, 1)
 
+    def test_verify_branch(self):
+        expected_cwd = '/place/to/store/on-disk/git/repos/main-repository'
+        with mock.patch('pushmanager.core.git.GitCommand') as GC:
+            GC.return_value = GC
+            GC.run.return_value = (0, "hashashash", "")
+            pushmanager.core.git.GitQueue.verify_branch(1)
+            calls = [
+                mock.call('clone', 'git://git.example.com/main-repository', expected_cwd),
+                 mock.call.run(),
+                 mock.call('remote', 'add', u'bmetin', u'git://git.example.com/devs/bmetin', cwd=expected_cwd),
+                 mock.call.run(),
+                 mock.call('fetch', '--prune', u'bmetin', 'bmetin_fix_stuff:refs/remotes/bmetin/bmetin_fix_stuff', cwd=expected_cwd),
+                 mock.call.run(),
+                 mock.call('reset', '--hard', 'HEAD', cwd=expected_cwd),
+                 mock.call.run(),
+                 mock.call('clean', '-fdfx', cwd=expected_cwd),
+                 mock.call.run(),
+                 mock.call('checkout', u'bmetin/bmetin_fix_stuff', cwd=expected_cwd),
+                 mock.call.run(),
+                 mock.call('submodule', '--quiet', 'sync', cwd=expected_cwd),
+                 mock.call.run(),
+                 mock.call('submodule', '--quiet', 'update', '--init', cwd=expected_cwd),
+                 mock.call.run(),
+                 mock.call('ls-remote', '-h', u'git://git.example.com/devs/bmetin', u'bmetin_fix_stuff'),
+                 mock.call.run()
+            ]
+            GC.assert_has_calls(calls)
+
     def test_verify_branch_successful(self):
         with nested(
             mock.patch("%s.pushmanager.core.git.MailQueue.enqueue_user_email" % __name__),
@@ -303,7 +331,11 @@ class CoreGitTest(T.TestCase):
                 mock.call().run(),
                 mock.call('remote', 'add', 'origin', 'git://git.example.com/main-repository', cwd=expected_cwd),
                 mock.call().run(),
-                mock.call('fetch', '--all', '--prune', cwd=expected_cwd),
+                mock.call('fetch', '--prune', 'origin', 'test_branch:refs/remotes/origin/test_branch', cwd=expected_cwd),
+                mock.call().run(),
+                mock.call('reset', '--hard', 'HEAD', cwd='/place/to/store/on-disk/git/repos/main-repository'),
+                mock.call().run(),
+                mock.call('clean', '-fdfx', cwd='/place/to/store/on-disk/git/repos/main-repository'),
                 mock.call().run(),
                 mock.call('checkout', 'origin/test_branch', cwd=expected_cwd),
                 mock.call().run(),
@@ -323,7 +355,11 @@ class CoreGitTest(T.TestCase):
                 mock.call().run(),
                 mock.call('remote', 'add', 'some_dev_name', 'git://git.example.com/devs/some_dev_name', cwd=expected_cwd),
                 mock.call().run(),
-                mock.call('fetch', '--all', '--prune', cwd=expected_cwd),
+                mock.call('fetch', '--prune', 'some_dev_name', 'test_branch:refs/remotes/some_dev_name/test_branch', cwd=expected_cwd),
+                mock.call().run(),
+                mock.call('reset', '--hard', 'HEAD', cwd='/place/to/store/on-disk/git/repos/main-repository'),
+                mock.call().run(),
+                mock.call('clean', '-fdfx', cwd='/place/to/store/on-disk/git/repos/main-repository'),
                 mock.call().run(),
                 mock.call('checkout', 'some_dev_name/test_branch', cwd=expected_cwd),
                 mock.call().run(),
@@ -357,7 +393,11 @@ class CoreGitTest(T.TestCase):
                     mock.call().run(),
                     mock.call('remote', 'add', 'some_dev_name', 'git://git.example.com/devs/some_dev_name', cwd=expected_cwd),
                     mock.call().run(),
-                    mock.call('fetch', '--all', '--prune', cwd=expected_cwd),
+                    mock.call('fetch', '--prune', 'some_dev_name', 'test_branch:refs/remotes/some_dev_name/test_branch', cwd=expected_cwd),
+                    mock.call().run(),
+                    mock.call('reset', '--hard', 'HEAD', cwd='/place/to/store/on-disk/git/repos/main-repository'),
+                    mock.call().run(),
+                    mock.call('clean', '-fdfx', cwd='/place/to/store/on-disk/git/repos/main-repository'),
                     mock.call().run(),
                     mock.call('checkout', 'some_dev_name/test_branch', cwd=expected_cwd),
                     mock.call().run(),
