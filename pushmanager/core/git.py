@@ -42,6 +42,12 @@ def git_branch_context_manager(test_branch, master_repo_path):
     :param master_repo_path: The on-disk path to the master repository
     """
 
+    # Remove the testing branch if it exists
+    try:
+        GitCommand("branch", "-D", test_branch, cwd=master_repo_path).run()
+    except GitException:
+        pass
+
     # Create a new branch tracking master
     make_test_branch = GitCommand(
         "checkout",
