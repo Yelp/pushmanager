@@ -5,6 +5,7 @@ main_app:
     redir_port: 80
     ssl_certfile: "/path/to/file.pem"
     ssl_keyfile: "/path/to/file.key"
+    debug: False
 
 api_app:
     servername: "pushmanager.example.com"

@@ -328,6 +328,8 @@ class GitCommand(subprocess.Popen):
 
     def run(self):
         stdout, stderr = self.communicate()
+        if Settings['main_app']['debug']:
+            logging.error("%r, %r, %r", self.args, stdout, stderr)
         if self.returncode:
             raise GitException(
                 "GitException: git %s " % ' '.join(self.args),
