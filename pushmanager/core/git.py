@@ -410,7 +410,7 @@ class GitQueue(object):
 
 
     @classmethod
-    def create_or_update_local_repo(cls, repo_name, branch, checkout=True):
+    def create_or_update_local_repo(cls, repo_name, branch, checkout=True, fetch=False):
         """Clones the main repository if it does not exist.
         If repo_name is not the main repo, add that repo as a remote and fetch
         refs before checking out the specified branch.
@@ -455,6 +455,8 @@ class GitQueue(object):
         )
         try:
             add_remote.run()
+            # If we had to add a new remote, we should fetch it.
+            fetch = True
         except GitException, e:
             # If the remote already exists, git will return err 128
             if e.gitret is 128:
@@ -462,9 +464,24 @@ class GitQueue(object):
             else:
                 raise e
 
-        # Fetch all new repo info
-        fetch_updates = GitCommand('fetch', '--all', '--prune', cwd=repo_path)
-        fetch_updates.run()
+        if fetch:
+            # Fetch the specified branch from the repo
+            remote_path = '{branch}:refs/remotes/{repo}/{branch}'.format(
+                branch=branch,
+                repo=repo_name
+            )
+
+            if branch is 'master':
+                remote_path = branch
+
+            fetch_updates = GitCommand(
+                'fetch',
+                '--prune',
+                repo_name,
+                remote_path,
+                cwd=repo_path
+            )
+            fetch_updates.run()
 
         if checkout:
             # Reset hard head, to ensure that we are able to checkout
@@ -528,7 +545,7 @@ class GitQueue(object):
         }
         stdout = ""
         try:
-            cls.create_or_update_local_repo(req['repo'], branch=req['branch'])
+            cls.create_or_update_local_repo(req['repo'], branch=req['branch'], fetch=True)
             ls_remote = GitCommand(
                 'ls-remote', '-h',
                 cls._get_repository_uri(req['repo']), req['branch']
@@ -892,11 +909,11 @@ class GitQueue(object):
         #### Set up the environment as though we are preparing a deploy push
         ## Create a branch pickme_test_PUSHID_PICKMEID
 
-        # Update local copy of the pickme'd repo and the master repo
-        cls.create_or_update_local_repo(req['repo'], branch=req['branch'])
+        # Ensure that the local copy of master is up-to-date
         cls.create_or_update_local_repo(
             Settings['git']['main_repository'],
-            branch="master"
+            branch="master",
+            fetch=True
         )
 
         # Get base paths and names for the relevant repos
