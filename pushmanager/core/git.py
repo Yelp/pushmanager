@@ -467,6 +467,12 @@ class GitQueue(object):
         fetch_updates.run()
 
         if checkout:
+            # Reset hard head, to ensure that we are able to checkout
+            GitCommand('reset', '--hard', 'HEAD', cwd=repo_path).run()
+
+            # Remove untracked files and directories
+            GitCommand('clean', '-fdfx', cwd=repo_path).run()
+
             # Checkout the branch
             full_branch = "%s/%s" % (repo_name, branch)
             checkout_branch = GitCommand('checkout', full_branch, cwd=repo_path)
