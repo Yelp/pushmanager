@@ -1183,6 +1183,17 @@ class GitQueue(object):
         MailQueue.enqueue_user_email([user_to_notify], msg, subject)
 
     @classmethod
+    def requeue_pickmes_with_conflicts(cls, push_id):
+        for pickme_id in cls._get_request_ids_in_push(push_id):
+            req = cls._get_request(pickme_id)
+            if req and req['tags'] and 'conflict-pickme' in req['tags']:
+                GitQueue.enqueue_request(
+                    GitTaskAction.TEST_PICKME_CONFLICT,
+                    pickme_id,
+                    requeue=False
+                )
+
+    @classmethod
     def process_queue(cls):
         while True:
             # Throttle
@@ -1200,8 +1211,7 @@ class GitQueue(object):
                 elif task.task_type is GitTaskAction.TEST_PICKME_CONFLICT:
                     cls.test_pickme_conflicts(task.request_id, **task.kwargs)
                 elif task.task_type is GitTaskAction.TEST_ALL_PICKMES:
-                    for pickme_id in cls._get_request_ids_in_push(task.request_id):
-                        GitQueue.enqueue_request(GitTaskAction.TEST_PICKME_CONFLICT, pickme_id, requeue=False)
+                    cls.requeue_pickmes_with_conflicts(task.request_id)
                 else:
                     logging.error(
                         "GitQueue encountered unknown task type %d",
