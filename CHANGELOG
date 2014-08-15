@@ -1,3 +1,21 @@
+0.3.1   2014-08-14
+
+ BUG FIXES
+
+ * Ensure submodules are refreshed for merge conflict detection
+   (rschlaikjer, #73, #75)
+ * Ensure the proper remote is fetched for merge conflict detection
+   (rschlaikjer, #74, #75)
+ * Hard reset and clean pre-checkout to prevent checkout being blocked
+   by unstaged changes (rschlaikjer, #76)
+ * Force delete / recreate of test branches, to fix branches that
+   might not have been cleaned up properly (rschlaikjer, #76)
+
+ PERFORMANCE TWEAKS
+
+ * For performance reasons, only perform a fetch when a new remote or
+   pickme has been added (rschlaikjer, #76)
+
 0.3.0   2014-08-12
 
  NEW FEATURES
