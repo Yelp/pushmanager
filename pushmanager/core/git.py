@@ -1064,7 +1064,11 @@ class GitQueue(object):
             return cls.verify_branch_failure(req, error_msg)
 
         duplicate_req = cls._get_request_with_sha(sha)
-        if duplicate_req and 'state' in duplicate_req and not duplicate_req['state'] == "discarded":
+        if (
+            duplicate_req and 'state' in duplicate_req
+            and not duplicate_req['state'] == "discarded"
+            and duplicate_req['id'] is not request_id
+        ):
             error_msg = "Git queue worker found another request with the same revision sha (ids %s and %s)" % (
                 duplicate_req['id'],
                 request_id

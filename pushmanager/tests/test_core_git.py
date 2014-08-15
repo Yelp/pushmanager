@@ -148,6 +148,8 @@ class CoreGitTest(T.TestCase):
         T.assert_equal(result[0][5], self.fake_request['revision'])
 
     def test_process_queue_duplicate(self):
+        duplicate_req = copy.deepcopy(self.fake_request)
+        duplicate_req['id'] = 11
         with nested(
             mock.patch("%s.pushmanager.core.git.GitQueue.verify_branch_failure" % __name__),
             mock.patch("%s.pushmanager.core.git.GitQueue.verify_branch_successful" % __name__),
@@ -157,7 +159,7 @@ class CoreGitTest(T.TestCase):
                 "%s.pushmanager.core.git.GitQueue._get_request_with_sha" % __name__,
                 return_value={'id': 10, 'state': 'requested'}
             ),
-            self.mocked_update_request(self.fake_request, self.fake_request)
+            self.mocked_update_request(self.fake_request, duplicate_req)
         ):
             # GitQueue._get_request_with_sha returning a value means
             # we have a duplicated request. This should trigger a
