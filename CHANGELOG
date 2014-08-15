@@ -1,3 +1,10 @@
+0.3.2   2014-08-15
+
+ PERFORMANCE TWEAKS
+
+ * Only requeue existing conflicted pickme's when a pickme
+   is removed. (rschlaikjer, #79, #80)
+
 0.3.1   2014-08-14
 
  BUG FIXES
