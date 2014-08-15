@@ -12,6 +12,8 @@ import testify as T
 from pushmanager.core import db
 from pushmanager.core.git import GitCommand
 from pushmanager.core.git import GitException
+from pushmanager.core.git import GitQueue
+from pushmanager.core.git import GitTaskAction
 from pushmanager.core.settings import Settings
 from pushmanager.testing import testdb
 from pushmanager.testing.mocksettings import MockedSettings
@@ -542,6 +544,33 @@ class CoreGitTest(T.TestCase):
             updated_request = update_req.call_args
             T.assert_equal('conflict-master' in updated_request[0][1]['tags'], True)
             T.assert_equal('master' in updated_request[0][1]['conflicts'], True)
+
+    def test_requeue_pickmes_with_conflicts(self):
+        with nested(
+            mock.patch.object(GitQueue, '_get_request_ids_in_push'),
+            mock.patch.object(GitQueue, '_get_request'),
+            mock.patch.object(GitQueue, 'enqueue_request')
+        ) as (ids_in_push, get_req, enqueue_req):
+
+            reqs = [
+                {'id': 1, 'tags': 'git-ok,conflict-pickme'},
+                {'id': 2, 'tags': 'git-ok,conflict-master'},
+                {'id': 3, 'tags': 'git-ok,feature'}
+            ]
+
+            ids_in_push.return_value = [0, 1, 2]
+            get_req.return_value = reqs[0]
+
+            def update_get_req(i):
+                return reqs[i]
+
+            get_req.side_effect = update_get_req
+
+            pushmanager.core.git.GitQueue.requeue_pickmes_with_conflicts(1)
+
+            calls = [mock.call(GitTaskAction.TEST_PICKME_CONFLICT, 0, requeue=False)]
+
+            enqueue_req.assert_has_calls(calls)
 
     def test_stale_module_check(self):
         test_settings = copy.deepcopy(Settings)
