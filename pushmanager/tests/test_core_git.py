@@ -185,28 +185,11 @@ class CoreGitTest(T.TestCase):
             T.assert_equal(pushmanager.core.git.GitQueue.verify_branch_successful.call_count, 1)
 
     def test_verify_branch(self):
-        expected_cwd = '/place/to/store/on-disk/git/repos/main-repository'
         with mock.patch('pushmanager.core.git.GitCommand') as GC:
             GC.return_value = GC
             GC.run.return_value = (0, "hashashash", "")
             pushmanager.core.git.GitQueue.verify_branch(1)
             calls = [
-                mock.call('clone', 'git://git.example.com/main-repository', expected_cwd),
-                 mock.call.run(),
-                 mock.call('remote', 'add', u'bmetin', u'git://git.example.com/devs/bmetin', cwd=expected_cwd),
-                 mock.call.run(),
-                 mock.call('fetch', '--prune', u'bmetin', 'bmetin_fix_stuff:refs/remotes/bmetin/bmetin_fix_stuff', cwd=expected_cwd),
-                 mock.call.run(),
-                 mock.call('reset', '--hard', 'HEAD', cwd=expected_cwd),
-                 mock.call.run(),
-                 mock.call('clean', '-fdfx', cwd=expected_cwd),
-                 mock.call.run(),
-                 mock.call('checkout', u'bmetin/bmetin_fix_stuff', cwd=expected_cwd),
-                 mock.call.run(),
-                 mock.call('submodule', '--quiet', 'sync', cwd=expected_cwd),
-                 mock.call.run(),
-                 mock.call('submodule', '--quiet', 'update', '--init', cwd=expected_cwd),
-                 mock.call.run(),
                  mock.call('ls-remote', '-h', u'git://git.example.com/devs/bmetin', u'bmetin_fix_stuff'),
                  mock.call.run()
             ]

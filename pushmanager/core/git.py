@@ -349,8 +349,10 @@ class GitCommand(subprocess.Popen):
 
 class GitQueue(object):
 
-    request_queue = None
-    worker_process = None
+    conflict_queue = None
+    sha_queue = None
+    conflict_worker_process = None
+    sha_worker_process = None
 
     EXCLUDE_FROM_GIT_VERIFICATION = Settings['git']['exclude_from_verification']
 
@@ -363,12 +365,20 @@ class GitQueue(object):
 
     @classmethod
     def start_worker(cls):
-        if cls.worker_process is not None:
+        if cls.conflict_worker_process is not None and cls.sha_worker_process is not None:
             return
-        cls.request_queue = JoinableQueue()
-        cls.worker_process = Process(target=cls.process_queue, name='git-queue')
-        cls.worker_process.daemon = True
-        cls.worker_process.start()
+
+        cls.conflict_queue = JoinableQueue()
+        cls.sha_queue = JoinableQueue()
+
+        cls.conflict_worker_process = Process(target=cls.process_conflict_queue, name='git-conflict-queue')
+        cls.sha_worker_process = Process(target=cls.process_sha_queue, name='git-sha-queue')
+
+        cls.conflict_worker_process.daemon = True
+        cls.conflict_worker_process.start()
+
+        cls.sha_worker_process.daemon = True
+        cls.sha_worker_process.start()
 
     @classmethod
     def git_merge_pickme(cls, pickme_request, master_repo_path):
@@ -547,7 +557,6 @@ class GitQueue(object):
         }
         stdout = ""
         try:
-            cls.create_or_update_local_repo(req['repo'], branch=req['branch'], fetch=True)
             ls_remote = GitCommand(
                 'ls-remote', '-h',
                 cls._get_repository_uri(req['repo']), req['branch']
@@ -1194,40 +1203,71 @@ class GitQueue(object):
                 )
 
     @classmethod
-    def process_queue(cls):
+    def process_sha_queue(cls):
+        logging.info("Starting GitConflictQueue")
         while True:
             # Throttle
             time.sleep(1)
 
-            task = cls.request_queue.get()
+            task = cls.sha_queue.get()
 
             if not isinstance(task, GitQueueTask):
-                logging.error("Non-task object in GitQueue: %s", task)
+                logging.error("Non-task object in GitSHAQueue: %s", task)
                 continue
 
             try:
                 if task.task_type is GitTaskAction.VERIFY_BRANCH:
                     cls.verify_branch(task.request_id)
-                elif task.task_type is GitTaskAction.TEST_PICKME_CONFLICT:
-                    cls.test_pickme_conflicts(task.request_id, **task.kwargs)
-                elif task.task_type is GitTaskAction.TEST_ALL_PICKMES:
-                    cls.requeue_pickmes_with_conflicts(task.request_id)
                 else:
                     logging.error(
-                        "GitQueue encountered unknown task type %d",
+                        "GitSHAQueue encountered unknown task type %d",
                         task.task_type
                     )
             except Exception:
                 logging.error('THREAD ERROR:', exc_info=True)
             finally:
-                cls.request_queue.task_done()
+                cls.sha_queue.task_done()
+
+    @classmethod
+    def process_conflict_queue(cls):
+        logging.info("Starting GitConflictQueue")
+        while True:
+            # Throttle
+            time.sleep(1)
+
+            task = cls.conflict_queue.get()
+
+            if not isinstance(task, GitQueueTask):
+                logging.error("Non-task object in GitConflictQueue: %s", task)
+                continue
+
+            try:
+                if task.task_type is GitTaskAction.TEST_PICKME_CONFLICT:
+                    cls.test_pickme_conflicts(task.request_id, **task.kwargs)
+                elif task.task_type is GitTaskAction.TEST_ALL_PICKMES:
+                    cls.requeue_pickmes_with_conflicts(task.request_id)
+                else:
+                    logging.error(
+                        "GitConflictQueue encountered unknown task type %d",
+                        task.task_type
+                    )
+            except Exception:
+                logging.error('THREAD ERROR:', exc_info=True)
+            finally:
+                cls.conflict_queue.task_done()
 
     @classmethod
     def enqueue_request(cls, task_type, request_id, **kwargs):
-        if not cls.request_queue:
-            logging.error("Attempted to put to nonexistent GitQueue!")
-            return
-        cls.request_queue.put(GitQueueTask(task_type, request_id, **kwargs))
+        if task_type is GitTaskAction.VERIFY_BRANCH:
+            if not cls.sha_queue:
+                logging.error("Attempted to put to nonexistent GitSHAQueue!")
+                return
+            cls.sha_queue.put(GitQueueTask(task_type, request_id, **kwargs))
+        else:
+            if not cls.conflict_queue:
+                logging.error("Attempted to put to nonexistent GitConflictQueue!")
+                return
+            cls.conflict_queue.put(GitQueueTask(task_type, request_id, **kwargs))
 
 def webhook_req(left_type, left_token, right_type, right_token):
     webhook_url = Settings['web_hooks']['post_url']
