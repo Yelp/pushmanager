@@ -737,7 +737,6 @@ class GitQueue(object):
             cls.shas_in_master = {}
 
         if sha in cls.shas_in_master:
-            logging.error("Found sha in cache")
             return True
 
         repo_path = cls._get_local_repository_uri(
