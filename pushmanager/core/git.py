@@ -799,7 +799,7 @@ class GitQueue(object):
 
             # Don't check against pickmes that are already in master, as
             # it would throw 'nothing to commit' errors
-            sha = cls._get_branch_sha_from_repo(req)
+            sha = cls._get_branch_sha_from_repo(pickme_details)
             if sha is None or cls._sha_exists_in_master(sha):
                 continue
 
