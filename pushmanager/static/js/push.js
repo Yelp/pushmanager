@@ -314,6 +314,14 @@ $(function() {
         $('#push-info-form').hide();
     });
 
+    $('#rerun-conflict-check').click(function() {
+        $('#confirm-conflict-check').show();
+    });
+
+    $('#cancel-conflict-check').click(function() {
+        $('#confirm-conflict-check').hide();
+    });
+
     $('#discard-push').click(function() {
         PushManager.run_command_dialog("git push --delete canon " + $('#push-info').attr('branch'), function() {
             // Go ahead and discard it.

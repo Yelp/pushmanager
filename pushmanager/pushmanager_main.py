@@ -25,6 +25,7 @@ from pushmanager.servlets.blesspush import BlessPushServlet
 from pushmanager.servlets.checklist import ChecklistServlet
 from pushmanager.servlets.checklist import ChecklistToggleServlet
 from pushmanager.servlets.commentrequest import CommentRequestServlet
+from pushmanager.servlets.conflictcheck import ConflictCheckServlet
 from pushmanager.servlets.delayrequest import DelayRequestServlet
 from pushmanager.servlets.deploypush import DeployPushServlet
 from pushmanager.servlets.discardpush import DiscardPushServlet
@@ -64,6 +65,7 @@ def get_url_specs():
     for servlet in (APIServlet,
                     ChecklistServlet,
                     ChecklistToggleServlet,
+                    ConflictCheckServlet,
                     RequestServlet,
                     RequestsServlet,
                     NewRequestServlet,

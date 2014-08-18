@@ -1199,7 +1199,7 @@ class GitQueue(object):
         for req in request_details:
             GitQueue.enqueue_request(
                 GitTaskAction.TEST_PICKME_CONFLICT,
-                pickme_id,
+                req['id'],
                 requeue=False
             )
 

@@ -400,7 +400,7 @@ class PushTemplateTest(TemplateTestCase):
             'discard-push', 'add-selected-requests',
             'remove-selected-requests', 'rebuild-deploy-branch',
             'deploy-to-stage-step0', 'deploy-to-prod', 'merge-to-master',
-            'message-all', 'show-checklist']
+            'message-all', 'show-checklist', 'rerun-conflict-check']
 
     def test_push_buttons_random_user(self):
         with self.no_ui_modules():
