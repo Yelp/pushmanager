@@ -1,3 +1,19 @@
+0.3.3   2014-08-08
+
+ BUG FIXES
+
+ * Don't run merge detection on merged requests (rschlaikjer, #84, #91)
+ * Fetch non-ff branches (rschlaikjer, #85, #90)
+
+ IMPROVEMENTS
+
+ * Manually rerun merge detection (rschlaikjer, #86, #92)
+
+ PERFORMANCE TWEAKS
+
+ * Separate git sha retrieval from git merge conflict detection.
+   (rschlaikjer, #82, #83)
+
 0.3.2   2014-08-15
 
  PERFORMANCE TWEAKS
