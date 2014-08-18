@@ -279,6 +279,7 @@ class GitTaskAction(object):
     VERIFY_BRANCH = 1
     TEST_PICKME_CONFLICT = 2
     TEST_ALL_PICKMES = 3
+    TEST_CONFLICTING_PICKMES = 4
 
 
 class GitQueueTask(object):
@@ -1239,15 +1240,24 @@ class GitQueue(object):
         MailQueue.enqueue_user_email([user_to_notify], msg, subject)
 
     @classmethod
-    def requeue_pickmes_with_conflicts(cls, push_id):
+    def requeue_pickmes_for_push(cls, push_id, conflicting_only=False):
+        request_details = []
         for pickme_id in cls._get_request_ids_in_push(push_id):
-            req = cls._get_request(pickme_id)
-            if req and req['tags'] and 'conflict-pickme' in req['tags']:
-                GitQueue.enqueue_request(
-                    GitTaskAction.TEST_PICKME_CONFLICT,
-                    pickme_id,
-                    requeue=False
-                )
+            request_details.append(cls._get_request(pickme_id))
+
+        if conflicting_only:
+            request_details = [
+                req for req in request_details
+                if req and req['tags']
+                and 'conflict-pickme' in req['tags']
+            ]
+
+        for req in request_details:
+            GitQueue.enqueue_request(
+                GitTaskAction.TEST_PICKME_CONFLICT,
+                req['id'],
+                requeue=False
+            )
 
     @classmethod
     def process_sha_queue(cls):
@@ -1291,8 +1301,10 @@ class GitQueue(object):
             try:
                 if task.task_type is GitTaskAction.TEST_PICKME_CONFLICT:
                     cls.test_pickme_conflicts(task.request_id, **task.kwargs)
+                elif task.task_type is GitTaskAction.TEST_CONFLICTING_PICKMES:
+                    cls.requeue_pickmes_for_push(task.request_id, conflicting_only=True)
                 elif task.task_type is GitTaskAction.TEST_ALL_PICKMES:
-                    cls.requeue_pickmes_with_conflicts(task.request_id)
+                    cls.requeue_pickmes_for_push(task.request_id)
                 else:
                     logging.error(
                         "GitConflictQueue encountered unknown task type %d",

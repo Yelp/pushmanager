@@ -90,4 +90,6 @@ class UnpickMeRequestServlet(RequestHandler):
 
     def on_db_complete(self, success, db_results):
         self.check_db_results(success, db_results)
-        GitQueue.enqueue_request(GitTaskAction.TEST_ALL_PICKMES, self.pushid)
+        # Re-check pickmes that are marked as conflicting, in case this was the pickme
+        # that they conflicted against.
+        GitQueue.enqueue_request(GitTaskAction.TEST_CONFLICTING_PICKMES, self.pushid)
