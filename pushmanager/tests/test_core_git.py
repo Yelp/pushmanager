@@ -148,6 +148,8 @@ class CoreGitTest(T.TestCase):
         T.assert_equal(result[0][5], self.fake_request['revision'])
 
     def test_process_queue_duplicate(self):
+        duplicate_req = copy.deepcopy(self.fake_request)
+        duplicate_req['id'] = 11
         with nested(
             mock.patch("%s.pushmanager.core.git.GitQueue.verify_branch_failure" % __name__),
             mock.patch("%s.pushmanager.core.git.GitQueue.verify_branch_successful" % __name__),
@@ -157,7 +159,7 @@ class CoreGitTest(T.TestCase):
                 "%s.pushmanager.core.git.GitQueue._get_request_with_sha" % __name__,
                 return_value={'id': 10, 'state': 'requested'}
             ),
-            self.mocked_update_request(self.fake_request, self.fake_request)
+            self.mocked_update_request(self.fake_request, duplicate_req)
         ):
             # GitQueue._get_request_with_sha returning a value means
             # we have a duplicated request. This should trigger a
@@ -185,28 +187,11 @@ class CoreGitTest(T.TestCase):
             T.assert_equal(pushmanager.core.git.GitQueue.verify_branch_successful.call_count, 1)
 
     def test_verify_branch(self):
-        expected_cwd = '/place/to/store/on-disk/git/repos/main-repository'
         with mock.patch('pushmanager.core.git.GitCommand') as GC:
             GC.return_value = GC
             GC.run.return_value = (0, "hashashash", "")
             pushmanager.core.git.GitQueue.verify_branch(1)
             calls = [
-                mock.call('clone', 'git://git.example.com/main-repository', expected_cwd),
-                 mock.call.run(),
-                 mock.call('remote', 'add', u'bmetin', u'git://git.example.com/devs/bmetin', cwd=expected_cwd),
-                 mock.call.run(),
-                 mock.call('fetch', '--prune', u'bmetin', 'bmetin_fix_stuff:refs/remotes/bmetin/bmetin_fix_stuff', cwd=expected_cwd),
-                 mock.call.run(),
-                 mock.call('reset', '--hard', 'HEAD', cwd=expected_cwd),
-                 mock.call.run(),
-                 mock.call('clean', '-fdfx', cwd=expected_cwd),
-                 mock.call.run(),
-                 mock.call('checkout', u'bmetin/bmetin_fix_stuff', cwd=expected_cwd),
-                 mock.call.run(),
-                 mock.call('submodule', '--quiet', 'sync', cwd=expected_cwd),
-                 mock.call.run(),
-                 mock.call('submodule', '--quiet', 'update', '--init', cwd=expected_cwd),
-                 mock.call.run(),
                  mock.call('ls-remote', '-h', u'git://git.example.com/devs/bmetin', u'bmetin_fix_stuff'),
                  mock.call.run()
             ]
