@@ -312,13 +312,13 @@ class CoreGitTest(T.TestCase):
     def test_create_or_update_local_repo_master(self):
         expected_cwd = '/place/to/store/on-disk/git/repos/main-repository'
         with mock.patch('pushmanager.core.git.GitCommand') as GC:
-            pushmanager.core.git.GitQueue.create_or_update_local_repo(Settings['git']['main_repository'], 'test_branch')
+            pushmanager.core.git.GitQueue.create_or_update_local_repo(Settings['git']['main_repository'], 'test_branch', fetch=True)
             calls = [
                 mock.call('clone', 'git://git.example.com/main-repository', expected_cwd),
                 mock.call().run(),
                 mock.call('remote', 'add', 'origin', 'git://git.example.com/main-repository', cwd=expected_cwd),
                 mock.call().run(),
-                mock.call('fetch', '--prune', 'origin', 'test_branch:refs/remotes/origin/test_branch', cwd=expected_cwd),
+                mock.call('fetch', '--prune', 'origin', '+refs/heads/test_branch:refs/remotes/origin/test_branch', cwd=expected_cwd),
                 mock.call().run(),
                 mock.call('reset', '--hard', 'HEAD', cwd='/place/to/store/on-disk/git/repos/main-repository'),
                 mock.call().run(),
@@ -336,13 +336,13 @@ class CoreGitTest(T.TestCase):
     def test_create_or_update_local_repo_dev(self):
         expected_cwd = '/place/to/store/on-disk/git/repos/main-repository'
         with mock.patch('pushmanager.core.git.GitCommand') as GC:
-            pushmanager.core.git.GitQueue.create_or_update_local_repo('some_dev_name', 'test_branch')
+            pushmanager.core.git.GitQueue.create_or_update_local_repo('some_dev_name', 'test_branch', fetch=True)
             calls = [
                 mock.call('clone', 'git://git.example.com/main-repository', expected_cwd),
                 mock.call().run(),
                 mock.call('remote', 'add', 'some_dev_name', 'git://git.example.com/devs/some_dev_name', cwd=expected_cwd),
                 mock.call().run(),
-                mock.call('fetch', '--prune', 'some_dev_name', 'test_branch:refs/remotes/some_dev_name/test_branch', cwd=expected_cwd),
+                mock.call('fetch', '--prune', 'some_dev_name', '+refs/heads/test_branch:refs/remotes/some_dev_name/test_branch', cwd=expected_cwd),
                 mock.call().run(),
                 mock.call('reset', '--hard', 'HEAD', cwd='/place/to/store/on-disk/git/repos/main-repository'),
                 mock.call().run(),
@@ -374,13 +374,13 @@ class CoreGitTest(T.TestCase):
         expected_cwd = '/place/to/store/on-disk/git/repos/main-repository'
         with mock.patch.dict(Settings, test_settings, clear=True):
             with mock.patch('pushmanager.core.git.GitCommand') as GC:
-                pushmanager.core.git.GitQueue.create_or_update_local_repo('some_dev_name', 'test_branch')
+                pushmanager.core.git.GitQueue.create_or_update_local_repo('some_dev_name', 'test_branch', fetch=True)
                 calls = [
                     mock.call('clone', 'git://git.example.com/main-repository', '--reference', '/', expected_cwd),
                     mock.call().run(),
                     mock.call('remote', 'add', 'some_dev_name', 'git://git.example.com/devs/some_dev_name', cwd=expected_cwd),
                     mock.call().run(),
-                    mock.call('fetch', '--prune', 'some_dev_name', 'test_branch:refs/remotes/some_dev_name/test_branch', cwd=expected_cwd),
+                    mock.call('fetch', '--prune', 'some_dev_name', '+refs/heads/test_branch:refs/remotes/some_dev_name/test_branch', cwd=expected_cwd),
                     mock.call().run(),
                     mock.call('reset', '--hard', 'HEAD', cwd='/place/to/store/on-disk/git/repos/main-repository'),
                     mock.call().run(),
