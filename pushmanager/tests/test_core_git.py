@@ -430,14 +430,14 @@ class CoreGitTest(T.TestCase):
             f.write('#!/usr/bin/env python\n\nprint("Hallo Welt!")\nPrint("Goodbye!")\n')
         GitCommand('commit', '-a', '-m', 'verpflichten', cwd=repo_path).run()
         GitCommand('checkout', 'master', cwd=repo_path).run()
-        german_req = {'id': 1, 'tags':'git-ok', 'title':'German', 'repo':'.', 'branch':'change_german'}
+        german_req = {'id': 1, 'user':'test', 'tags':'git-ok', 'title':'German', 'repo':'.', 'branch':'change_german'}
 
         GitCommand('checkout', '-b', 'change_welsh', cwd=repo_path).run()
         with open(os.path.join(repo_path, "code.py"), 'w') as f:
             f.write('#!/usr/bin/env python\n\nprint("Helo Byd!")\nPrint("Goodbye!")\n')
         GitCommand('commit', '-a', '-m', 'ymrwymo', cwd=repo_path).run()
         GitCommand('checkout', 'master', cwd=repo_path).run()
-        welsh_req = {'id': 2, 'tags':'git-ok', 'title':'Welsh', 'repo':'.', 'branch':'change_welsh'}
+        welsh_req = {'id': 2, 'user': 'test', 'user': 'test', 'tags':'git-ok', 'title':'Welsh', 'repo':'.', 'branch':'change_welsh'}
 
         # Create a test branch for merging
         GitCommand('checkout', '-b', 'test_pcp', cwd=repo_path).run()
@@ -451,12 +451,16 @@ class CoreGitTest(T.TestCase):
                 mock.patch('pushmanager.core.git.GitQueue._get_push_for_request'),
                 mock.patch('pushmanager.core.git.GitQueue._get_request_ids_in_push'),
                 mock.patch('pushmanager.core.git.GitQueue._get_request'),
+                mock.patch('pushmanager.core.git.GitQueue._get_branch_sha_from_repo'),
+                mock.patch('pushmanager.core.git.GitQueue._sha_exists_in_master'),
                 mock.patch('pushmanager.core.git.GitQueue._update_request'),
                 mock.patch.dict(Settings, test_settings, clear=True)
-        ) as (p_for_r, r_in_p, get_req, update_req, _) :
+        ) as (p_for_r, r_in_p, get_req, get_sha, sha_exists, update_req, _) :
             p_for_r.return_value = {'push': 1}
             r_in_p.return_value = [1, 2]
             get_req.return_value = welsh_req
+            get_sha.return_value = "0"*40
+            sha_exists.return_value = False
             update_req.return_value = german_req
             conflict, _ = pushmanager.core.git.GitQueue._test_pickme_conflict_pickme(
                 german_req,

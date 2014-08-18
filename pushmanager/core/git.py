@@ -354,6 +354,8 @@ class GitQueue(object):
     conflict_worker_process = None
     sha_worker_process = None
 
+    shas_in_master = {}
+
     EXCLUDE_FROM_GIT_VERIFICATION = Settings['git']['exclude_from_verification']
 
     @classmethod
@@ -727,6 +729,36 @@ class GitQueue(object):
         return updated_request
 
     @classmethod
+    def _sha_exists_in_master(cls, sha):
+        """Check if a given SHA is included in master
+        Memoize shas that are, so that we can avoid expensive rev-lists later.
+        We can't cache shas that are not in master, since we won't know when they get merged.
+        """
+
+        # Dirty cache expiry mechanism, but better than constantly
+        # accumulating SHAs in memory
+        if len(cls.shas_in_master) > 1000:
+            cls.shas_in_master = {}
+
+        if sha in cls.shas_in_master:
+            logging.error("Found sha in cache")
+            return True
+
+        repo_path = cls._get_local_repository_uri(
+            Settings['git']['main_repository']
+        )
+
+        _, merge_base, _ = GitCommand('merge-base', 'origin/master', sha, cwd=repo_path).run()
+
+        merge_base = merge_base.strip()
+
+        if sha == merge_base:
+            cls.shas_in_master[sha] = True
+            return True
+        else:
+            return False
+
+    @classmethod
     def _test_pickme_conflict_pickme(cls, req, target_branch,
                                      repo_path, requeue):
         """Test for any pickmes that are broken by pickme'd request req
@@ -764,6 +796,13 @@ class GitQueue(object):
                     pickme
                 )
                 continue
+
+            # Don't check against pickmes that are already in master, as
+            # it would throw 'nothing to commit' errors
+            sha = cls._get_branch_sha_from_repo(req)
+            if sha is None or cls._sha_exists_in_master(sha):
+                continue
+
 
             # Don't bother trying to compare against pickmes that
             # break master, as they will conflict by default
@@ -935,6 +974,15 @@ class GitQueue(object):
             push_id=push_id,
             pickme_id=request_id
         )
+
+        # Check that the branch is still reachable
+        sha = cls._get_branch_sha_from_repo(req)
+        if sha is None:
+            return
+
+        # Check if the pickme has already been merged into master
+        if cls._sha_exists_in_master(sha):
+            return
 
         # Clear the pickme's conflict info
         cls._clear_pickme_conflict_details(req)
