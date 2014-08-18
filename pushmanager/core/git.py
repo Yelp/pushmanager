@@ -461,32 +461,27 @@ class GitQueue(object):
             clone_repo = GitCommand(*clone_args)
             clone_repo.run()
 
-        # If we are dealing with a dev repo, make sure it is added as a remote
-        dev_repo_uri = cls._get_repository_uri(repo_name)
-        add_remote = GitCommand(
-            'remote', 'add', repo_name, dev_repo_uri,
-            cwd=repo_path
-        )
-        try:
-            add_remote.run()
-            # If we had to add a new remote, we should fetch it.
-            fetch = True
-        except GitException, e:
-            # If the remote already exists, git will return err 128
-            if e.gitret is 128:
-                pass
-            else:
-                raise e
-
         if fetch:
+            # If we are dealing with a dev repo, make sure it is added as a remote
+            dev_repo_uri = cls._get_repository_uri(repo_name)
+            add_remote = GitCommand(
+                'remote', 'add', repo_name, dev_repo_uri,
+                cwd=repo_path
+            )
+            try:
+                add_remote.run()
+            except GitException, e:
+                # If the remote already exists, git will return err 128
+                if e.gitret is 128:
+                    pass
+                else:
+                    raise e
+
             # Fetch the specified branch from the repo
-            remote_path = '{branch}:refs/remotes/{repo}/{branch}'.format(
+            remote_path = '+refs/heads/{branch}:refs/remotes/{repo}/{branch}'.format(
                 branch=branch,
                 repo=repo_name
             )
-
-            if branch is 'master':
-                remote_path = branch
 
             fetch_updates = GitCommand(
                 'fetch',
