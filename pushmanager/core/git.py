@@ -743,7 +743,12 @@ class GitQueue(object):
             Settings['git']['main_repository']
         )
 
-        _, merge_base, _ = GitCommand('merge-base', 'origin/master', sha, cwd=repo_path).run()
+        try:
+            _, merge_base, _ = GitCommand('merge-base', 'origin/master', sha, cwd=repo_path).run()
+        except GitException:
+            # If the hash is entirely unknown, Git will throw an error
+            # fatal: Not a valid commit name <sha>.
+            return False
 
         merge_base = merge_base.strip()
 
