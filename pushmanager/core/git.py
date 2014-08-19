@@ -737,14 +737,18 @@ class GitQueue(object):
             cls.shas_in_master = {}
 
         if sha in cls.shas_in_master:
-            logging.error("Found sha in cache")
             return True
 
         repo_path = cls._get_local_repository_uri(
             Settings['git']['main_repository']
         )
 
-        _, merge_base, _ = GitCommand('merge-base', 'origin/master', sha, cwd=repo_path).run()
+        try:
+            _, merge_base, _ = GitCommand('merge-base', 'origin/master', sha, cwd=repo_path).run()
+        except GitException:
+            # If the hash is entirely unknown, Git will throw an error
+            # fatal: Not a valid commit name <sha>.
+            return False
 
         merge_base = merge_base.strip()
 
@@ -795,7 +799,7 @@ class GitQueue(object):
 
             # Don't check against pickmes that are already in master, as
             # it would throw 'nothing to commit' errors
-            sha = cls._get_branch_sha_from_repo(req)
+            sha = cls._get_branch_sha_from_repo(pickme_details)
             if sha is None or cls._sha_exists_in_master(sha):
                 continue
 
