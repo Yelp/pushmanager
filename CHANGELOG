@@ -1,3 +1,17 @@
+0.3.7   2014-09-05
+
+ BUG FIXES
+
+ * Strip whitespace from sensitive request fields (rschlaikjer, #108)
+ * Expand the linkify regex to accept dashes and port numbers (fede1024, #110)
+
+ IMPROVEMENTS
+
+ * Split pushmanager messages across multiple lines to avoid max char limit
+   (Mango-J, #35, #106)
+ * Replaced the trac specific ticket link with a general link. (fede1024, #105)
+ * Improve pickme conflict detection (rschlaikjer, #104)
+
 0.3.6   2014-08-22
 
  BUG FIXES

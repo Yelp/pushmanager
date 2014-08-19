@@ -1,3 +1,10 @@
+2014.09.05
+  AFFECTS: Users with existing installs before 0.3.7
+  AUTHOR: milki
+
+  Config option trac.servername has been removed in favour of
+  ticket_tracker_url_format
+
 2014.08.22
   AFFECTS: Users with existing installs before 0.3.6
   AUTHOR: milki
