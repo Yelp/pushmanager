@@ -453,9 +453,10 @@ class CoreGitTest(T.TestCase):
                 mock.patch('pushmanager.core.git.GitQueue._get_request'),
                 mock.patch('pushmanager.core.git.GitQueue._get_branch_sha_from_repo'),
                 mock.patch('pushmanager.core.git.GitQueue._sha_exists_in_master'),
+                mock.patch('pushmanager.core.git.GitQueue.create_or_update_local_repo'),
                 mock.patch('pushmanager.core.git.GitQueue._update_request'),
                 mock.patch.dict(Settings, test_settings, clear=True)
-        ) as (p_for_r, r_in_p, get_req, get_sha, sha_exists, update_req, _) :
+        ) as (p_for_r, r_in_p, get_req, get_sha, sha_exists, _, update_req, _) :
             p_for_r.return_value = {'push': 1}
             r_in_p.return_value = [1, 2]
             get_req.return_value = welsh_req
@@ -521,8 +522,9 @@ class CoreGitTest(T.TestCase):
                     'pushmanager.core.git.git_branch_context_manager',
                     NoRemoteBranchContextManager
                 ),
+                mock.patch('pushmanager.core.git.GitQueue.create_or_update_local_repo'),
                 mock.patch.dict(Settings, test_settings, clear=True)
-        ) as (update_req, _, _) :
+        ) as (update_req, _, _, _) :
             conflict, _ = pushmanager.core.git.GitQueue._test_pickme_conflict_master(
                 german_req,
                 "test_pcm",

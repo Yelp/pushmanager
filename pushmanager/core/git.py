@@ -797,6 +797,14 @@ class GitQueue(object):
                 )
                 continue
 
+            # Ensure we have a copy of the pickme we are comparing against
+            cls.create_or_update_local_repo(
+                pickme_details['repo'],
+                branch=pickme_details['branch'],
+                fetch=True,
+                checkout=False
+            )
+
             # Don't check against pickmes that are already in master, as
             # it would throw 'nothing to commit' errors
             sha = cls._get_branch_sha_from_repo(pickme_details)
@@ -891,6 +899,14 @@ class GitQueue(object):
         :param target_branch: The name of the test branch to use for testing
         :param repo_path: The location of the repository we are working in
         """
+
+        # Ensure we have a copy of the pickme branch
+        cls.create_or_update_local_repo(
+            req['repo'],
+            branch=req['branch'],
+            fetch=True,
+            checkout=False
+        )
 
         # Create a test branch following master
         with git_branch_context_manager(target_branch, repo_path):
