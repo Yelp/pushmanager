@@ -1,3 +1,10 @@
+0.3.4   2014-08-08
+
+ BUG FIXES
+
+ * When checking if a pickme has already been merged, use
+   the pickme's id. (rschlaikjer, #94)
+
 0.3.3   2014-08-08
 
  BUG FIXES
