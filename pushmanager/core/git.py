@@ -369,8 +369,9 @@ class GitQueue(object):
 
     @classmethod
     def start_worker(cls):
+        worker_pids = []
         if cls.conflict_worker_process is not None and cls.sha_worker_process is not None:
-            return
+            return worker_pids
 
         cls.conflict_queue = JoinableQueue()
         cls.sha_queue = JoinableQueue()
@@ -385,10 +386,14 @@ class GitQueue(object):
             worker_thread.daemon = True
             worker_thread.start()
             cls.conflict_workers.append(worker_thread)
+            worker_pids.append(worker_thread.pid)
 
         cls.sha_worker_process = Process(target=cls.process_sha_queue, name='git-sha-queue')
         cls.sha_worker_process.daemon = True
         cls.sha_worker_process.start()
+        worker_pids.append(cls.sha_worker_process.pid)
+
+        return worker_pids
 
     @classmethod
     def git_merge_pickme(cls, worker_id, pickme_request, master_repo_path):

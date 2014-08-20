@@ -1,6 +1,7 @@
 import logging
 import os
 import pwd
+import signal
 import sys
 import time
 from abc import ABCMeta
@@ -31,9 +32,12 @@ class Application:
         self.log = open(self.log_file, 'a+')
         self.command = self.parse_command()
 
+        self.queue_worker_pids = []
         self.clean_pids()
 
         if self.command == "stop":
+            for worker_pid in self.queue_worker_pids:
+                os.kill(worker_pid, signal.SIGKILL)
             sys.exit()
 
     def parse_command(self):
@@ -60,7 +64,7 @@ class Application:
     def run(self):
         daemon_context = daemon.DaemonContext(stdout=self.log, stderr=self.log, working_directory=os.getcwd())
         with daemon_context:
-            pid.write(self.pid_file)
+            pid.write(self.pid_file, append=True)
             try:
                 self.start_services()
                 pid.write(self.pid_file, append=True)

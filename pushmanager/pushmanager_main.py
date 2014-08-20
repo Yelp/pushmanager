@@ -6,6 +6,7 @@ import tornado.httpserver
 import tornado.web
 import pushmanager.ui_methods as ui_methods
 import pushmanager.ui_modules as ui_modules
+from pushmanager.core import pid
 from pushmanager.core.application import Application
 from pushmanager.core.git import GitQueue
 from pushmanager.core.mail import MailQueue
@@ -126,10 +127,14 @@ class PushManagerApp(Application):
         redir_sockets = tornado.netutil.bind_sockets(self.redir_port, address=Settings['main_app']['servername'])
 
         # Start the mail, git, reviewboard and XMPP queue handlers
-        MailQueue.start_worker()
-        RBQueue.start_worker()
-        XMPPQueue.start_worker()
-        GitQueue.start_worker()
+        worker_pids = []
+        worker_pids.extend(MailQueue.start_worker())
+        worker_pids.extend(RBQueue.start_worker())
+        worker_pids.extend(XMPPQueue.start_worker())
+        worker_pids.extend(GitQueue.start_worker())
+        for worker_pid in worker_pids:
+            pid.write(self.pid_file, append=True, pid=worker_pid)
+        self.queue_worker_pids.extend(worker_pids)
 
         tornado.process.fork_processes(Settings['tornado']['num_workers'])
 

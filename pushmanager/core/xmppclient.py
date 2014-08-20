@@ -20,11 +20,12 @@ class XMPPQueue(object):
     @classmethod
     def start_worker(cls):
         if cls.worker_process is not None:
-            return
+            return []
         cls.message_queue = JoinableQueue()
         cls.worker_process = Process(target=cls.process_queue, name='xmpp-queue')
         cls.worker_process.daemon = True
         cls.worker_process.start()
+        return [cls.worker_process.pid]
 
     @classmethod
     def _retry_message(cls, msg):
