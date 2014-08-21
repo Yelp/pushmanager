@@ -310,9 +310,9 @@ class CoreGitTest(T.TestCase):
             GC.assert_has_calls(calls)
 
     def test_create_or_update_local_repo_master(self):
-        expected_cwd = '/place/to/store/on-disk/git/repos/main-repository'
+        expected_cwd = '/place/to/store/on-disk/git/repos/main-repository.0'
         with mock.patch('pushmanager.core.git.GitCommand') as GC:
-            pushmanager.core.git.GitQueue.create_or_update_local_repo(Settings['git']['main_repository'], 'test_branch', fetch=True)
+            pushmanager.core.git.GitQueue.create_or_update_local_repo(0, Settings['git']['main_repository'], 'test_branch', fetch=True)
             calls = [
                 mock.call('clone', 'git://git.example.com/main-repository', expected_cwd),
                 mock.call().run(),
@@ -320,9 +320,9 @@ class CoreGitTest(T.TestCase):
                 mock.call().run(),
                 mock.call('fetch', '--prune', 'origin', '+refs/heads/test_branch:refs/remotes/origin/test_branch', cwd=expected_cwd),
                 mock.call().run(),
-                mock.call('reset', '--hard', 'HEAD', cwd='/place/to/store/on-disk/git/repos/main-repository'),
+                mock.call('reset', '--hard', 'HEAD', cwd=expected_cwd),
                 mock.call().run(),
-                mock.call('clean', '-fdfx', cwd='/place/to/store/on-disk/git/repos/main-repository'),
+                mock.call('clean', '-fdfx', cwd=expected_cwd),
                 mock.call().run(),
                 mock.call('checkout', 'origin/test_branch', cwd=expected_cwd),
                 mock.call().run(),
@@ -334,26 +334,26 @@ class CoreGitTest(T.TestCase):
             GC.assert_has_calls(calls)
 
     def test_create_or_update_local_repo_dev(self):
-        expected_cwd = '/place/to/store/on-disk/git/repos/main-repository'
+        expected_cwd = '/place/to/store/on-disk/git/repos/main-repository.0'
         with mock.patch('pushmanager.core.git.GitCommand') as GC:
-            pushmanager.core.git.GitQueue.create_or_update_local_repo('some_dev_name', 'test_branch', fetch=True)
+            pushmanager.core.git.GitQueue.create_or_update_local_repo(0, 'some_dev_name', 'test_branch', fetch=True)
             calls = [
-                mock.call('clone', 'git://git.example.com/main-repository', expected_cwd),
+                mock.call('clone', 'git://git.example.com/main-repository', '/place/to/store/on-disk/git/repos/main-repository.0'),
                 mock.call().run(),
                 mock.call('remote', 'add', 'some_dev_name', 'git://git.example.com/devs/some_dev_name', cwd=expected_cwd),
                 mock.call().run(),
                 mock.call('fetch', '--prune', 'some_dev_name', '+refs/heads/test_branch:refs/remotes/some_dev_name/test_branch', cwd=expected_cwd),
                 mock.call().run(),
-                mock.call('reset', '--hard', 'HEAD', cwd='/place/to/store/on-disk/git/repos/main-repository'),
+                mock.call('reset', '--hard', 'HEAD', cwd=expected_cwd),
                 mock.call().run(),
-                mock.call('clean', '-fdfx', cwd='/place/to/store/on-disk/git/repos/main-repository'),
+                mock.call('clean', '-fdfx', cwd=expected_cwd),
                 mock.call().run(),
                 mock.call('checkout', 'some_dev_name/test_branch', cwd=expected_cwd),
                 mock.call().run(),
                 mock.call('submodule', '--quiet', 'sync', cwd=expected_cwd),
                 mock.call().run(),
                 mock.call('submodule', '--quiet', 'update', '--init', cwd=expected_cwd),
-                mock.call().run()
+                mock.call().run(),
             ]
             GC.assert_has_calls(calls)
 
@@ -365,16 +365,16 @@ class CoreGitTest(T.TestCase):
         test_settings['git']['scheme'] = "https"
         test_settings['git']['main_repository'] = "Yelp/pushmanager/"
         with mock.patch.dict(Settings, test_settings, clear=True):
-                pushmanager.core.git.GitQueue.create_or_update_local_repo('origin', 'master')
+                pushmanager.core.git.GitQueue.create_or_update_local_repo(0, 'origin', 'master')
 
     def test_create_or_update_local_repo_with_reference(self):
         test_settings = copy.deepcopy(Settings)
         test_settings['git']['use_local_mirror'] = True
         test_settings['git']['local_mirror'] = '/'
-        expected_cwd = '/place/to/store/on-disk/git/repos/main-repository'
+        expected_cwd = '/place/to/store/on-disk/git/repos/main-repository.0'
         with mock.patch.dict(Settings, test_settings, clear=True):
             with mock.patch('pushmanager.core.git.GitCommand') as GC:
-                pushmanager.core.git.GitQueue.create_or_update_local_repo('some_dev_name', 'test_branch', fetch=True)
+                pushmanager.core.git.GitQueue.create_or_update_local_repo(0, 'some_dev_name', 'test_branch', fetch=True)
                 calls = [
                     mock.call('clone', 'git://git.example.com/main-repository', '--reference', '/', expected_cwd),
                     mock.call().run(),
@@ -382,9 +382,9 @@ class CoreGitTest(T.TestCase):
                     mock.call().run(),
                     mock.call('fetch', '--prune', 'some_dev_name', '+refs/heads/test_branch:refs/remotes/some_dev_name/test_branch', cwd=expected_cwd),
                     mock.call().run(),
-                    mock.call('reset', '--hard', 'HEAD', cwd='/place/to/store/on-disk/git/repos/main-repository'),
+                    mock.call('reset', '--hard', 'HEAD', cwd=expected_cwd),
                     mock.call().run(),
-                    mock.call('clean', '-fdfx', cwd='/place/to/store/on-disk/git/repos/main-repository'),
+                    mock.call('clean', '-fdfx', cwd=expected_cwd),
                     mock.call().run(),
                     mock.call('checkout', 'some_dev_name/test_branch', cwd=expected_cwd),
                     mock.call().run(),
@@ -444,8 +444,8 @@ class CoreGitTest(T.TestCase):
 
         # Merge on the first pickme
         with mock.patch('pushmanager.core.git.GitQueue.create_or_update_local_repo') as update_repo:
-            pushmanager.core.git.GitQueue.git_merge_pickme(german_req, repo_path)
-            update_repo.assert_called_with('.', 'change_german', checkout=False)
+            pushmanager.core.git.GitQueue.git_merge_pickme(0, german_req, repo_path)
+            update_repo.assert_called_with(0, '.', 'change_german', checkout=False)
 
         with nested (
                 mock.patch('pushmanager.core.git.GitQueue._get_push_for_request'),
@@ -464,6 +464,7 @@ class CoreGitTest(T.TestCase):
             sha_exists.return_value = False
             update_req.return_value = german_req
             conflict, _ = pushmanager.core.git.GitQueue._test_pickme_conflict_pickme(
+                0,
                 german_req,
                 "test_pcp",
                 repo_path,
@@ -526,6 +527,7 @@ class CoreGitTest(T.TestCase):
                 mock.patch.dict(Settings, test_settings, clear=True)
         ) as (update_req, _, _, _) :
             conflict, _ = pushmanager.core.git.GitQueue._test_pickme_conflict_master(
+                0,
                 german_req,
                 "test_pcm",
                 repo_path,

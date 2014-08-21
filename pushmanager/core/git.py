@@ -13,6 +13,7 @@ can be enqueued:
 Notifications for verify failures and pickme conflicts are sent to the XMPP and
 Mail queues.
 """
+import functools
 import logging
 import os
 import subprocess
@@ -374,17 +375,23 @@ class GitQueue(object):
         cls.conflict_queue = JoinableQueue()
         cls.sha_queue = JoinableQueue()
 
-        cls.conflict_worker_process = Process(target=cls.process_conflict_queue, name='git-conflict-queue')
+        cls.conflict_workers = []
+        for worker_id in range(Settings['git']['conflict-threads']):
+            processing_func = functools.partial(
+                cls.process_conflict_queue,
+                worker_id
+            )
+            worker_thread = Process(target=processing_func, name='git-conflict-queue')
+            worker_thread.daemon = True
+            worker_thread.start()
+            cls.conflict_workers.append(worker_thread)
+
         cls.sha_worker_process = Process(target=cls.process_sha_queue, name='git-sha-queue')
-
-        cls.conflict_worker_process.daemon = True
-        cls.conflict_worker_process.start()
-
         cls.sha_worker_process.daemon = True
         cls.sha_worker_process.start()
 
     @classmethod
-    def git_merge_pickme(cls, pickme_request, master_repo_path):
+    def git_merge_pickme(cls, worker_id, pickme_request, master_repo_path):
         """Merges the branch specified by a pickme onto the current branch
 
         :param pickme_request: Dictionary representing the pickme to merge
@@ -393,6 +400,7 @@ class GitQueue(object):
 
         # Ensure that the branch we are merging is present
         cls.create_or_update_local_repo(
+            worker_id,
             pickme_request['repo'],
             pickme_request['branch'],
             checkout=False
@@ -425,7 +433,7 @@ class GitQueue(object):
 
 
     @classmethod
-    def create_or_update_local_repo(cls, repo_name, branch, checkout=True, fetch=False):
+    def create_or_update_local_repo(cls, worker_id, repo_name, branch, checkout=True, fetch=False):
         """Clones the main repository if it does not exist.
         If repo_name is not the main repo, add that repo as a remote and fetch
         refs before checking out the specified branch.
@@ -434,7 +442,8 @@ class GitQueue(object):
         # Since we are keeping everything in the same repo, repo_path should
         # always be the same
         repo_path = cls._get_local_repository_uri(
-            Settings['git']['main_repository']
+            Settings['git']['main_repository'],
+            worker_id
         )
 
         # repo_name is the remote to use. If we are dealing with the main
@@ -518,8 +527,9 @@ class GitQueue(object):
             update_submodules.run()
 
     @classmethod
-    def _get_local_repository_uri(cls, repository):
-        return os.path.join(Settings['git']['local_repo_path'], repository)
+    def _get_local_repository_uri(cls, repository, worker_id):
+        worker_repo = "{0}.{1}".format(repository, worker_id)
+        return os.path.join(Settings['git']['local_repo_path'], worker_repo)
 
     @classmethod
     def _get_repository_uri(cls, repository):
@@ -725,7 +735,7 @@ class GitQueue(object):
         return updated_request
 
     @classmethod
-    def _sha_exists_in_master(cls, sha):
+    def _sha_exists_in_master(cls, worker_id, sha):
         """Check if a given SHA is included in master
         Memoize shas that are, so that we can avoid expensive rev-lists later.
         We can't cache shas that are not in master, since we won't know when they get merged.
@@ -740,7 +750,8 @@ class GitQueue(object):
             return True
 
         repo_path = cls._get_local_repository_uri(
-            Settings['git']['main_repository']
+            Settings['git']['main_repository'],
+            worker_id
         )
 
         try:
@@ -759,7 +770,7 @@ class GitQueue(object):
             return False
 
     @classmethod
-    def _test_pickme_conflict_pickme(cls, req, target_branch,
+    def _test_pickme_conflict_pickme(cls, worker_id, req, target_branch,
                                      repo_path, requeue):
         """Test for any pickmes that are broken by pickme'd request req
 
@@ -799,6 +810,7 @@ class GitQueue(object):
 
             # Ensure we have a copy of the pickme we are comparing against
             cls.create_or_update_local_repo(
+                worker_id,
                 pickme_details['repo'],
                 branch=pickme_details['branch'],
                 fetch=True,
@@ -808,7 +820,7 @@ class GitQueue(object):
             # Don't check against pickmes that are already in master, as
             # it would throw 'nothing to commit' errors
             sha = cls._get_branch_sha_from_repo(pickme_details)
-            if sha is None or cls._sha_exists_in_master(sha):
+            if sha is None or cls._sha_exists_in_master(worker_id, sha):
                 continue
 
 
@@ -820,7 +832,7 @@ class GitQueue(object):
             try:
                 with git_merge_context_manager(target_branch,
                                                repo_path):
-                    cls.git_merge_pickme(pickme_details, repo_path)
+                    cls.git_merge_pickme(worker_id, pickme_details, repo_path)
             except GitException, e:
                 conflict_pickmes.append((pickme, e.gitout, e.giterr))
                 # Requeue the conflicting pickme so that it also picks up the
@@ -886,7 +898,7 @@ class GitQueue(object):
 
     @classmethod
     def _test_pickme_conflict_master(
-            cls, req, target_branch,
+            cls, worker_id, req, target_branch,
             repo_path, requeue):
         """Test whether the pickme given by req can be successfully merged onto
         master.
@@ -902,6 +914,7 @@ class GitQueue(object):
 
         # Ensure we have a copy of the pickme branch
         cls.create_or_update_local_repo(
+            worker_id,
             req['repo'],
             branch=req['branch'],
             fetch=True,
@@ -915,10 +928,11 @@ class GitQueue(object):
             try:
                 with git_merge_context_manager(target_branch, repo_path):
                     # Try to merge the pickme onto master
-                    cls.git_merge_pickme(req, repo_path)
+                    cls.git_merge_pickme(worker_id, req, repo_path)
 
                     # Check for conflicts with other pickmes
                     return cls._test_pickme_conflict_pickme(
+                        worker_id,
                         req,
                         target_branch,
                         repo_path,
@@ -943,6 +957,7 @@ class GitQueue(object):
     @classmethod
     def test_pickme_conflicts(
             cls,
+            worker_id,
             request_id,
             requeue=True):
         """
@@ -977,6 +992,7 @@ class GitQueue(object):
 
         # Ensure that the local copy of master is up-to-date
         cls.create_or_update_local_repo(
+            worker_id,
             Settings['git']['main_repository'],
             branch="master",
             fetch=True
@@ -984,7 +1000,8 @@ class GitQueue(object):
 
         # Get base paths and names for the relevant repos
         repo_path = cls._get_local_repository_uri(
-            Settings['git']['main_repository']
+            Settings['git']['main_repository'],
+            worker_id
         )
         target_branch = "pickme_test_{push_id}_{pickme_id}".format(
             push_id=push_id,
@@ -997,7 +1014,7 @@ class GitQueue(object):
             return
 
         # Check if the pickme has already been merged into master
-        if cls._sha_exists_in_master(sha):
+        if cls._sha_exists_in_master(worker_id, sha):
             return
 
         # Clear the pickme's conflict info
@@ -1005,6 +1022,7 @@ class GitQueue(object):
 
         # Check for conflicts with master
         conflict, updated_pickme = cls._test_pickme_conflict_master(
+            worker_id,
             req,
             target_branch,
             repo_path,
@@ -1306,8 +1324,8 @@ class GitQueue(object):
                 cls.sha_queue.task_done()
 
     @classmethod
-    def process_conflict_queue(cls):
-        logging.info("Starting GitConflictQueue")
+    def process_conflict_queue(cls, worker_id):
+        logging.error("Starting GitConflictQueue %d", worker_id)
         while True:
             # Throttle
             time.sleep(1)
@@ -1320,7 +1338,7 @@ class GitQueue(object):
 
             try:
                 if task.task_type is GitTaskAction.TEST_PICKME_CONFLICT:
-                    cls.test_pickme_conflicts(task.request_id, **task.kwargs)
+                    cls.test_pickme_conflicts(worker_id, task.request_id, **task.kwargs)
                 elif task.task_type is GitTaskAction.TEST_CONFLICTING_PICKMES:
                     cls.requeue_pickmes_for_push(task.request_id, conflicting_only=True)
                 elif task.task_type is GitTaskAction.TEST_ALL_PICKMES:
