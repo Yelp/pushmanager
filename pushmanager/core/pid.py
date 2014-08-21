@@ -47,9 +47,10 @@ def check(path):
         else:
             raise
 
-def write(path, append=False):
+def write(path, append=False, pid=None):
     try:
-        pid = os.getpid()
+        if pid is None:
+            pid = os.getpid()
         if append:
             pidfile = open(path, 'a+b')
         else:
