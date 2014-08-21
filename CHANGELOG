@@ -1,3 +1,18 @@
+0.3.6   2014-08-22
+
+ BUG FIXES
+
+ * Track worker pids (rschlaikjer, #98)
+ * Skip pickmes in conlfict detection if they are no longer valid (rschlaikjer, #101, #102)
+
+ IMPROVEMENTS
+
+ * Include stdout on conflict-master pickmes (rschlaikjer, #100)
+
+ PERFORMANCE TWEAKS
+
+ * Merge conflict detection uses multiple threads (rschlaikjer, #99)
+
 0.3.5   2014-08-09
 
  BUG FIXES
