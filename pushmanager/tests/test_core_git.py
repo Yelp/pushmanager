@@ -654,3 +654,33 @@ class CoreGitTest(T.TestCase):
         GitCommand('checkout', 'master', cwd=repo_path).run()
 
         T.assert_raises(GitException, pushmanager.core.git._stale_submodule_check, repo_path)
+
+    def test_stderr_and_stdout_in_conflict_text(self):
+        welsh_req = {'id': 2, 'user': 'test', 'user': 'test', 'tags':'git-ok', 'title':'Welsh', 'repo':'.', 'branch':'change_welsh'}
+        with nested(
+            mock.patch('pushmanager.core.git.GitQueue.create_or_update_local_repo'),
+            mock.patch('pushmanager.core.git.GitQueue.git_merge_pickme'),
+            mock.patch('pushmanager.core.git.git_branch_context_manager'),
+            mock.patch('pushmanager.core.git.git_merge_context_manager'),
+        ) as (update_repo, merge_pickme, branch_mgr, merge_mgr):
+
+            def throw_gitexn(*args):
+                raise GitException(
+                    "GitException!",
+                    gitret=1,
+                    giterr="some_stderr_string",
+                    gitout="some_stdout_string",
+                )
+            merge_mgr.side_effect = throw_gitexn
+
+            (conflict, details) = GitQueue._test_pickme_conflict_master(
+                0,
+                welsh_req,
+                'testing_pickme_branch',
+                '/local/repo/path/',
+                False
+            )
+
+            assert conflict == True
+            assert "some_stderr_string" in details['conflicts']
+            assert "some_stdout_string" in details['conflicts']
