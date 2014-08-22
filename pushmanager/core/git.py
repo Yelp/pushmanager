@@ -942,7 +942,7 @@ class GitQueue(object):
             except GitException, e:
                 updated_tags = add_to_tags_str(req['tags'], 'conflict-master')
                 updated_tags = del_from_tags_str(updated_tags, 'no-conflicts')
-                conflict_details = "<strong>Conflict with master:</strong><br/> %s" % e.gitout
+                conflict_details = "<strong>Conflict with master:</strong><br/> %s <br/> %s" % (e.gitout, e.giterr)
                 updated_values = {
                     'tags': updated_tags,
                     'conflicts': conflict_details
