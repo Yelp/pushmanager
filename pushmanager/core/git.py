@@ -813,6 +813,9 @@ class GitQueue(object):
                 )
                 continue
 
+            if 'state' not in pickme_details or pickme_details['state'] is not 'pickme':
+                continue
+
             # Ensure we have a copy of the pickme we are comparing against
             cls.create_or_update_local_repo(
                 worker_id,
@@ -980,6 +983,9 @@ class GitQueue(object):
                 "Tried to test conflicts for invalid request id %s",
                 request_id
             )
+            return
+
+        if 'state' not in req or req['state'] is not 'pickme':
             return
 
         push = cls._get_push_for_request(request_id)

@@ -409,7 +409,17 @@ class CoreGitTest(T.TestCase):
             GQ._clear_pickme_conflict_details(sample_req)
             update_req.assert_called_with(sample_req, clean_req)
 
-    def test_pickme_conflict_pickme_integration(self):
+    def test_pickme_conflict_pickme_integration_correct_state(self):
+        conflict, updated_request = self._pickme_conflict_pickme_integration('pickme')
+        T.assert_equal(conflict, True)
+        T.assert_equal('conflict-pickme' in updated_request[0][1]['tags'], True)
+        T.assert_equal('Welsh' in updated_request[0][1]['conflicts'], True)
+
+    def test_pickme_conflict_pickme_integration_depickmed(self):
+        conflict, _ = self._pickme_conflict_pickme_integration('accepted')
+        T.assert_equal(conflict, False)
+
+    def _pickme_conflict_pickme_integration(self, request_state):
         test_settings = copy.deepcopy(Settings)
         repo_path = tempfile.mkdtemp(prefix="pushmanager")
         self.temp_git_dirs.append(repo_path)
@@ -430,14 +440,14 @@ class CoreGitTest(T.TestCase):
             f.write('#!/usr/bin/env python\n\nprint("Hallo Welt!")\nPrint("Goodbye!")\n')
         GitCommand('commit', '-a', '-m', 'verpflichten', cwd=repo_path).run()
         GitCommand('checkout', 'master', cwd=repo_path).run()
-        german_req = {'id': 1, 'user':'test', 'tags':'git-ok', 'title':'German', 'repo':'.', 'branch':'change_german'}
+        german_req = {'id': 1, 'state':request_state, 'user':'test', 'tags':'git-ok', 'title':'German', 'repo':'.', 'branch':'change_german'}
 
         GitCommand('checkout', '-b', 'change_welsh', cwd=repo_path).run()
         with open(os.path.join(repo_path, "code.py"), 'w') as f:
             f.write('#!/usr/bin/env python\n\nprint("Helo Byd!")\nPrint("Goodbye!")\n')
         GitCommand('commit', '-a', '-m', 'ymrwymo', cwd=repo_path).run()
         GitCommand('checkout', 'master', cwd=repo_path).run()
-        welsh_req = {'id': 2, 'user': 'test', 'user': 'test', 'tags':'git-ok', 'title':'Welsh', 'repo':'.', 'branch':'change_welsh'}
+        welsh_req = {'id': 2, 'state':request_state, 'user': 'test', 'user': 'test', 'tags':'git-ok', 'title':'Welsh', 'repo':'.', 'branch':'change_welsh'}
 
         # Create a test branch for merging
         GitCommand('checkout', '-b', 'test_pcp', cwd=repo_path).run()
@@ -470,10 +480,7 @@ class CoreGitTest(T.TestCase):
                 repo_path,
                 False
             )
-            T.assert_equal(conflict, True)
-            updated_request = update_req.call_args
-            T.assert_equal('conflict-pickme' in updated_request[0][1]['tags'], True)
-            T.assert_equal('Welsh' in updated_request[0][1]['conflicts'], True)
+            return (conflict, update_req.call_args)
 
     def test_pickme_conflict_master_integration(self):
         test_settings = copy.deepcopy(Settings)
