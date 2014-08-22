@@ -813,7 +813,7 @@ class GitQueue(object):
                 )
                 continue
 
-            if 'state' not in pickme_details or pickme_details['state'] is not 'pickme':
+            if 'state' not in pickme_details or pickme_details['state'] != 'pickme':
                 continue
 
             # Ensure we have a copy of the pickme we are comparing against
@@ -985,7 +985,7 @@ class GitQueue(object):
             )
             return
 
-        if 'state' not in req or req['state'] is not 'pickme':
+        if 'state' not in req or req['state'] != 'pickme':
             return
 
         push = cls._get_push_for_request(request_id)
