@@ -65,7 +65,6 @@ reviewboard:
 buildbot:
     servername: buildbot.mydomain.com
 
-# Format: http://server:port/path/%TICKET%
 # The string %TICKET% will be replaced by the ticket id
 ticket_tracker_url_format: "http://server:port/path/%TICKET%"
 
