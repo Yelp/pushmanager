@@ -33,9 +33,7 @@ JSSettings = {
     'reviewboard': {
         'servername': None,
     },
-    'trac': {
-        'servername': None,
-    },
+    'ticket_tracker_url_format': None,
     'git': {
         'main_repository': None,
     },

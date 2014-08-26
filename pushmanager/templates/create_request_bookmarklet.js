@@ -2,7 +2,7 @@
     Settings = {{ JSSettings_json }};
 
     var ticketNumberToURL = function(bug) {
-        return 'https://' + Settings['trac']['servername'] + '/ticket/' + bug.match(/\d+/)[0];
+        return Settings['ticket_tracker_url_format'].replace("%TICKET%", bug);
     };
 
     var summary = $('#summary').text();
