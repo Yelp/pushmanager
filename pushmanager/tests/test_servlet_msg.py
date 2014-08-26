@@ -59,6 +59,45 @@ class MsgServletTest(T.TestCase, ServletTestMixin):
             ],
         )
 
+    def test_servlet_with_multiple_people(self):
+        """Test multiple names
+
+        When we have lots of names, pushmanager should send multiple
+        announcements instead of a single large annoucement.
+        """
+
+        people = [
+            'asottile', 'milki', 'smoy', 'spatel', 'tdoran',
+            'tkadich1', 'tzhu', 'vpadmana', 'wtimoney', 'wting',
+            'osarood', 'pberens', 'perry', 'plucas',
+        ]
+
+        name_list = ''.join(['&people[]=' + person for person in people])
+        resp = self.fetch(
+            '/msg',
+            method='POST',
+            body='message=foo' + name_list,
+        )
+        T.assert_is(resp.error, None)
+
+        groups = [people[i:i+5] for i in range(0, len(people), 5)]
+        T.assert_equal(
+            self.call_mock.call_count,
+            len(groups),
+            message='multiple people should be divided into groups'
+        )
+
+        for group in groups:
+            self.call_mock.assert_any_call(
+                [
+                    '/nail/sys/bin/nodebot',
+                    '-i',
+                    mock.ANY,
+                    mock.ANY,
+                    '[[pushmaster testuser]] ' + (', ').join(group) + ': foo',
+                ],
+            )
+
 
 if __name__ == '__main__':
     T.run()

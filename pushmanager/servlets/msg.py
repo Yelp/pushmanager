@@ -19,15 +19,34 @@ class MsgServlet(RequestHandler):
             pushmaster=self.current_user
         )
 
-        irc_message = u'[[pushmaster {0}]] {1}{2}'.format(
-            self.current_user,
-            ', '.join(people) + ': ' if people else '',
-            message,
-        )
-        subprocess.call([
+        if not people:
+            irc_message = u'[[pushmaster {0}]] {1}'.format(
+                self.current_user,
+                message,
+            )
+
+            subprocess.call([
                 '/nail/sys/bin/nodebot',
                 '-i',
                 irc_nick,
                 Settings['irc']['channel'],
                 irc_message
-        ])
+            ])
+            return
+
+        # divide people into groups, each group has 5 persons.
+        groups = [people[i:i+5] for i in range(0, len(people), 5)]
+
+        for group in groups:
+            irc_message = u'[[pushmaster {0}]] {1}{2}'.format(
+                self.current_user,
+                ', '.join(group) + ': ',
+                message,
+            )
+            subprocess.call([
+                '/nail/sys/bin/nodebot',
+                '-i',
+                irc_nick,
+                Settings['irc']['channel'],
+                irc_message
+            ])
