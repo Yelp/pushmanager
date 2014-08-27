@@ -80,27 +80,41 @@ class MsgServletTest(T.TestCase, ServletTestMixin):
         )
         T.assert_is(resp.error, None)
 
-        groups = [people[i:i+5] for i in range(0, len(people), 5)]
         T.assert_equal(
             self.call_mock.call_count,
-            len(groups),
+            3,
             message='multiple people should be divided into groups'
         )
 
-        for i, group in enumerate(groups):
-            self.call_mock.assert_any_call(
-                [
-                    '/nail/sys/bin/nodebot',
-                    '-i',
-                    mock.ANY,
-                    mock.ANY,
-                    '{0} {1}{2}'.format(
-                        '[[pushmaster testuser]]' if not i else '',
-                        (', ').join(group),
-                        ': foo' if i == len(groups) - 1 else '',
-                    )
-                ],
-            )
+        self.call_mock.assert_any_call(
+            [
+                '/nail/sys/bin/nodebot',
+                '-i',
+                mock.ANY,
+                mock.ANY,
+                '[[pushmaster testuser]] aaa, bbb, ccc, ddd, eee',
+            ],
+        )
+
+        self.call_mock.assert_any_call(
+            [
+                '/nail/sys/bin/nodebot',
+                '-i',
+                mock.ANY,
+                mock.ANY,
+                ' fff, ggg, hhh, iii, jjj',
+            ],
+        )
+
+        self.call_mock.assert_any_call(
+            [
+                '/nail/sys/bin/nodebot',
+                '-i',
+                mock.ANY,
+                mock.ANY,
+                ' kkk, lll, mmm, nnn: foo',
+            ],
+        )
 
 
 if __name__ == '__main__':
