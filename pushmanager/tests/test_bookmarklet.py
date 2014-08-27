@@ -30,6 +30,7 @@ class BookmarkletTest(T.TestCase, AsyncTestCase):
             T.assert_equal(response.error, None)
             T.assert_in("ticketNumberToURL", response.body)
             T.assert_in("codeReview", response.body)
+            T.assert_in("%TICKET%", response.body)
 
 
     def test_check_sites_bookmarklet(self):
