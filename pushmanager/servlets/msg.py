@@ -37,11 +37,11 @@ class MsgServlet(RequestHandler):
         # divide people into groups, each group has 5 persons.
         groups = [people[i:i+5] for i in range(0, len(people), 5)]
 
-        for group in groups:
-            irc_message = u'[[pushmaster {0}]] {1}{2}'.format(
-                self.current_user,
-                ', '.join(group) + ': ',
-                message,
+        for i, group in enumerate(groups):
+            irc_message = u'{0} {1}{2}'.format(
+                '[[pushmaster %s]]' % self.current_user if not i else '',
+                ', '.join(group),
+                ': ' + message if i == len(groups) - 1 else '',
             )
             subprocess.call([
                 '/nail/sys/bin/nodebot',

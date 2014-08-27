@@ -67,9 +67,9 @@ class MsgServletTest(T.TestCase, ServletTestMixin):
         """
 
         people = [
-            'asottile', 'milki', 'smoy', 'spatel', 'tdoran',
-            'tkadich1', 'tzhu', 'vpadmana', 'wtimoney', 'wting',
-            'osarood', 'pberens', 'perry', 'plucas',
+            'aaa', 'bbb', 'ccc', 'ddd', 'eee',
+            'fff', 'ggg', 'hhh', 'iii', 'jjj',
+            'kkk', 'lll', 'mmm', 'nnn',
         ]
 
         name_list = ''.join(['&people[]=' + person for person in people])
@@ -87,14 +87,18 @@ class MsgServletTest(T.TestCase, ServletTestMixin):
             message='multiple people should be divided into groups'
         )
 
-        for group in groups:
+        for i, group in enumerate(groups):
             self.call_mock.assert_any_call(
                 [
                     '/nail/sys/bin/nodebot',
                     '-i',
                     mock.ANY,
                     mock.ANY,
-                    '[[pushmaster testuser]] ' + (', ').join(group) + ': foo',
+                    '{0} {1}{2}'.format(
+                        '[[pushmaster testuser]]' if not i else '',
+                        (', ').join(group),
+                        ': foo' if i == len(groups) - 1 else '',
+                    )
                 ],
             )
 
