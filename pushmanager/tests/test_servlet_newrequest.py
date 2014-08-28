@@ -102,6 +102,36 @@ class NewRequestServletTest(T.TestCase, ServletTestMixin, FakeDataMixin):
         basic_request.update({'user': 'testuser'})
         self.assert_request(basic_request, last_req)
 
+    def test_strip_new_repo_branch(self):
+        req_with_whitespace = dict(self.basic_request)
+        req_with_whitespace['request-repo'] = ' testuser   '
+        req_with_whitespace['request-branch'] = '  super_safe_fix '
+        last_req = self.assert_submit_request(req_with_whitespace)
+        basic_request = dict(self.basic_request)
+        basic_request.update({'user': 'testuser'})
+        self.assert_request(basic_request, last_req)
+
+    def test_strip_edit_repo_branch(self):
+        last_req = self.assert_submit_request(self.basic_request)
+        basic_request = dict(self.basic_request)
+        basic_request.update({'user': 'testuser'})
+        self.assert_request(basic_request, last_req)
+
+        basic_request.update({'request-id': last_req['id']})
+        basic_request.update({'request-user': 'testuser'})
+        req_with_whitespace = dict(basic_request)
+        req_with_whitespace.update({'request-repo': '  testuser    '})
+        req_with_whitespace.update({'request-branch': '  super_safe_fix  '})
+        with mock.patch.object(
+                NewRequestServlet,
+                "get_current_user",
+                return_value="testtakeoveruser"
+                ):
+            edit_req = self.assert_submit_request(req_with_whitespace, edit=True, redirect='/requests?user=testuser')
+            basic_request.update({'user': 'testuser'})
+            self.assert_request(basic_request, edit_req)
+
+
     def test_editrequest_no_takeover(self):
         last_req = self.assert_submit_request(self.basic_request)
         basic_request = dict(self.basic_request)
