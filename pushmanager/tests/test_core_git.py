@@ -428,8 +428,10 @@ class CoreGitTest(T.TestCase):
     def test_no_requeue_added_pickmes(self):
         added_request = copy.deepcopy(self.fake_request)
         added_request['state'] = 'added'
+        added_request['tags'] = 'no-conflicts'
         pickme_request = copy.deepcopy(self.fake_request)
         pickme_request['state'] = 'pickme'
+        pickme_request['tags'] = 'no-conflicts'
         with nested(
             mock.patch('pushmanager.core.git.GitQueue.create_or_update_local_repo'),
             mock.patch('pushmanager.core.git.GitQueue.git_merge_pickme'),
@@ -487,14 +489,31 @@ class CoreGitTest(T.TestCase):
             f.write('#!/usr/bin/env python\n\nprint("Hallo Welt!")\nPrint("Goodbye!")\n')
         GitCommand('commit', '-a', '-m', 'verpflichten', cwd=repo_path).run()
         GitCommand('checkout', 'master', cwd=repo_path).run()
-        german_req = {'id': 1, 'state':request_state, 'user':'test', 'tags':'git-ok', 'title':'German', 'repo':'.', 'branch':'change_german'}
+        german_req = {
+            'id': 1,
+            'state': request_state,
+            'user': 'test',
+            'tags': 'git-ok,no-conflicts',
+            'title': 'German',
+            'repo': '.',
+            'branch': 'change_german'
+        }
 
         GitCommand('checkout', '-b', 'change_welsh', cwd=repo_path).run()
         with open(os.path.join(repo_path, "code.py"), 'w') as f:
             f.write('#!/usr/bin/env python\n\nprint("Helo Byd!")\nPrint("Goodbye!")\n')
         GitCommand('commit', '-a', '-m', 'ymrwymo', cwd=repo_path).run()
         GitCommand('checkout', 'master', cwd=repo_path).run()
-        welsh_req = {'id': 2, 'state':request_state, 'user': 'test', 'user': 'test', 'tags':'git-ok', 'title':'Welsh', 'repo':'.', 'branch':'change_welsh'}
+        welsh_req = {
+            'id': 2,
+            'state': request_state,
+            'user': 'test',
+            'user': 'test',
+            'tags': 'git-ok,no-conflicts',
+            'title': 'Welsh',
+            'repo': '.',
+            'branch': 'change_welsh'
+        }
 
         # Create a test branch for merging
         GitCommand('checkout', '-b', 'test_pcp', cwd=repo_path).run()

@@ -831,6 +831,12 @@ class GitQueue(object):
             if sha is None or cls._sha_exists_in_master(worker_id, sha):
                 continue
 
+            # If the pickme has no '*conflict*' tags, it has not been checked and
+            # it may conflict with master, which here would cause a pickme
+            # conflict. Skip it, as it should be queued to be checked, and will
+            # get tested against us later.
+            if "conflict" not in pickme_details['tags']:
+                continue
 
             # Don't bother trying to compare against pickmes that
             # break master, as they will conflict by default
