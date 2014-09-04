@@ -409,8 +409,14 @@ class CoreGitTest(T.TestCase):
             GQ._clear_pickme_conflict_details(sample_req)
             update_req.assert_called_with(sample_req, clean_req)
 
-    def test_pickme_conflict_pickme_integration_correct_state(self):
+    def test_pickme_conflict_pickme_integration_state_pickme(self):
         conflict, updated_request = self._pickme_conflict_pickme_integration('pickme')
+        T.assert_equal(conflict, True)
+        T.assert_equal('conflict-pickme' in updated_request[0][1]['tags'], True)
+        T.assert_equal('Welsh' in updated_request[0][1]['conflicts'], True)
+
+    def test_pickme_conflict_pickme_integration_state_added(self):
+        conflict, updated_request = self._pickme_conflict_pickme_integration('added')
         T.assert_equal(conflict, True)
         T.assert_equal('conflict-pickme' in updated_request[0][1]['tags'], True)
         T.assert_equal('Welsh' in updated_request[0][1]['conflicts'], True)
@@ -418,6 +424,49 @@ class CoreGitTest(T.TestCase):
     def test_pickme_conflict_pickme_integration_depickmed(self):
         conflict, _ = self._pickme_conflict_pickme_integration('accepted')
         T.assert_equal(conflict, False)
+
+    def test_no_requeue_added_pickmes(self):
+        added_request = copy.deepcopy(self.fake_request)
+        added_request['state'] = 'added'
+        added_request['tags'] = 'no-conflicts'
+        pickme_request = copy.deepcopy(self.fake_request)
+        pickme_request['state'] = 'pickme'
+        pickme_request['tags'] = 'no-conflicts'
+        with nested(
+            mock.patch('pushmanager.core.git.GitQueue.create_or_update_local_repo'),
+            mock.patch('pushmanager.core.git.GitQueue.git_merge_pickme'),
+            mock.patch('pushmanager.core.git.git_branch_context_manager'),
+            mock.patch('pushmanager.core.git.git_merge_context_manager'),
+            mock.patch('pushmanager.core.git.GitQueue._get_request_ids_in_push'),
+            mock.patch('pushmanager.core.git.GitQueue._get_request'),
+            mock.patch('pushmanager.core.git.GitQueue.enqueue_request'),
+            mock.patch('pushmanager.core.git.GitQueue._get_branch_sha_from_repo'),
+            mock.patch('pushmanager.core.git.GitQueue._sha_exists_in_master'),
+        ) as (update_repo, merge_pickme, branch_mgr, merge_mgr, ids_in_push, get_req, enqueue_req, get_sha, sha_in_master):
+            def throw_gitexn(*args):
+                raise GitException(
+                    "GitException!",
+                    gitret=1,
+                    giterr="some_stderr_string",
+                    gitout="some_stdout_string",
+                )
+            merge_mgr.side_effect = throw_gitexn
+            ids_in_push.return_value = [2]
+            get_req.return_value = pickme_request
+            get_sha.return_code = 'some_sha'
+            sha_in_master.return_value = False
+
+            conflicts, _ = GitQueue._test_pickme_conflict_pickme(
+                0,
+                added_request,
+                'some_test_branch',
+                '/local/repo/path',
+                True
+            )
+            assert conflicts == False
+            enqueue_req.assert_has_calls([
+                mock.call(GitTaskAction.TEST_PICKME_CONFLICT, 2, requeue=False)
+            ])
 
     def _pickme_conflict_pickme_integration(self, request_state):
         test_settings = copy.deepcopy(Settings)
@@ -440,14 +489,31 @@ class CoreGitTest(T.TestCase):
             f.write('#!/usr/bin/env python\n\nprint("Hallo Welt!")\nPrint("Goodbye!")\n')
         GitCommand('commit', '-a', '-m', 'verpflichten', cwd=repo_path).run()
         GitCommand('checkout', 'master', cwd=repo_path).run()
-        german_req = {'id': 1, 'state':request_state, 'user':'test', 'tags':'git-ok', 'title':'German', 'repo':'.', 'branch':'change_german'}
+        german_req = {
+            'id': 1,
+            'state': request_state,
+            'user': 'test',
+            'tags': 'git-ok,no-conflicts',
+            'title': 'German',
+            'repo': '.',
+            'branch': 'change_german'
+        }
 
         GitCommand('checkout', '-b', 'change_welsh', cwd=repo_path).run()
         with open(os.path.join(repo_path, "code.py"), 'w') as f:
             f.write('#!/usr/bin/env python\n\nprint("Helo Byd!")\nPrint("Goodbye!")\n')
         GitCommand('commit', '-a', '-m', 'ymrwymo', cwd=repo_path).run()
         GitCommand('checkout', 'master', cwd=repo_path).run()
-        welsh_req = {'id': 2, 'state':request_state, 'user': 'test', 'user': 'test', 'tags':'git-ok', 'title':'Welsh', 'repo':'.', 'branch':'change_welsh'}
+        welsh_req = {
+            'id': 2,
+            'state': request_state,
+            'user': 'test',
+            'user': 'test',
+            'tags': 'git-ok,no-conflicts',
+            'title': 'Welsh',
+            'repo': '.',
+            'branch': 'change_welsh'
+        }
 
         # Create a test branch for merging
         GitCommand('checkout', '-b', 'test_pcp', cwd=repo_path).run()

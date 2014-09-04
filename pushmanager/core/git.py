@@ -813,7 +813,7 @@ class GitQueue(object):
                 )
                 continue
 
-            if 'state' not in pickme_details or pickme_details['state'] != 'pickme':
+            if 'state' not in pickme_details or pickme_details['state'] not in ('pickme', 'added'):
                 continue
 
             # Ensure we have a copy of the pickme we are comparing against
@@ -831,6 +831,12 @@ class GitQueue(object):
             if sha is None or cls._sha_exists_in_master(worker_id, sha):
                 continue
 
+            # If the pickme has no '*conflict*' tags, it has not been checked and
+            # it may conflict with master, which here would cause a pickme
+            # conflict. Skip it, as it should be queued to be checked, and will
+            # get tested against us later.
+            if "conflict" not in pickme_details['tags']:
+                continue
 
             # Don't bother trying to compare against pickmes that
             # break master, as they will conflict by default
@@ -842,12 +848,15 @@ class GitQueue(object):
                                                repo_path):
                     cls.git_merge_pickme(worker_id, pickme_details, repo_path)
             except GitException, e:
-                conflict_pickmes.append((pickme, e.gitout, e.giterr))
+                if req['state'] == 'added' and pickme_details['state'] == 'pickme':
+                    pass
+                else:
+                    conflict_pickmes.append((pickme, e.gitout, e.giterr))
                 # Requeue the conflicting pickme so that it also picks up the
                 # conflict. Pass on that it was requeued automatically and to
                 # NOT requeue things in that run, otherwise two tickets will
                 # requeue each other forever.
-                if requeue:
+                if requeue and pickme_details['state'] != 'added':
                     GitQueue.enqueue_request(
                         GitTaskAction.TEST_PICKME_CONFLICT,
                         pickme,
@@ -985,7 +994,7 @@ class GitQueue(object):
             )
             return
 
-        if 'state' not in req or req['state'] != 'pickme':
+        if 'state' not in req or req['state'] not in ('pickme', 'added'):
             return
 
         push = cls._get_push_for_request(request_id)
