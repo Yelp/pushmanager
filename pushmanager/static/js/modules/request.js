@@ -4,7 +4,7 @@ $(function() {
     PushManager.Request = PushManager.Request || {}
 
     PushManager.Request.format_comments_dom = function(domobj) {
-        var link_re = /((?:http:\/\/|https:\/\/)?(?:\w+\.)+(?!py|tmpl|js)[a-z]{2,}(?:\/\S*)*)/ig
+        var link_re = /((?:http:\/\/|https:\/\/)(?:\w+(?:\.|-))+(?!py|tmpl|js)[a-z]{2,}(?::[0-9]+)?(?:\/\S*)*)/ig
 
         var that = $(domobj);
         var data = that.text();
