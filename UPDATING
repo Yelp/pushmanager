@@ -1,16 +1,16 @@
 2014.08.14
-  AFFECTS: Users with existing installs before 3.0.1
+  AFFECTS: Users with existing installs before 0.3.1
   AUTHOR: milki
 
-  3.0.1 introduces a new config option for debugging. Currently,
+  0.3.1 introduces a new config option for debugging. Currently,
   it only enables git operation logging. 'config.yaml.sample' has
   been updated with the option disabled.
 
 2014.08.12
-  AFFECTS: Users with existing installs before 3.0.0
+  AFFECTS: Users with existing installs before 0.3.0
   AUTHOR: milki
 
-  As of 3.0.0, a new column has been added to the db and
+  As of 0.3.0, a new column has been added to the db and
   several new config options have been added.
 
   The 'config.yaml.sample' has been updated to reflect the new config
