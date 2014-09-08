@@ -55,7 +55,7 @@ class MsgServletTest(T.TestCase, ServletTestMixin):
                 '-i',
                 mock.ANY,
                 mock.ANY,
-                '[[pushmaster testuser]] asottile, milki: foo',
+                '[[pushmaster testuser]]asottile, milki: foo',
             ],
         )
 
@@ -92,7 +92,7 @@ class MsgServletTest(T.TestCase, ServletTestMixin):
                 '-i',
                 mock.ANY,
                 mock.ANY,
-                '[[pushmaster testuser]] aaa, bbb, ccc, ddd, eee',
+                '[[pushmaster testuser]]aaa, bbb, ccc, ddd, eee',
             ],
         )
 
@@ -102,7 +102,7 @@ class MsgServletTest(T.TestCase, ServletTestMixin):
                 '-i',
                 mock.ANY,
                 mock.ANY,
-                ' fff, ggg, hhh, iii, jjj',
+                'fff, ggg, hhh, iii, jjj',
             ],
         )
 
@@ -112,7 +112,7 @@ class MsgServletTest(T.TestCase, ServletTestMixin):
                 '-i',
                 mock.ANY,
                 mock.ANY,
-                ' kkk, lll, mmm, nnn: foo',
+                'kkk, lll, mmm, nnn: foo',
             ],
         )
 
