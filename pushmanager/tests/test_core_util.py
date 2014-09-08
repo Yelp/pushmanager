@@ -130,7 +130,7 @@ class CoreUtilFunctionsTest(T.TestCase):
                 '-i',
                 'Goku',
                 'dragon_ball',
-                '[fake_prefix_msg]111, 222, 333, 444, 555'
+                '[fake_prefix_msg] 111, 222, 333, 444, 555'
             ])
 
             subprocess.call.assert_any_call([
@@ -138,7 +138,7 @@ class CoreUtilFunctionsTest(T.TestCase):
                 '-i',
                 'Goku',
                 'dragon_ball',
-                '666: Hello World!'
+                ' 666: Hello World!'
             ])
 
     def test_send_people_msg_in_groups_no_split(self):
@@ -159,7 +159,7 @@ class CoreUtilFunctionsTest(T.TestCase):
                 '-i',
                 'Goku',
                 'dragon_ball',
-                '[fake_prefix_msg]111, 222, 333, 444, 555, 666: Hello World!'
+                '[fake_prefix_msg] 111, 222, 333, 444, 555, 666: Hello World!'
             ])
 
 

@@ -221,7 +221,7 @@ def send_people_msg_in_groups(people, msg, irc_nick, irc_channel, person_per_gro
         groups = [people[i:i+person_per_group] for i in range(0, len(people), person_per_group)]
 
     for i, group in enumerate(groups):
-        irc_message = u'{0}{1}{2}'.format(
+        irc_message = u'{0} {1}{2}'.format(
             prefix_msg if (not i and len(prefix_msg) != 0) else '',
             ', '.join(group),
             ': ' + msg if i == len(groups) - 1 else '',
