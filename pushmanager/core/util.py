@@ -1,5 +1,6 @@
 import copy
 import datetime
+import subprocess
 
 from tornado.escape import xhtml_escape
 
@@ -209,3 +210,27 @@ def dict_copy_keys(to_dict, from_dict):
             dict_copy_keys(value, from_dict[key])
         else:
             to_dict[key] = copy.deepcopy(from_dict[key])
+
+def send_people_msg_in_groups(people, msg, irc_nick, irc_channel, person_per_group=-1, prefix_msg=''):
+    """Send multiple people message.
+    """
+    people = list(people) #people argument is a set
+    if person_per_group <= 0:
+        groups = [people[:]] #do not split
+    else:
+        groups = [people[i:i+person_per_group] for i in range(0, len(people), person_per_group)]
+
+    for i, group in enumerate(groups):
+        irc_message = u'{0} {1}{2}'.format(
+            prefix_msg if (not i and len(prefix_msg) != 0) else '',
+            ', '.join(group),
+            ': ' + msg if i == len(groups) - 1 else '',
+        )
+
+        subprocess.call([
+            '/nail/sys/bin/nodebot',
+            '-i',
+            irc_nick,
+            irc_channel,
+            irc_message
+        ])

@@ -2,6 +2,9 @@
 
 import copy
 import datetime
+import subprocess
+import mock
+import contextlib
 
 import testify as T
 from pushmanager.core.util import add_to_tags_str
@@ -12,6 +15,7 @@ from pushmanager.core.util import get_servlet_urlspec
 from pushmanager.core.util import pretty_date
 from pushmanager.core.util import tags_contain
 from pushmanager.core.util import tags_str_as_set
+from pushmanager.core.util import send_people_msg_in_groups
 from pushmanager.servlets.pushes import PushesServlet
 
 
@@ -106,6 +110,57 @@ class CoreUtilFunctionsTest(T.TestCase):
         T.assert_equal(to_dict[(1, 2)], from_dict[(1, 2)])
         T.assert_equal(to_dict['c']['x'], from_dict['c']['x'])
         T.assert_equal(to_dict['c'].get('y', None), None)
+
+    def test_send_people_msg_in_groups_split(self):
+        people = ['111', '222', '333', '444', '555', '666']
+        msg = 'Hello World!'
+        irc_nick = 'Goku'
+        irc_channel = 'dragon_ball'
+        person_per_group = 5
+        prefix_msg = '[fake_prefix_msg]'
+
+        with contextlib.nested(
+            mock.patch.object(subprocess, 'call', mock.Mock())
+        ):
+            send_people_msg_in_groups(people, msg, irc_nick, irc_channel, person_per_group, prefix_msg)
+
+            T.assert_equal(subprocess.call.call_count, 2)
+            subprocess.call.assert_any_call([
+                '/nail/sys/bin/nodebot',
+                '-i',
+                'Goku',
+                'dragon_ball',
+                '[fake_prefix_msg] 111, 222, 333, 444, 555'
+            ])
+
+            subprocess.call.assert_any_call([
+                '/nail/sys/bin/nodebot',
+                '-i',
+                'Goku',
+                'dragon_ball',
+                ' 666: Hello World!'
+            ])
+
+    def test_send_people_msg_in_groups_no_split(self):
+        people = ['111', '222', '333', '444', '555', '666']
+        msg = 'Hello World!'
+        irc_nick = 'Goku'
+        irc_channel = 'dragon_ball'
+        person_per_group = 7
+        prefix_msg = '[fake_prefix_msg]'
+
+        with contextlib.nested(
+            mock.patch.object(subprocess, 'call', mock.Mock())
+        ):
+            send_people_msg_in_groups(people, msg, irc_nick, irc_channel, person_per_group, prefix_msg)
+
+            subprocess.call.assert_called_once_with([
+                '/nail/sys/bin/nodebot',
+                '-i',
+                'Goku',
+                'dragon_ball',
+                '[fake_prefix_msg] 111, 222, 333, 444, 555, 666: Hello World!'
+            ])
 
 
 class CoreUtilEscapedDictTest(T.TestCase):

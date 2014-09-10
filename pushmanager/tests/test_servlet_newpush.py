@@ -136,7 +136,7 @@ class NotificationsTestCase(T.TestCase):
                 '-i',
                 Settings['irc']['nickname'],
                 Settings['irc']['channel'],
-                msg
+                ' ' + msg
             ])
             mocked_mail.assert_called_once_with(
                 Settings['mail']['notifyall'],

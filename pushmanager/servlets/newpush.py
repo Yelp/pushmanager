@@ -7,6 +7,7 @@ from pushmanager.core.mail import MailQueue
 from pushmanager.core.requesthandler import RequestHandler
 from pushmanager.core.settings import Settings
 from pushmanager.core.xmppclient import XMPPQueue
+from pushmanager.core.util import send_people_msg_in_groups
 
 
 def send_notifications(people, pushtype, pushurl):
@@ -25,13 +26,20 @@ def send_notifications(people, pushtype, pushurl):
     else:
         msg = 'push starting. %s' % pushmanager_url
 
-    subprocess.call([
-        '/nail/sys/bin/nodebot',
-        '-i',
-        Settings['irc']['nickname'],
-        Settings['irc']['channel'],
-        msg
-    ])
+    if people:
+        send_people_msg_in_groups(
+            people, "%s push starting! %s" % (pushtype, pushmanager_url),
+            Settings['irc']['nickname'], Settings['irc']['channel'],
+            person_per_group=5, prefix_msg=''
+        )
+    else:
+        subprocess.call([
+            '/nail/sys/bin/nodebot',
+            '-i',
+            Settings['irc']['nickname'],
+            Settings['irc']['channel'],
+            msg
+        ])
 
     subject = "New push notification"
     MailQueue.enqueue_user_email(Settings['mail']['notifyall'], msg, subject)
