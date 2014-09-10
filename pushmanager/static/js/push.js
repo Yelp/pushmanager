@@ -131,8 +131,8 @@ $(function() {
     $('#comment-on-request').dialog({
         autoOpen: false,
         title: 'Add a comment:',
-        width: 400,
-        height: 200
+        width: 600,
+        height: 300
     });
     PushManager.comment_dialog = function(id) {
         $('#submit-request-comment').attr('request', id);
