@@ -1,3 +1,20 @@
+0.3.9   Not released
+
+ IMPROVEMENTS
+
+ * tags can contain the string 'conflict' again (asottile, #119)
+ * 'git-ok' tag now links to gitweb (kkellyy, #117)
+ * pushmanager is now proxy aware (kkellyy, #116)
+ * 'After certifying' checklist now says 'Before certifying' (kkellyy, #122)
+
+ BUG FIXES
+
+ * reviewboard links no longer contains the pushmanager port (kkellyy, #121)
+
+ DEPRECATED
+
+ * 'hoods' tag no longer has post-stage checklist steps (kkellyy, #120)
+
 0.3.8   2014-09-10
 
  IMPROVEMENTS
