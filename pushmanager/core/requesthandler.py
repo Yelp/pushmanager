@@ -2,10 +2,12 @@ import contextlib
 import json
 import urllib
 import urlparse
+import logging
 
 import tornado.httpclient
 import tornado.stack_context
 import tornado.web
+
 from pushmanager.core.settings import JSSettings
 from pushmanager.core.settings import Settings
 
@@ -52,6 +54,19 @@ class RequestHandler(tornado.web.RequestHandler):
                 method="POST",
                 body=urllib.urlencode(arguments)
             )
+
+    def get_base_url(self):
+        pushmanager_port = ':%s' % self.request.headers.get('X-Forwarded-Port', Settings['main_app']['port'])
+        if pushmanager_port == ':443':
+            pushmanager_port = ''
+
+        pushmanager_base_url =  '%(protocol)s://%(pushmanager_servername)s%(pushmanager_port)s' % {
+            'protocol' : self.request.headers.get('X-Forwarded-Proto', 'https'), 
+            'pushmanager_servername' : Settings['main_app']['servername'], 
+            'pushmanager_port' : pushmanager_port
+        }
+
+        return pushmanager_base_url
 
     def get_api_results(self, response):
         if response.error:

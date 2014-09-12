@@ -66,13 +66,7 @@ class LogoutHandler(RequestHandler):
     post = get
 
 
-class RedirHandler(tornado.web.RequestHandler):
+class RedirHandler(RequestHandler):
     def get(self, path):
-        pushmanager_servername = Settings['main_app']['servername']
-        pushmanager_servername = pushmanager_servername.rstrip('/')
-        pushmanager_port = ':%d' % Settings['main_app']['port'] if Settings['main_app']['port'] != 443 else ''
-
-        pushmanager_url = "https://%s/" % pushmanager_servername + pushmanager_port
-
-        self.redirect(urlparse.urljoin(pushmanager_url, path), permanent=True)
+        self.redirect(urlparse.urljoin(get_base_url(), path), permanent=True)
     post = get

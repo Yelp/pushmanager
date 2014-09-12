@@ -10,13 +10,10 @@ from pushmanager.core.xmppclient import XMPPQueue
 from pushmanager.core.util import send_people_msg_in_groups
 
 
-def send_notifications(people, pushtype, pushurl):
+def send_notifications(people, pushtype, pushurl, request):
     pushmanager_servername = Settings['main_app']['servername']
-    pushmanager_servername = pushmanager_servername.rstrip('/')
-    pushmanager_port = ':%d' % Settings['main_app']['port'] if Settings['main_app']['port'] != 443 else ''
+    pushmanager_url = request.get_base_url() + pushurl
 
-    pushurl = pushurl.lstrip('/')
-    pushmanager_url = "https://%s/%s" % (pushmanager_servername + pushmanager_port, pushurl)
 
     if people:
         msg = '%s: %s push starting! %s' % (', '.join(people), pushtype, pushmanager_url)
@@ -88,6 +85,6 @@ class NewPushServlet(RequestHandler):
         else:
             people = set(user for x in select_results for user in users_involved(x))
 
-        send_notifications(people, self.pushtype, pushurl)
+        send_notifications(people, self.pushtype, pushurl, self)
 
         return self.redirect(pushurl)
