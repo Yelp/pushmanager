@@ -77,6 +77,7 @@ class NewPushServletTest(T.TestCase, ServletTestMixin):
         mocked_self.check_db_results = mock.Mock(return_value=None)
         mocked_self.redirect = mock.Mock(return_value=None)
         mocked_self.pushtype = 'normal'
+        mocked_self.get_base_url = mock.Mock(return_value="http://fakeurl.com")
 
         mocked_self.on_db_complete = types.MethodType(NewPushServlet.on_db_complete.im_func, mocked_self)
 
@@ -123,14 +124,13 @@ class NotificationsTestCase(T.TestCase):
     def test_send_notifications(self):
         """New push sends notifications via IRC, XMPP and emails."""
         self.people = ["fake_user1", "fake_user2"]
-        self.pushurl = "/fake_push_url?id=123"
+        self.pushmanager_url = "https://example.com/fake_push_url?id=123"
         self.pushtype = "fake_puth_type"
 
         with self.mocked_notifications() as (mocked_call, mocked_mail, mocked_xmpp):
-            send_notifications(self.people, self.pushtype, self.pushurl)
+            send_notifications(self.people, self.pushtype, self.pushmanager_url)
 
-            url = "https://%s%s" % (Settings['main_app']['servername'], self.pushurl)
-            msg = "%s: %s push starting! %s" % (', '.join(self.people), self.pushtype, url)
+            msg = "%s: %s push starting! %s" % (', '.join(self.people), self.pushtype, self.pushmanager_url)
             mocked_call.assert_called_once_with([
                 '/nail/sys/bin/nodebot',
                 '-i',
@@ -145,18 +145,18 @@ class NotificationsTestCase(T.TestCase):
             )
             mocked_xmpp.assert_called_once_with(
                 self.people,
-                "Push starting! %s" % url
+                "Push starting! %s" % self.pushmanager_url
             )
 
     def test_send_notifications_empty_user_list(self):
         """If there is no pending push request we'll only send IRC and
         email notifications, but not XMPP messages."""
         self.people = []
-        self.pushurl = "fake_push_url"
+        self.pushmanager_url = "fake_push_url"
         self.pushtype = "fake_puth_type"
 
         with self.mocked_notifications() as (mocked_call, mocked_mail, mocked_xmpp):
-            send_notifications(self.people, self.pushtype, self.pushurl)
+            send_notifications(self.people, self.pushtype, self.pushmanager_url)
             mocked_call.assert_called_once_with([
                 '/nail/sys/bin/nodebot',
                 '-i',

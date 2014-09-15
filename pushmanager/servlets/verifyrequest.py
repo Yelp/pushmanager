@@ -3,7 +3,6 @@ import sqlalchemy as SA
 import pushmanager.core.db as db
 import pushmanager.core.util
 from pushmanager.core.requesthandler import RequestHandler
-from pushmanager.core.settings import Settings
 from pushmanager.core.xmppclient import XMPPQueue
 
 

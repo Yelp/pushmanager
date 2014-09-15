@@ -3,11 +3,8 @@ from __future__ import with_statement
 
 import urlparse
 
-import tornado.httpserver
-import tornado.web
 from pushmanager.core.auth import authenticate
 from pushmanager.core.requesthandler import RequestHandler
-from pushmanager.core.settings import Settings
 
 
 class NullRequestHandler(RequestHandler):
@@ -68,5 +65,5 @@ class LogoutHandler(RequestHandler):
 
 class RedirHandler(RequestHandler):
     def get(self, path):
-        self.redirect(urlparse.urljoin(get_base_url(), path), permanent=True)
+        self.redirect(urlparse.urljoin(self.get_base_url(), path), permanent=True)
     post = get

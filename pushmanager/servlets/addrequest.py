@@ -3,7 +3,6 @@ import pushmanager.core.util
 from pushmanager.core.db import InsertIgnore
 from pushmanager.core.mail import MailQueue
 from pushmanager.core.requesthandler import RequestHandler
-from pushmanager.core.settings import Settings
 from pushmanager.core.xmppclient import XMPPQueue
 
 

@@ -10,10 +10,8 @@ from pushmanager.core.xmppclient import XMPPQueue
 from pushmanager.core.util import send_people_msg_in_groups
 
 
-def send_notifications(people, pushtype, pushurl, request):
+def send_notifications(people, pushtype, pushmanager_url):
     pushmanager_servername = Settings['main_app']['servername']
-    pushmanager_url = request.get_base_url() + pushurl
-
 
     if people:
         msg = '%s: %s push starting! %s' % (', '.join(people), pushtype, pushmanager_url)
@@ -72,6 +70,7 @@ class NewPushServlet(RequestHandler):
 
         insert_results, select_results = db_results
         pushurl = '/push?id=%s' % insert_results.lastrowid
+        pushmanager_url = self.get_base_url() + pushurl
 
         def users_involved(request):
             if request['watchers']:
@@ -85,6 +84,6 @@ class NewPushServlet(RequestHandler):
         else:
             people = set(user for x in select_results for user in users_involved(x))
 
-        send_notifications(people, self.pushtype, pushurl, self)
+        send_notifications(people, self.pushtype, pushmanager_url)
 
         return self.redirect(pushurl)

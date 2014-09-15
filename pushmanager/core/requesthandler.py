@@ -2,7 +2,6 @@ import contextlib
 import json
 import urllib
 import urlparse
-import logging
 
 import tornado.httpclient
 import tornado.stack_context
