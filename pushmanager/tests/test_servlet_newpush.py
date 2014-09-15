@@ -77,7 +77,7 @@ class NewPushServletTest(T.TestCase, ServletTestMixin):
         mocked_self.check_db_results = mock.Mock(return_value=None)
         mocked_self.redirect = mock.Mock(return_value=None)
         mocked_self.pushtype = 'normal'
-        mocked_self.get_base_url = mock.Mock(return_value="http://fakeurl.com")
+        mocked_self.get_base_url = mock.Mock(return_value="http://example.com")
 
         mocked_self.on_db_complete = types.MethodType(NewPushServlet.on_db_complete.im_func, mocked_self)
 
