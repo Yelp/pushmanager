@@ -976,6 +976,7 @@ class GitQueue(object):
             cls,
             worker_id,
             request_id,
+            pushmanager_url,
             requeue=True):
         """
         Tests for conflicts between a pickme and both master and other pickmes
@@ -1053,7 +1054,7 @@ class GitQueue(object):
                 raise Exception(
                     "Encountered merge conflict but was not passed details"
                 )
-            cls.pickme_conflict_detected(updated_pickme, requeue)
+            cls.pickme_conflict_detected(updated_pickme, requeue, pushmanager_url)
         else:
             # If the request does not conflict here or anywhere else, mark it as
             # no-conflicts
@@ -1069,7 +1070,7 @@ class GitQueue(object):
                 raise Exception("Failed to update pickme")
 
     @classmethod
-    def pickme_conflict_detected(cls, updated_request, send_notifications):
+    def pickme_conflict_detected(cls, updated_request, send_notifications, pushmanager_url):
         msg = (
             """
             <p>
@@ -1078,7 +1079,7 @@ class GitQueue(object):
             <p>
                 <strong>%(user)s - %(title)s</strong><br />
                 <em>%(repo)s/%(branch)s</em><br />
-                <a href="https://%(pushmanager_servername)s%(pushmanager_port)s/request?id=%(id)s">https://%(pushmanager_servername)s%(pushmanager_port)s/request?id=%(id)s</a>
+                <a href="%(pushmanager_url)s/request?id=%(id)s">%(pushmanager_url)s/request?id=%(id)s</a>
             </p>
             <p>
                 Review # (if specified): <a href="https://%(reviewboard_servername)s%(pushmanager_port)s/r/%(reviewid)s">%(reviewid)s</a>
@@ -1105,14 +1106,13 @@ class GitQueue(object):
                     else "another pickme"
                 ),
                 'conflicts': updated_request['conflicts'].replace('\n', '<br/>'),
-                'pushmanager_servername': Settings['main_app']['servername'],
+                'reviewboard_servername': Settings['reviewboard']['servername'],
+                'pushmanager_url' : pushmanager_url,
                 'pushmanager_port': (
                     (':%d' % Settings['main_app']['port'])
                     if Settings['main_app']['port'] != 443
                     else ''
-                ),
-                'reviewboard_servername': Settings['reviewboard']['servername']
-
+                )
             }
         )
         escaped_request = EscapedDict(updated_request)
@@ -1126,15 +1126,14 @@ class GitQueue(object):
         MailQueue.enqueue_user_email([user_to_notify], msg, subject)
 
         msg = """PushManager has detected that your pickme for %(pickme_name)s contains conflicts with %(conflicts_with)s
-            https://%(pushmanager_servername)s%(pushmanager_port)s/request?id=%(pickme_id)s""" % {
+            %(pushmanager_url)s/request?id=%(pickme_id)s""" % {
                 'conflicts_with': (
                     "master"
                     if 'conflict-master' in updated_request['tags']
                     else "another pickme"
                 ),
                 'pickme_name': updated_request['branch'],
-                'pickme_id': updated_request['id'],
-                'pushmanager_servername': Settings['main_app']['servername'],
+                'pushmanager_url' : pushmanager_url,
                 'pushmanager_port': (
                     (':%d' % Settings['main_app']['port'])
                     if Settings['main_app']['port'] != 443
@@ -1144,7 +1143,7 @@ class GitQueue(object):
         XMPPQueue.enqueue_user_xmpp([user_to_notify], msg)
 
     @classmethod
-    def verify_branch(cls, request_id):
+    def verify_branch(cls, request_id, pushmanager_url):
         req = cls._get_request(request_id)
         if not req:
             # Just log this and return. We won't be able to get more
@@ -1158,12 +1157,12 @@ class GitQueue(object):
 
         if not req['branch']:
             error_msg = "Git queue worker received a job for request with no branch (id %s)" % request_id
-            return cls.verify_branch_failure(req, error_msg)
+            return cls.verify_branch_failure(req, error_msg, pushmanager_url)
 
         sha = cls._get_branch_sha_from_repo(req)
         if sha is None:
             error_msg = "Git queue worker could not get the revision from request branch (id %s)" % request_id
-            return cls.verify_branch_failure(req, error_msg)
+            return cls.verify_branch_failure(req, error_msg, pushmanager_url)
 
         duplicate_req = cls._get_request_with_sha(sha)
         if (
@@ -1175,7 +1174,7 @@ class GitQueue(object):
                 duplicate_req['id'],
                 request_id
             )
-            return cls.verify_branch_failure(req, error_msg)
+            return cls.verify_branch_failure(req, error_msg, pushmanager_url)
 
         updated_tags = add_to_tags_str(req['tags'], 'git-ok')
         updated_tags = del_from_tags_str(updated_tags, 'git-error')
@@ -1183,10 +1182,10 @@ class GitQueue(object):
 
         updated_request = cls._update_request(req, updated_values)
         if updated_request:
-            cls.verify_branch_successful(updated_request)
+            cls.verify_branch_successful(updated_request, pushmanager_url)
 
     @classmethod
-    def verify_branch_successful(cls, updated_request):
+    def verify_branch_successful(cls, updated_request, pushmanager_url):
         msg = (
             """
             <p>
@@ -1195,7 +1194,7 @@ class GitQueue(object):
             <p>
                 <strong>%(user)s - %(title)s</strong><br />
                 <em>%(repo)s/%(branch)s</em><br />
-                <a href="https://%(pushmanager_servername)s%(pushmanager_port)s/request?id=%(id)s">https://%(pushmanager_servername)s%(pushmanager_port)s/request?id=%(id)s</a>
+                <a href="%(pushmanager_url)s/request?id=%(id)s">%(pushmanager_url)srequest?id=%(id)s</a>
             </p>
             <p>
                 Review # (if specified): <a href="https://%(reviewboard_servername)s%(pushmanager_port)s/r/%(reviewid)s">%(reviewid)s</a>
@@ -1212,7 +1211,7 @@ class GitQueue(object):
             """
         )
         updated_request.update({
-            'pushmanager_servername': Settings['main_app']['servername'],
+            'pushmanager_url' : pushmanager_url,
             'pushmanager_port': (
                 (':%d' % Settings['main_app']['port'])
                 if Settings['main_app']['port'] != 443
@@ -1251,7 +1250,7 @@ class GitQueue(object):
             )
 
     @classmethod
-    def verify_branch_failure(cls, request, failure_msg):
+    def verify_branch_failure(cls, request, failure_msg, pushmanager_url):
         logging.error(failure_msg)
         updated_tags = add_to_tags_str(request['tags'], 'git-error')
         updated_tags = del_from_tags_str(updated_tags, 'git-ok')
@@ -1267,7 +1266,7 @@ class GitQueue(object):
             <p>
                 <strong>%(user)s - %(title)s</strong><br />
                 <em>%(repo)s/%(branch)s</em><br />
-                <a href="https://%(pushmanager_servername)s/request?id=%(id)s">https://%(pushmanager_servername)s/request?id=%(id)s</a>
+                <a href="%(pushmanager_url)s/request?id=%(id)s">%(pushmanager_url)s/request?id=%(id)s</a>
             </p>
             <p>
                 <strong>Error message</strong>:<br />
@@ -1289,7 +1288,7 @@ class GitQueue(object):
         )
         request.update({
             'failure_msg': failure_msg,
-            'pushmanager_servername': Settings['main_app']['servername'],
+            'pushmanager_url' : pushmanager_url,
             'reviewboard_servername': Settings['reviewboard']['servername']
         })
         msg %= EscapedDict(request)
@@ -1332,7 +1331,7 @@ class GitQueue(object):
 
             try:
                 if task.task_type is GitTaskAction.VERIFY_BRANCH:
-                    cls.verify_branch(task.request_id)
+                    cls.verify_branch(task.request_id, task.kwargs['pushmanager_url'])
                 else:
                     logging.error(
                         "GitSHAQueue encountered unknown task type %d",

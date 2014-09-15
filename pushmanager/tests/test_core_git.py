@@ -83,7 +83,7 @@ class CoreGitTest(T.TestCase):
                 return_value=duplicate_req
             ),
         ):
-            pushmanager.core.git.GitQueue.verify_branch(req['id'])
+            pushmanager.core.git.GitQueue.verify_branch(req['id'], 'http://fake-url.com')
             yield
 
     def test_get_repository_uri_basic(self):
@@ -172,7 +172,7 @@ class CoreGitTest(T.TestCase):
             # (from mock library).
             T.assert_in(
                 "another request with the same revision sha",
-                pushmanager.core.git.GitQueue.verify_branch_failure.call_args_list[0][0][-1]
+                pushmanager.core.git.GitQueue.verify_branch_failure.call_args_list[0][0][1]
             )
 
     def test_update_duplicate_request_discarded(self):
@@ -190,7 +190,7 @@ class CoreGitTest(T.TestCase):
         with mock.patch('pushmanager.core.git.GitCommand') as GC:
             GC.return_value = GC
             GC.run.return_value = (0, "hashashash", "")
-            pushmanager.core.git.GitQueue.verify_branch(1)
+            pushmanager.core.git.GitQueue.verify_branch(1, 'http://fake-url.com')
             calls = [
                  mock.call('ls-remote', '-h', u'git://git.example.com/devs/bmetin', u'bmetin_fix_stuff'),
                  mock.call.run()
@@ -202,7 +202,7 @@ class CoreGitTest(T.TestCase):
             mock.patch("%s.pushmanager.core.git.MailQueue.enqueue_user_email" % __name__),
             mock.patch("%s.pushmanager.core.git.webhook_req" % __name__)
         ):
-            pushmanager.core.git.GitQueue.verify_branch_successful(self.fake_request)
+            pushmanager.core.git.GitQueue.verify_branch_successful(self.fake_request, 'http://fake-url.com')
             T.assert_equal(pushmanager.core.git.MailQueue.enqueue_user_email.call_count, 1)
             T.assert_equal(pushmanager.core.git.webhook_req.call_count, 3)
 
@@ -212,7 +212,7 @@ class CoreGitTest(T.TestCase):
             mock.patch("%s.pushmanager.core.git.webhook_req" % __name__),
             mock.patch("%s.pushmanager.core.git.logging.error" % __name__),
         ):
-            pushmanager.core.git.GitQueue.verify_branch_failure(self.fake_request, "fake failure")
+            pushmanager.core.git.GitQueue.verify_branch_failure(self.fake_request, "fake failure", 'http://fake-url.com')
             T.assert_equal(pushmanager.core.git.MailQueue.enqueue_user_email.call_count, 1)
 
     def test_verify_branch_excluded_from_git_verification(self):
