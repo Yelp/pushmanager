@@ -55,10 +55,10 @@ class RequestHandler(tornado.web.RequestHandler):
             )
 
     def get_base_url(self):
-        protocol = self.request.headers.get('X-Forwarded-Proto', 'https') 
+        default_ports = { 'https' : ':443', 'http' : ':80' }
+        protocol = self.request.headers.get('X-Forwarded-Proto', self.request.protocol).lower() 
         pushmanager_port = ':%s' % self.request.headers.get('X-Forwarded-Port', Settings['main_app']['port'])
-        if ((pushmanager_port == ':443' and protocol == 'https') 
-                or (pushmanager_port == ':80' and protocol == 'http')):
+        if default_ports[protocol] == pushmanager_port:
             pushmanager_port = ''
 
         pushmanager_base_url =  '%(protocol)s://%(pushmanager_servername)s%(pushmanager_port)s' % {

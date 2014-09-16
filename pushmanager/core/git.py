@@ -1133,6 +1133,7 @@ class GitQueue(object):
                     else "another pickme"
                 ),
                 'pickme_name': updated_request['branch'],
+                'pickme_id': updated_request['id'],
                 'pushmanager_url' : pushmanager_url,
                 'pushmanager_port': (
                     (':%d' % Settings['main_app']['port'])
