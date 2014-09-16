@@ -1194,7 +1194,7 @@ class GitQueue(object):
             <p>
                 <strong>%(user)s - %(title)s</strong><br />
                 <em>%(repo)s/%(branch)s</em><br />
-                <a href="%(pushmanager_url)s/request?id=%(id)s">%(pushmanager_url)srequest?id=%(id)s</a>
+                <a href="%(pushmanager_url)s/request?id=%(id)s">%(pushmanager_url)s/request?id=%(id)s</a>
             </p>
             <p>
                 Review # (if specified): <a href="https://%(reviewboard_servername)s%(pushmanager_port)s/r/%(reviewid)s">%(reviewid)s</a>

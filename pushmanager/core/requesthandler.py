@@ -55,16 +55,17 @@ class RequestHandler(tornado.web.RequestHandler):
             )
 
     def get_base_url(self):
+        protocol = self.request.headers.get('X-Forwarded-Proto', 'https') 
         pushmanager_port = ':%s' % self.request.headers.get('X-Forwarded-Port', Settings['main_app']['port'])
-        if pushmanager_port == ':443':
+        if ((pushmanager_port == ':443' and protocol == 'https') 
+                or (pushmanager_port == ':80' and protocol == 'http')):
             pushmanager_port = ''
 
         pushmanager_base_url =  '%(protocol)s://%(pushmanager_servername)s%(pushmanager_port)s' % {
-            'protocol' : self.request.headers.get('X-Forwarded-Proto', 'https'), 
+            'protocol' : protocol,
             'pushmanager_servername' : Settings['main_app']['servername'], 
             'pushmanager_port' : pushmanager_port
         }
-
         return pushmanager_base_url
 
     def get_api_results(self, response):
