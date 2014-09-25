@@ -176,6 +176,16 @@ class NewRequestServletTest(T.TestCase, ServletTestMixin, FakeDataMixin):
         basic_request.update({'user': 'testuser'})
         self.assert_request(basic_request, last_req)
 
+    def test_editrequest_does_not_clear_arbitrary_conflict_tags(self):
+        conflict_request = dict(self.basic_request)
+        conflict_request.update({'request-tags': 'super-safe,conflict-derp,logs', 'user': 'testuser'})
+        last_req = self.assert_submit_request(conflict_request)
+
+        basic_request = dict(self.basic_request)
+        basic_request.update({'user': 'testuser'})
+        basic_request.update({'request-tags': 'super-safe,conflict-derp,logs'})
+        self.assert_request(basic_request, last_req)
+
     def test_editrequest_requeues_pickmed_request(self):
         with mock.patch('pushmanager.core.git.GitQueue.enqueue_request') as mock_enqueue:
             with mock.patch('pushmanager.core.git.GitQueue._get_push_for_request') as mock_getpush:
