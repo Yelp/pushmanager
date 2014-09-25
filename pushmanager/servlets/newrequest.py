@@ -6,6 +6,7 @@ import sqlalchemy as SA
 import pushmanager.core.db as db
 import pushmanager.core.util
 from pushmanager.core.git import GitQueue
+from pushmanager.servlets.checklist import checklist_reminders
 from pushmanager.core.git import GitTaskAction
 from pushmanager.core.requesthandler import RequestHandler
 
@@ -115,20 +116,8 @@ class NewRequestServlet(RequestHandler):
         types_to_add = necessary_checklist_types - existing_checklist_types
         types_to_remove = existing_checklist_types - necessary_checklist_types
 
-        # Different types of checklist items need to happen at different points.
-        targets_by_type = {
-            'pushplans' : ('stage', 'prod'),
-            'search' : ('post-stage', 'prod', 'post-prod', 'post-verify'),
-            'hoods' : ('stage', 'post-stage', 'prod'),
-            # We need to append checklist items to clean up after
-            # push plans & search checklist items.
-            'pushplans-cleanup' : ('post-verify-stage',),
-            'search-cleanup': ('post-verify-prod',),
-            'hoods-cleanup' : ('post-verify-stage',),
-        }
-
         for type_ in types_to_add:
-            for target in targets_by_type[type_]:
+            for target in checklist_reminders[type_].keys():
                 queries.append(db.push_checklist.insert().values(
                     {'request': self.requestid, 'type': type_, 'target': target}
                 ))
