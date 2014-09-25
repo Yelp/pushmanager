@@ -103,15 +103,12 @@ class NewRequestServlet(RequestHandler):
 
         necessary_checklist_types = set()
 
-        if 'pushplans' in self.tag_list:
-            necessary_checklist_types.add('pushplans')
-            necessary_checklist_types.add('pushplans-cleanup')
-        if 'search-backend' in self.tag_list:
-            necessary_checklist_types.add('search')
-            necessary_checklist_types.add('search-cleanup')
-        if 'hoods' in self.tag_list:
-            necessary_checklist_types.add('hoods')
-            necessary_checklist_types.add('hoods-cleanup')
+        canonical_tag_name = { 'search': 'search-backend' }
+        for cl_type in ['pushplans', 'search', 'hoods']:
+            tag = canonical_tag_name.get(cl_type, cl_type)
+            if tag in self.tag_list:
+                necessary_checklist_types.add(cl_type)
+                necessary_checklist_types.add('{0}-cleanup'.format(cl_type))
 
         types_to_add = necessary_checklist_types - existing_checklist_types
         types_to_remove = existing_checklist_types - necessary_checklist_types
