@@ -11,6 +11,7 @@ from pushmanager.core.requesthandler import RequestHandler
 
 
 TAGS_RE = re.compile(r'[a-zA-Z0-9_-]+')
+CONFLICT_TAGS = frozenset(('conflict-pickme', 'conflict-master'))
 
 
 class NewRequestServlet(RequestHandler):
@@ -22,7 +23,11 @@ class NewRequestServlet(RequestHandler):
         if not self.current_user:
             return self.send_error(403)
         self.requestid = self._arg('request-id')
-        self.tag_list = [x for x in TAGS_RE.findall(self._arg('request-tags')) if x and 'conflict' not in x]
+        self.tag_list = [
+            x
+            for x in TAGS_RE.findall(self._arg('request-tags'))
+            if x and x not in CONFLICT_TAGS
+        ]
 
         reviewid = self._arg('request-review')
         if reviewid:
