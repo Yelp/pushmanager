@@ -271,13 +271,13 @@ class NewRequestChecklistMixin(ServletTestMixin, FakeDataMixin):
                 continue
 
             plain_list = checklist_reminders[tag]
-            num_checks += len(plain_list)
             checks += [(tag, check) for check in plain_list]
 
             cleanup_tag = '%s-cleanup' % tag
             cleanup_list = checklist_reminders[cleanup_tag]
-            num_checks += len(cleanup_list)
             checks += [(cleanup_tag, check) for check in cleanup_list]
+
+        num_checks = len(checks)
 
         reqid = self.make_request_with_tags(tags, requestid)
         checklists = self.get_checklists(reqid)
