@@ -242,19 +242,19 @@ class NewRequestChecklistMixin(ServletTestMixin, FakeDataMixin):
         return self.get_requests()[-1]['id']
 
     def get_checklists(self, requestid):
-        checklists = [None]
+        checklists = list()
         def on_select_return(success, db_results):
             assert success
-            checklists[0] = db_results.fetchall()
+            for cl in db_results.fetchall():
+                # id, *request*, *type*, complete, *target*
+                checklists.append((cl[1], cl[2], cl[4]))
 
         select_query = db.push_checklist.select().where(
                 db.push_checklist.c.request == requestid)
 
         db.execute_cb(select_query, on_select_return)
 
-        # id, *request*, *type*, complete, *target*
-        simple_checklists = [(cl[1], cl[2], cl[4]) for cl in checklists[0]]
-        return simple_checklists
+        return checklists
 
     def assert_checklist_for_tags(self, tags, requestid=None):
         num_checks = 0
