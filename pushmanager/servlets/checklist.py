@@ -17,7 +17,6 @@ checklist_reminders = {
     },
     'hoods': {
         'stage': 'Notify %(pushee)s to deploy Geoservices to stage.',
-        'post-stage': 'Ask Search to force index distribution on stage for %(pushee)s',
         'prod': 'Notify %(pushee)s to deploy Geoservices to prod.',
     },
     'pushplans-cleanup': {

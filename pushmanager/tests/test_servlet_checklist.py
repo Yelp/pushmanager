@@ -158,7 +158,6 @@ class ChecklistServletTest(T.TestCase, ServletTestMixin, FakeDataMixin):
             checklist_queries = []
             checklist_items = (
                 {'request': req['id'], 'type': 'hoods', 'target': 'stage'},
-                {'request': req['id'], 'type': 'hoods', 'target': 'post-stage'},
                 {'request': req['id'], 'type': 'hoods', 'target': 'prod'},
                 {'request': req['id'], 'type': 'hoods-cleanup', 'target': 'post-verify-stage'},
             )
