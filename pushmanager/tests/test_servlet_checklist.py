@@ -158,7 +158,6 @@ class ChecklistServletTest(T.TestCase, ServletTestMixin, FakeDataMixin):
             checklist_queries = []
             checklist_items = (
                 {'request': req['id'], 'type': 'hoods', 'target': 'stage'},
-                {'request': req['id'], 'type': 'hoods', 'target': 'post-stage'},
                 {'request': req['id'], 'type': 'hoods', 'target': 'prod'},
                 {'request': req['id'], 'type': 'hoods-cleanup', 'target': 'post-verify-stage'},
             )
@@ -173,7 +172,6 @@ class ChecklistServletTest(T.TestCase, ServletTestMixin, FakeDataMixin):
             T.assert_not_in("No checklist items for this push", response.body)
             T.assert_in("Notify testuser1 to deploy Geoservices to stage", response.body)
             T.assert_in("Notify testuser1 to deploy Geoservices to prod", response.body)
-            T.assert_in("Ask Search to force index distribution on stage for testuser1", response.body)
 
 
 class ChecklistToggleServletTest(T.TestCase, ServletTestMixin, FakeDataMixin):

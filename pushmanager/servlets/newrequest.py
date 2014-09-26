@@ -6,6 +6,7 @@ import sqlalchemy as SA
 import pushmanager.core.db as db
 import pushmanager.core.util
 from pushmanager.core.git import GitQueue
+from pushmanager.servlets.checklist import checklist_reminders
 from pushmanager.core.git import GitTaskAction
 from pushmanager.core.requesthandler import RequestHandler
 
@@ -102,33 +103,18 @@ class NewRequestServlet(RequestHandler):
 
         necessary_checklist_types = set()
 
-        if 'pushplans' in self.tag_list:
-            necessary_checklist_types.add('pushplans')
-            necessary_checklist_types.add('pushplans-cleanup')
-        if 'search-backend' in self.tag_list:
-            necessary_checklist_types.add('search')
-            necessary_checklist_types.add('search-cleanup')
-        if 'hoods' in self.tag_list:
-            necessary_checklist_types.add('hoods')
-            necessary_checklist_types.add('hoods-cleanup')
+        canonical_tag_name = { 'search': 'search-backend' }
+        for cl_type in ['pushplans', 'search', 'hoods']:
+            tag = canonical_tag_name.get(cl_type, cl_type)
+            if tag in self.tag_list:
+                necessary_checklist_types.add(cl_type)
+                necessary_checklist_types.add('{0}-cleanup'.format(cl_type))
 
         types_to_add = necessary_checklist_types - existing_checklist_types
         types_to_remove = existing_checklist_types - necessary_checklist_types
 
-        # Different types of checklist items need to happen at different points.
-        targets_by_type = {
-            'pushplans' : ('stage', 'prod'),
-            'search' : ('post-stage', 'prod', 'post-prod', 'post-verify'),
-            'hoods' : ('stage', 'post-stage', 'prod'),
-            # We need to append checklist items to clean up after
-            # push plans & search checklist items.
-            'pushplans-cleanup' : ('post-verify-stage',),
-            'search-cleanup': ('post-verify-prod',),
-            'hoods-cleanup' : ('post-verify-stage',),
-        }
-
         for type_ in types_to_add:
-            for target in targets_by_type[type_]:
+            for target in checklist_reminders[type_].keys():
                 queries.append(db.push_checklist.insert().values(
                     {'request': self.requestid, 'type': type_, 'target': target}
                 ))
