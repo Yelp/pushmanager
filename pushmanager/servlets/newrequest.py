@@ -132,12 +132,12 @@ class NewRequestServlet(RequestHandler):
             return self.send_error(500)
 
         if self.requestid:
-            GitQueue.enqueue_request(GitTaskAction.VERIFY_BRANCH, self.requestid)
+            GitQueue.enqueue_request(GitTaskAction.VERIFY_BRANCH, self.requestid, pushmanager_url = self.get_base_url())
 
             # Check if the request is already pickme'd for a push, and if
             # so also enqueue it to be checked for conflicts.
             request_push_id = GitQueue._get_push_for_request(self.requestid)
             if request_push_id:
-                GitQueue.enqueue_request(GitTaskAction.TEST_PICKME_CONFLICT, self.requestid)
+                GitQueue.enqueue_request(GitTaskAction.TEST_PICKME_CONFLICT, self.requestid, pushmanager_url = self.get_base_url())
 
         return self.redirect("/requests?user=%s" % self.request_user)

@@ -3,7 +3,6 @@ import sqlalchemy as SA
 import pushmanager.core.db as db
 import pushmanager.core.util
 from pushmanager.core.requesthandler import RequestHandler
-from pushmanager.core.settings import Settings
 from pushmanager.core.xmppclient import XMPPQueue
 
 
@@ -46,9 +45,8 @@ class VerifyRequestServlet(RequestHandler):
 
         push = db_results[0].first()
         unfinished_requests = db_results[2].first()
-        pushmanager_servername = Settings['main_app']['servername']
-        pushmanager_port = ':%d' % Settings['main_app']['port'] if Settings['main_app']['port'] != 443 else ''
+        pushmanager_base_url = self.get_base_url()
         if not unfinished_requests:
-            msg = "All currently staged requests in https://%s/push?id=%s have been marked as verified." % \
-                (pushmanager_servername + pushmanager_port, self.pushid)
+            msg = "All currently staged requests in %s/push?id=%s have been marked as verified." % \
+                (pushmanager_base_url, self.pushid)
             XMPPQueue.enqueue_user_xmpp([push['user']], msg)
