@@ -1082,7 +1082,7 @@ class GitQueue(object):
                 <a href="%(pushmanager_url)s/request?id=%(id)s">%(pushmanager_url)s/request?id=%(id)s</a>
             </p>
             <p>
-                Review # (if specified): <a href="https://%(reviewboard_servername)s%(pushmanager_port)s/r/%(reviewid)s">%(reviewid)s</a>
+                Review # (if specified): <a href="https://%(reviewboard_servername)s/r/%(reviewid)s">%(reviewid)s</a>
             </p>
             <p>
                 <code>%(revision)s</code><br/>
@@ -1107,12 +1107,7 @@ class GitQueue(object):
                 ),
                 'conflicts': updated_request['conflicts'].replace('\n', '<br/>'),
                 'reviewboard_servername': Settings['reviewboard']['servername'],
-                'pushmanager_url' : pushmanager_url,
-                'pushmanager_port': (
-                    (':%d' % Settings['main_app']['port'])
-                    if Settings['main_app']['port'] != 443
-                    else ''
-                )
+                'pushmanager_url' : pushmanager_url
             }
         )
         escaped_request = EscapedDict(updated_request)
@@ -1193,7 +1188,7 @@ class GitQueue(object):
                 <a href="%(pushmanager_url)s/request?id=%(id)s">%(pushmanager_url)s/request?id=%(id)s</a>
             </p>
             <p>
-                Review # (if specified): <a href="https://%(reviewboard_servername)s%(pushmanager_port)s/r/%(reviewid)s">%(reviewid)s</a>
+                Review # (if specified): <a href="https://%(reviewboard_servername)s/r/%(reviewid)s">%(reviewid)s</a>
             </p>
             <p>
                 Verified revision: <code>%(revision)s</code><br/>
@@ -1208,11 +1203,6 @@ class GitQueue(object):
         )
         updated_request.update({
             'pushmanager_url' : pushmanager_url,
-            'pushmanager_port': (
-                (':%d' % Settings['main_app']['port'])
-                if Settings['main_app']['port'] != 443
-                else ''
-            ),
             'reviewboard_servername': Settings['reviewboard']['servername']
         })
         msg %= EscapedDict(updated_request)
