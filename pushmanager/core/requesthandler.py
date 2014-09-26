@@ -24,6 +24,21 @@ def async_api_call_error():
         else:
             raise
 
+def get_base_url(request):
+
+    default_ports = { 'https' : ':443', 'http' : ':80' }
+    protocol = request.headers.get('X-Forwarded-Proto', request.protocol).lower() 
+    pushmanager_port = ':%s' % request.headers.get('X-Forwarded-Port', Settings['main_app']['port'])
+    if default_ports[protocol] == pushmanager_port:
+        pushmanager_port = ''
+
+    pushmanager_base_url =  '%(protocol)s://%(pushmanager_servername)s%(pushmanager_port)s' % {
+            'protocol' : protocol,
+            'pushmanager_servername' : Settings['main_app']['servername'], 
+            'pushmanager_port' : pushmanager_port
+            }
+    return pushmanager_base_url
+
 class RequestHandler(tornado.web.RequestHandler):
 
     def get_current_user(self):
@@ -55,18 +70,7 @@ class RequestHandler(tornado.web.RequestHandler):
             )
 
     def get_base_url(self):
-        default_ports = { 'https' : ':443', 'http' : ':80' }
-        protocol = self.request.headers.get('X-Forwarded-Proto', self.request.protocol).lower() 
-        pushmanager_port = ':%s' % self.request.headers.get('X-Forwarded-Port', Settings['main_app']['port'])
-        if default_ports[protocol] == pushmanager_port:
-            pushmanager_port = ''
-
-        pushmanager_base_url =  '%(protocol)s://%(pushmanager_servername)s%(pushmanager_port)s' % {
-            'protocol' : protocol,
-            'pushmanager_servername' : Settings['main_app']['servername'], 
-            'pushmanager_port' : pushmanager_port
-        }
-        return pushmanager_base_url
+        return get_base_url(self.request)
 
     def get_api_results(self, response):
         if response.error:
