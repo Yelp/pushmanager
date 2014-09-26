@@ -78,7 +78,7 @@ class ChecklistServletTest(T.TestCase, ServletTestMixin, FakeDataMixin):
             T.assert_equal(response.error, None)
             T.assert_not_in("No checklist items for this push", response.body)
             T.assert_not_equal(re.search("for testuser\d,testuser\d", response.body), None)
-            T.assert_in("After Certifying - Do In Prod", response.body)
+            T.assert_in("Before Certifying - Do In Prod", response.body)
 
     def test_checklist_single_search_tag(self):
         with fake_checklist_request():
@@ -110,7 +110,7 @@ class ChecklistServletTest(T.TestCase, ServletTestMixin, FakeDataMixin):
             T.assert_not_in("No checklist items for this push", response.body)
             T.assert_not_in("multiple requests", response.body)
             T.assert_in("for testuser1", response.body)
-            T.assert_in("After Certifying - Do In Prod", response.body)
+            T.assert_in("Before Certifying - Do In Prod", response.body)
 
     def test_checklist_pushplans_tag(self):
         with fake_checklist_request():
@@ -142,7 +142,7 @@ class ChecklistServletTest(T.TestCase, ServletTestMixin, FakeDataMixin):
             T.assert_not_in("No checklist items for this push", response.body)
             T.assert_not_in("multiple requests", response.body)
             T.assert_in("for testuser1", response.body)
-            T.assert_in("After Certifying - Do In Stage", response.body)
+            T.assert_in("Before Certifying - Do In Stage", response.body)
 
 
     def test_hoods_checklists(self):
