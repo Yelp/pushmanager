@@ -1134,12 +1134,7 @@ class GitQueue(object):
                 ),
                 'pickme_name': updated_request['branch'],
                 'pickme_id': updated_request['id'],
-                'pushmanager_url' : pushmanager_url,
-                'pushmanager_port': (
-                    (':%d' % Settings['main_app']['port'])
-                    if Settings['main_app']['port'] != 443
-                    else ''
-                )
+                'pushmanager_url' : pushmanager_url
             }
         XMPPQueue.enqueue_user_xmpp([user_to_notify], msg)
 
