@@ -776,7 +776,7 @@ class GitQueue(object):
 
     @classmethod
     def _test_pickme_conflict_pickme(cls, worker_id, req, target_branch,
-                                     repo_path, requeue):
+                                     repo_path, pushmanager_url, requeue):
         """Test for any pickmes that are broken by pickme'd request req
 
         Precondition: We should already be on a test branch, and the pickme to
@@ -860,6 +860,7 @@ class GitQueue(object):
                     GitQueue.enqueue_request(
                         GitTaskAction.TEST_PICKME_CONFLICT,
                         pickme,
+                        pushmanager_url=pushmanager_url,
                         requeue=False
                     )
 
@@ -953,6 +954,7 @@ class GitQueue(object):
                         req,
                         target_branch,
                         repo_path,
+                        pushmanager_url,
                         requeue
                     )
 
@@ -1283,7 +1285,7 @@ class GitQueue(object):
         MailQueue.enqueue_user_email([user_to_notify], msg, subject)
 
     @classmethod
-    def requeue_pickmes_for_push(cls, push_id, conflicting_only=False):
+    def requeue_pickmes_for_push(cls, push_id, pushmanager_url, conflicting_only=False):
         request_details = []
         for pickme_id in cls._get_request_ids_in_push(push_id):
             request_details.append(cls._get_request(pickme_id))
@@ -1299,6 +1301,7 @@ class GitQueue(object):
             GitQueue.enqueue_request(
                 GitTaskAction.TEST_PICKME_CONFLICT,
                 req['id'],
+                pushmanager_url=pushmanager_url,
                 requeue=False
             )
 
@@ -1345,9 +1348,9 @@ class GitQueue(object):
                 if task.task_type is GitTaskAction.TEST_PICKME_CONFLICT:
                     cls.test_pickme_conflicts(worker_id, task.request_id, **task.kwargs)
                 elif task.task_type is GitTaskAction.TEST_CONFLICTING_PICKMES:
-                    cls.requeue_pickmes_for_push(task.request_id, conflicting_only=True)
+                    cls.requeue_pickmes_for_push(task.request_id, task.kwargs['pushmanager_url'], conflicting_only=True)
                 elif task.task_type is GitTaskAction.TEST_ALL_PICKMES:
-                    cls.requeue_pickmes_for_push(task.request_id)
+                    cls.requeue_pickmes_for_push(task.request_id, task.kwargs['pushmanager_url'])
                 else:
                     logging.error(
                         "GitConflictQueue encountered unknown task type %d",

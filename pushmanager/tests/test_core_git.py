@@ -19,6 +19,8 @@ from pushmanager.testing import testdb
 from pushmanager.testing.mocksettings import MockedSettings
 
 
+pushmanager_url = 'www.example.com'
+
 class CoreGitTest(T.TestCase):
 
     @T.class_setup
@@ -461,11 +463,12 @@ class CoreGitTest(T.TestCase):
                 added_request,
                 'some_test_branch',
                 '/local/repo/path',
+                pushmanager_url,
                 True
             )
             assert conflicts == False
             enqueue_req.assert_has_calls([
-                mock.call(GitTaskAction.TEST_PICKME_CONFLICT, 2, requeue=False)
+                mock.call(GitTaskAction.TEST_PICKME_CONFLICT, 2, pushmanager_url=pushmanager_url, requeue=False)
             ])
 
     def _pickme_conflict_pickme_integration(self, request_state):
@@ -544,6 +547,7 @@ class CoreGitTest(T.TestCase):
                 german_req,
                 "test_pcp",
                 repo_path,
+                pushmanager_url,
                 False
             )
             return (conflict, update_req.call_args)
@@ -632,9 +636,9 @@ class CoreGitTest(T.TestCase):
 
             get_req.side_effect = update_get_req
 
-            pushmanager.core.git.GitQueue.requeue_pickmes_for_push(1, conflicting_only=True)
+            pushmanager.core.git.GitQueue.requeue_pickmes_for_push(1, pushmanager_url, conflicting_only=True)
 
-            calls = [mock.call(GitTaskAction.TEST_PICKME_CONFLICT, 1, requeue=False)]
+            calls = [mock.call(GitTaskAction.TEST_PICKME_CONFLICT, 1, pushmanager_url=pushmanager_url, requeue=False)]
 
             enqueue_req.assert_has_calls(calls)
 
@@ -659,12 +663,12 @@ class CoreGitTest(T.TestCase):
 
             get_req.side_effect = update_get_req
 
-            pushmanager.core.git.GitQueue.requeue_pickmes_for_push(1)
+            pushmanager.core.git.GitQueue.requeue_pickmes_for_push(1, pushmanager_url)
 
             calls = [
-                mock.call(GitTaskAction.TEST_PICKME_CONFLICT, 1, requeue=False),
-                mock.call(GitTaskAction.TEST_PICKME_CONFLICT, 2, requeue=False),
-                mock.call(GitTaskAction.TEST_PICKME_CONFLICT, 3, requeue=False),
+                mock.call(GitTaskAction.TEST_PICKME_CONFLICT, 1, pushmanager_url=pushmanager_url, requeue=False),
+                mock.call(GitTaskAction.TEST_PICKME_CONFLICT, 2, pushmanager_url=pushmanager_url, requeue=False),
+                mock.call(GitTaskAction.TEST_PICKME_CONFLICT, 3, pushmanager_url=pushmanager_url, requeue=False),
             ]
 
             enqueue_req.assert_has_calls(calls)
