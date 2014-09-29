@@ -1,18 +1,18 @@
-2014.09.05
+2014-09-05
   AFFECTS: Users with existing installs before 0.3.7
   AUTHOR: milki
 
   Config option trac.servername has been removed in favour of
   ticket_tracker_url_format
 
-2014.08.22
+2014-08-22
   AFFECTS: Users with existing installs before 0.3.6
   AUTHOR: milki
 
   0.3.6 introduces a new config option git.conflict-threads that dictates how
   many addiotional worker threads are dedicated to conflict detection.
 
-2014.08.14
+2014-08-14
   AFFECTS: Users with existing installs before 0.3.1
   AUTHOR: milki
 
@@ -20,7 +20,7 @@
   it only enables git operation logging. 'config.yaml.sample' has
   been updated with the option disabled.
 
-2014.08.12
+2014-08-12
   AFFECTS: Users with existing installs before 0.3.0
   AUTHOR: milki
 
@@ -31,7 +31,7 @@
   options and a convenient script, 'pushplans/add_conflicts.sql' has
   been included to facilitate the database update.
 
-2013.10.39
+2013-10-39
   AFFECTS: Users with existing installs before commit ecb989b7
   AUTHOR: milki
 
@@ -42,7 +42,7 @@
   A convenience script, 'pushplans/add_stageenv.sql' has been included
   to facilitate the database update.
 
-2013.07.29
+2013-07-29
   AFFECTS: Users with existing installs before commit b3f8fa5
   AUTHOR: milki
 
@@ -53,7 +53,7 @@
   A convenience script, 'pushplans/add_watchers.sql' has been included
   to facilitate the database update.
 
-2013.06.18:
+2013-06-18:
   AFFECTS: Users with existing installs before commit 7a896c5
   AUTHOR: milki
 
