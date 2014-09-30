@@ -917,7 +917,7 @@ class GitQueue(object):
     @classmethod
     def _test_pickme_conflict_master(
             cls, worker_id, req, target_branch,
-            repo_path, requeue):
+            repo_path, pushmanager_url, requeue):
         """Test whether the pickme given by req can be successfully merged onto
         master.
 
@@ -1049,6 +1049,7 @@ class GitQueue(object):
             req,
             target_branch,
             repo_path,
+            pushmanager_url,
             requeue
         )
         if conflict:
