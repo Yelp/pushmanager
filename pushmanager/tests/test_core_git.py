@@ -608,6 +608,7 @@ class CoreGitTest(T.TestCase):
                 german_req,
                 "test_pcm",
                 repo_path,
+                pushmanager_url,
                 False
             )
             T.assert_equal(conflict, True)
@@ -755,6 +756,7 @@ class CoreGitTest(T.TestCase):
                 welsh_req,
                 'testing_pickme_branch',
                 '/local/repo/path/',
+                pushmanager_url,
                 False
             )
 
