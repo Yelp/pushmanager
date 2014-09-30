@@ -1,3 +1,10 @@
+0.3.10  2014-09-29
+
+ BUG FIXES
+
+ * Include pushmanager_url when testing pickmes for merge conflcits
+   (kkellyy, #124)
+
 0.3.9   2014-09-29
 
  IMPROVEMENTS
