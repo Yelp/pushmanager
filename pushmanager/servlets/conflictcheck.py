@@ -13,5 +13,5 @@ class ConflictCheckServlet(RequestHandler):
         if not self.current_user:
             return self.send_error(403)
         self.pushid = pushmanager.core.util.get_int_arg(self.request, 'id')
-        GitQueue.enqueue_request(GitTaskAction.TEST_ALL_PICKMES, self.pushid)
+        GitQueue.enqueue_request(GitTaskAction.TEST_ALL_PICKMES, self.pushid, pushmanager_url=self.get_base_url())
         self.redirect("/push?id=%d" % self.pushid)

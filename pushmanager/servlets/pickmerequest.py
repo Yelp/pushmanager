@@ -92,4 +92,4 @@ class UnpickMeRequestServlet(RequestHandler):
         self.check_db_results(success, db_results)
         # Re-check pickmes that are marked as conflicting, in case this was the pickme
         # that they conflicted against.
-        GitQueue.enqueue_request(GitTaskAction.TEST_CONFLICTING_PICKMES, self.pushid)
+        GitQueue.enqueue_request(GitTaskAction.TEST_CONFLICTING_PICKMES, self.pushid, pushmanager_url=self.get_base_url())
