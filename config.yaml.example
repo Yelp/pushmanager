@@ -65,6 +65,18 @@ reviewboard:
 buildbot:
     servername: buildbot.mydomain.com
 
+# Set dynamic test tag using a REST api
+# Request's SHA will replace %SHA%
+tests_tag:
+    #User-added tag that will be replaced with api result
+    tag: "test-framework"
+    # JSON 'tag' value from POST response of this URL will replace tag
+    tag_api_endpoint: "http://example.com/api/v1/tests_tag"
+    tag_api_body: '{ "sha" : "%SHA%" }'
+    # If defined, tag will link to the JSON 'url' value from POST response of this URL
+    url_api_endpoint: "http://example.com/api/v1/test_results_url"
+    url_api_body: '{ "sha" : "%SHA%" }'
+
 # The string %TICKET% will be replaced by the ticket id
 ticket_tracker_url_format: "http://server:port/path/%TICKET%"
 
