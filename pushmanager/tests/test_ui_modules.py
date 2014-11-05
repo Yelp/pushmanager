@@ -37,6 +37,7 @@ class UIModuleTest(T.TestCase):
         m.read.side_effect = ['{"tag" : "tag 0 fails"}', '{"url" : "www.example.com/results/sha"}']
         mock_urlopen.return_value = m
 
+        MockedSettings['tests_tag'] = {}
         MockedSettings['tests_tag']['tag'] = 'test'
         MockedSettings['tests_tag']['tag_api_endpoint'] = 'example.com'
         MockedSettings['tests_tag']['tag_api_body'] = '{ "sha" : "%SHA%" }'
@@ -55,6 +56,7 @@ class UIModuleTest(T.TestCase):
         m.read.side_effect = ['{"tag" : "tag 0 fails"}', '{"url" : ""}']
         mock_urlopen.return_value = m
 
+        MockedSettings['tests_tag'] = {}
         MockedSettings['tests_tag']['tag'] = 'test'
         MockedSettings['tests_tag']['tag_api_endpoint'] = 'example.com'
         MockedSettings['tests_tag']['tag_api_body'] = '{ "sha" : "%SHA%" }'
