@@ -73,9 +73,11 @@ tests_tag:
     # JSON 'tag' value from POST response of this URL will replace tag
     tag_api_endpoint: "http://example.com/api/v1/tests_tag"
     tag_api_body: '{ "sha" : "%SHA%" }'
-    # If defined, tag will link to the JSON 'url' value from POST response of this URL
+    # If defined, tag will link to servername below and replace %ID%
+    # with the 'id' field in the JSON returned by url_api
     url_api_endpoint: "http://example.com/api/v1/test_results_url"
     url_api_body: '{ "sha" : "%SHA%" }'
+    #the run's ID from api will replace %ID% 
     servername: "example.com"
 
 # The string %TICKET% will be replaced by the ticket id

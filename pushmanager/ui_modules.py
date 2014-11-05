@@ -104,9 +104,9 @@ class Request(UIModule):
                     result_api_url = Settings['tests_tag']['url_api_endpoint'].replace('%SHA%', request['revision'])
                     result_api_body = Settings['tests_tag']['url_api_body'].replace('%SHA%', request['revision'])
                     resp = urllib2.urlopen(result_api_url, result_api_body)
-                    results_qstring = json.loads(resp.read())['url']
-                    if results_qstring != '':
-                        tags[tests_tag] = Settings['tests_tag']['servername'] + '/' + results_qstring
+                    result_id = json.loads(resp.read())['id']
+                    if result_id != '':
+                        tags[tests_tag] = Settings['tests_tag']['servername'].replace('%ID%', result_id).replace('%SHA%', request['revision'])
                 except Exception as e:
                     logging.warning(e)
                     logging.warning("Couldn't load results for results test URL from %s with body %s" %
