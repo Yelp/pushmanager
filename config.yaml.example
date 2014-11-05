@@ -76,6 +76,7 @@ tests_tag:
     # If defined, tag will link to the JSON 'url' value from POST response of this URL
     url_api_endpoint: "http://example.com/api/v1/test_results_url"
     url_api_body: '{ "sha" : "%SHA%" }'
+    servername: "example.com"
 
 # The string %TICKET% will be replaced by the ticket id
 ticket_tracker_url_format: "http://server:port/path/%TICKET%"

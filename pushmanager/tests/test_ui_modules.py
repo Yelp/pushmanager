@@ -34,7 +34,7 @@ class UIModuleTest(T.TestCase):
     @mock.patch('pushmanager.ui_modules.urllib2.urlopen')
     def test_generate_test_tag_normal(self, mock_urlopen):
         m = mock.Mock()
-        m.read.side_effect = ['{"tag" : "tag 0 fails"}', '{"url" : "www.example.com/results/sha"}']
+        m.read.side_effect = ['{"tag" : "tag 0 fails"}', '{"url" : "results/sha"}']
         mock_urlopen.return_value = m
 
         MockedSettings['tests_tag'] = {}
@@ -43,6 +43,7 @@ class UIModuleTest(T.TestCase):
         MockedSettings['tests_tag']['tag_api_body'] = '{ "sha" : "%SHA%" }'
         MockedSettings['tests_tag']['url_api_endpoint'] = "http://example.com/api/v1/test_results_url"
         MockedSettings['tests_tag']['url_api_body'] = '{ "sha" : "%SHA%" }'
+        MockedSettings['tests_tag']['servername'] = 'www.example.com'
 
         request_info = {'tags':'test', 'branch':'test', 'revision': 'abc123'}
         with mock.patch.dict(Settings, MockedSettings):
@@ -62,6 +63,7 @@ class UIModuleTest(T.TestCase):
         MockedSettings['tests_tag']['tag_api_body'] = '{ "sha" : "%SHA%" }'
         MockedSettings['tests_tag']['url_api_endpoint'] = "http://example.com/api/v1/test_results_url"
         MockedSettings['tests_tag']['url_api_body'] = '{ "sha" : "%SHA%" }'
+        MockedSettings['tests_tag']['servername'] = 'www.example.com'
 
         request_info = {'tags':'test', 'branch':'test', 'revision': 'abc123'}
         with mock.patch.dict(Settings, MockedSettings):
