@@ -2,13 +2,13 @@ import json
 import logging
 import urllib2
 
-import pushmanager.core.util
+from tornado.escape import url_escape
+from tornado.escape import xhtml_escape
 
+import pushmanager.core.util
 from pushmanager.core.git import GitQueue
 from pushmanager.core.requesthandler import RequestHandler
 from pushmanager.core.settings import Settings
-from tornado.escape import url_escape
-from tornado.escape import xhtml_escape
 
 
 class TestTagServlet(RequestHandler):
