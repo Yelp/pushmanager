@@ -176,7 +176,7 @@ $(function() {
                 that.addClass('test-data-loaded');
             },
             'error': function(XMLHttpRequest, textStatus, errorThrown){
-                alert('status:' + XMLHttpRequest.status + ', status text: ' + XMLHttpRequest.statusText);
+                console.log('status:' + XMLHttpRequest.status + ', status text: ' + XMLHttpRequest.statusText);
             }
         });
     };
