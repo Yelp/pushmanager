@@ -1,8 +1,5 @@
 import datetime
-import json
-import logging
 import os
-import urllib2
 
 from pushmanager.core import util
 from pushmanager.core.settings import Settings
@@ -65,13 +62,11 @@ class Request(UIModule):
 
         return self.render_string('modules/request.html', request=request, pretty_date=util.pretty_date, **kwargs)
 
-
     def _generate_tag_list(self, request, repo):
         tags = dict((tag, None) for tag in (request['tags'].split(',') if request['tags'] else []))
 
         if 'buildbot' in tags:
             tags['buildbot'] = "https://%s/rev/%s" % (Settings['buildbot']['servername'], request['revision'])
-
 
         if 'git-ok' in tags:
             tags['git-ok'] = 'https://%s/?p=%s.git;a=log;h=refs/heads/%s' % (
@@ -86,38 +81,6 @@ class Request(UIModule):
                 repo,
                 request['branch']
             )
-
-        if 'tests_tag' in Settings and Settings['tests_tag']['tag'] in tags:
-            tests_tag = Settings['tests_tag']['tag']
-            try:
-                api_url = Settings['tests_tag']['tag_api_endpoint'].replace('%SHA%', request['revision'])
-                api_body = Settings['tests_tag']['tag_api_body'].replace('%SHA%', request['revision'])
-                resp = urllib2.urlopen(api_url, api_body)
-                tests_tag = json.loads(resp.read())['tag']
-            except Exception as e:
-                tests_tag += ': ERROR retrieving'
-                logging.error(e)
-
-            tags[tests_tag] = None
-            if 'url_api_endpoint' in Settings['tests_tag']:
-                try:
-                    result_api_url = Settings['tests_tag']['url_api_endpoint'].replace('%SHA%', request['revision'])
-                    result_api_body = Settings['tests_tag']['url_api_body'].replace('%SHA%', request['revision'])
-                    resp = urllib2.urlopen(result_api_url, result_api_body)
-                    result_id = json.loads(resp.read())['id']
-                    if result_id != '':
-                        tags[tests_tag] = Settings['tests_tag']['servername'].replace('%ID%', result_id).replace('%SHA%', request['revision'])
-                except Exception as e:
-                    logging.warning(e)
-                    logging.warning("Couldn't load results for results test URL from %s with body %s" %
-                            (
-                                Settings['tests_tag']['url_api_endpoint'].replace('%SHA%', request['revision']),
-                                Settings['tests_tag']['url_api_body'].replace('%SHA%', request['revision'])
-                            )
-                        )
-
-
-            del tags[Settings['tests_tag']['tag']]
 
         return sorted(tags.iteritems())
 
