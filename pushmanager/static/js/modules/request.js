@@ -148,6 +148,36 @@ $(function() {
                 }
                 that.addClass('bb-data-loaded');
             }
+            });
+    };
+
+    PushManager.Request.load_test_api_tags= function(domobj) {
+        var that = $(domobj);
+        if(that.hasClass('test-data-loaded')) {
+            return;
+        }
+        var req = that.closest('.request-module');
+        var id = req.attr('request');
+        $.ajax({
+            'url': '/testtag',
+            'data': {'id': id},
+            'dataType': 'json',
+            'success': function(data) {
+                if(!data || data.error) {
+                    that.append(' (<span style="color: #f08;">INTERNAL ERROR</span>)');
+                } else {
+                    that.text('');
+                    if (data['url'].length === 0){
+                        that.text(data['tag']);
+                    } else {
+                        that.append('<a href='+data['url']+'>'+data['tag']+'</a>');
+                    }
+                }
+                that.addClass('test-data-loaded');
+            },
+            'error': function(XMLHttpRequest, textStatus, errorThrown){
+                console.log('status:' + XMLHttpRequest.status + ', status text: ' + XMLHttpRequest.statusText);
+            }
         });
     };
 });

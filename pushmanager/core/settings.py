@@ -39,6 +39,8 @@ JSSettings = {
     },
     'check_sites_bookmarklet': None,
 }
+if 'tests_tag' in Settings:
+    JSSettings['tests_tag'] = {'tag': None}
 
 dict_copy_keys(to_dict=JSSettings, from_dict=Settings)
 

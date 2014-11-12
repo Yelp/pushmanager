@@ -21,8 +21,6 @@ class UIModuleTest(T.TestCase):
             gen_tags = request._generate_tag_list(request_info, 'repo')
             T.assert_equals(gen_tags[0][1], None)
 
-
-
     def test_generate_tag_list_gitok(self):
         request = Request(StubHandler())
         request_info = {'tags':'git-ok', 'branch':'test'}

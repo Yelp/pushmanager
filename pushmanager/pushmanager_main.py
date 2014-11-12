@@ -47,6 +47,7 @@ from pushmanager.servlets.removerequest import RemoveRequestServlet
 from pushmanager.servlets.request import RequestServlet
 from pushmanager.servlets.requests import RequestsServlet
 from pushmanager.servlets.smartdest import SmartDestServlet
+from pushmanager.servlets.testtag import TestTagServlet
 from pushmanager.servlets.summaryforbranch import SummaryForBranchServlet
 from pushmanager.servlets.undelayrequest import UndelayRequestServlet
 from pushmanager.servlets.userlist import UserListServlet
@@ -92,7 +93,8 @@ def get_url_specs():
                     PushByRequestServlet,
                     UserListServlet,
                     SummaryForBranchServlet,
-                    MsgServlet):
+                    MsgServlet,
+                    TestTagServlet):
         url_specs.append(get_servlet_urlspec(servlet))
     return url_specs
 
