@@ -513,12 +513,6 @@ $(function() {
         $('.tag-buildbot').each(function() { PushManager.Request.load_bb_failures(this); });
     }, 1000);
 
-    if ('tests_tag' in Settings) {
-        setTimeout(function() {
-            $('.tag-'+Settings['tests_tag']['tag']).each(function() { PushManager.Request.load_test_api_tags(this); });
-        }, 1000)
-    }
-
     $('#push-survey').dialog({
         autoOpen: false,
         modal: true,
