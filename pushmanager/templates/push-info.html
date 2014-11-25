@@ -4,6 +4,12 @@
 	{% if push_info['stageenv'] %}<li><span class="label">Stage</span><span class="value">{{ escape(push_info['stageenv']) }}</span></li>{% end %}
 {% if push_info['state'] == 'accepting' %}
 	<li><span class="label">Buildbot Runs</span><span class="value"><a href="https://{{ escape(Settings['buildbot']['servername']) }}/branch/{{ escape(push_info['branch']) }}">url</a></span></li>
+  {% if 'tests_tag' in Settings and 'push_url_tmpl' in Settings['tests_tag'] %}
+    <li>
+      <span class="label">{{ Settings['tests_tag']['push_test_label'] }}</span>
+      <span class="value"><a href="{{ escape(Settings['tests_tag']['push_url_tmpl'].replace('%BRANCH%', push_info['branch'])) }}">url</a></span>
+    </li>
+  {% end %}
 {% end %}
 	<li><span class="label">State</span><span class="value"><ul class="tags">
 			<li class="tag-{{ escape(push_info['state']) }}">{{ escape(push_info['state']) }}</li>

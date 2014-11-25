@@ -20,7 +20,7 @@ class TestTagServletTest(T.TestCase):
         MockedSettings['tests_tag']['tag_api_body'] = '{ "sha" : "%SHA%" }'
         MockedSettings['tests_tag']['url_api_endpoint'] = "http://example.com/api/v1/test_results_url"
         MockedSettings['tests_tag']['url_api_body'] = '{ "sha" : "%SHA%" }'
-        MockedSettings['tests_tag']['servername'] = 'www.example.com/%ID%'
+        MockedSettings['tests_tag']['url_tmpl'] = 'www.example.com/%ID%'
 
         request_info = {'tags':'test', 'branch':'test', 'revision': 'abc123'}
         with mock.patch.dict(Settings, MockedSettings):
@@ -39,7 +39,7 @@ class TestTagServletTest(T.TestCase):
         MockedSettings['tests_tag']['tag_api_body'] = '{ "sha" : "%SHA%" }'
         MockedSettings['tests_tag']['url_api_endpoint'] = "http://example.com/api/v1/test_results_url"
         MockedSettings['tests_tag']['url_api_body'] = '{ "sha" : "%SHA%" }'
-        MockedSettings['tests_tag']['servername'] = 'www.example.com/%ID$'
+        MockedSettings['tests_tag']['url_tmpl'] = 'www.example.com/%ID%'
 
         request_info = {'tags':'test', 'branch':'test', 'revision': 'abc123'}
         with mock.patch.dict(Settings, MockedSettings):
