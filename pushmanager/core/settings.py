@@ -38,9 +38,12 @@ JSSettings = {
         'main_repository': None,
     },
     'check_sites_bookmarklet': None,
+    'tests_tag': {
+        'tag': None,
+        'push_test_label': None,
+        'push_url_tmpl': None,
+    },
 }
-if 'tests_tag' in Settings:
-    JSSettings['tests_tag'] = {'tag': None}
 
 dict_copy_keys(to_dict=JSSettings, from_dict=Settings)
 

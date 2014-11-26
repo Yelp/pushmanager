@@ -78,6 +78,7 @@ class PushTemplateTest(TemplateTestCase):
             'Pushmaster': basic_push['user'],
             'Branch': basic_push['branch'],
             'Buildbot Runs': 'https://%s/branch/%s' % (Settings['buildbot']['servername'], basic_push['branch']),
+            'Test Runs': Settings['tests_tag']['push_url_tmpl'].replace("%BRANCH%",basic_push['branch']),
             'State': basic_push['state'],
             'Push Type': basic_push['pushtype'],
             'Created': time.strftime("%x %X", time.localtime(basic_push['created']))
@@ -303,7 +304,7 @@ class PushTemplateTest(TemplateTestCase):
         T.assert_equal(len(found_divs), 1)
 
     push_info_items = [
-        'Pushmaster', 'Branch', 'Buildbot Runs',
+        'Pushmaster', 'Branch', 'Buildbot Runs', 'Test Runs',
         'State', 'Push Type', 'Created', 'Modified'
     ]
 
@@ -327,6 +328,9 @@ class PushTemplateTest(TemplateTestCase):
             if li[0].text == 'Buildbot Runs':
                 T.assert_equal(li[1][0].text, 'url')
                 T.assert_equal(li[1][0].attrib['href'], push_info_items['Buildbot Runs'])
+            elif li[0].text == 'Test Runs':
+                T.assert_equal(li[1][0].text, 'url')
+                T.assert_equal(li[1][0].attrib['href'], push_info_items['Test Runs'])
             elif li[0].text == 'State':
                 T.assert_equal(li[1][0].attrib['class'], 'tags')  # Inner ul
                 T.assert_equal(li[1][0][0].attrib['class'], 'tag-%s' % push_info_items['State'])  # Inner li
@@ -374,6 +378,7 @@ class PushTemplateTest(TemplateTestCase):
         push_info_items = dict(self.basic_push_info_items)
         push_info_items['State'] = 'live'
         del push_info_items['Buildbot Runs']
+        del push_info_items['Test Runs']
 
         self.assert_push_info_listitems(list(tree.iter('ul'))[0], push_info_items)
         self.assert_push_info_attributes(list(tree.iter('ul'))[0].attrib, self.push_info_attributes)

@@ -206,7 +206,9 @@ def dict_copy_keys(to_dict, from_dict):
     that are present in to_dict
     """
     for key, value in to_dict.items():
-        if type(value) is dict:
+        if key not in from_dict:
+          del to_dict[key]
+        elif type(value) is dict:
             dict_copy_keys(value, from_dict[key])
         else:
             to_dict[key] = copy.deepcopy(from_dict[key])

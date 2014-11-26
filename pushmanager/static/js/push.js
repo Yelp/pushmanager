@@ -95,7 +95,7 @@ $(function() {
                     "(?:[a-z]+,?\\s?)+" +   //   and one or more usernames (possibly separated by comma and/or a single space)
                 "\\))?" +                   //   followed by a )
             ",?\\s?" +                      // possibly followed by a command and space
-            ")+")                           // and more of the same
+            ")+", "i")                           // and more of the same
 
         var people = (people_pat.exec(contents) || [""])[0];
         PushManager.send_message_dialog(people);
