@@ -2,6 +2,8 @@ import json
 import logging
 import urllib2
 
+import tornado.web
+
 from tornado.escape import url_escape
 from tornado.escape import xhtml_escape
 
@@ -16,10 +18,16 @@ class TestTagServlet(RequestHandler):
     def _arg(self, key):
         return pushmanager.core.util.get_str_arg(self.request, key, '')
 
+    @tornado.web.asynchronous
     def get(self):
-        self.request_id = pushmanager.core.util.get_int_arg(self.request, 'id')
-        request = GitQueue._get_request(self.request_id)
-        self.write(self._gen_test_tag_resp(request))
+        request_id = pushmanager.core.util.get_int_arg(self.request, 'id')
+        resp = {}
+        if not request_id:
+            self.set_status(404)
+        else:
+            request = GitQueue._get_request(request_id)
+            resp = self._gen_test_tag_resp(request)
+        self.finish(resp)
 
     @classmethod
     def _gen_test_tag_resp(cls, request):
