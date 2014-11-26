@@ -117,4 +117,4 @@ class ChecklistToggleServlet(RequestHandler):
 
         query = db.push_checklist.update().where(
             db.push_checklist.c.id == self.checklist).values({'complete': new_value})
-        db.execute_cb(query, lambda _, __:self.finish())
+        db.execute_cb(query, lambda _, __:None)
