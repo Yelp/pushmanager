@@ -58,6 +58,11 @@ PushManager.current_user = "{% if current_user %}{{ escape(current_user) }}{% en
 </script>
 <script type="text/javascript">
 var Settings = {{ JSSettings_json }}
+if ('tests_tag' in Settings) {
+  setTimeout(function() {
+    $('.tag-'+Settings['tests_tag']['tag']).each(function() { PushManager.Request.load_test_api_tags(this); });
+  }, 1000)
+}
 </script>
 {% block scripts %}
 {% end %}
