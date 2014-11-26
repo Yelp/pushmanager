@@ -115,7 +115,6 @@ class PushManagerApp(Application):
             # Server settings
             static_path = os.path.join(os.path.dirname(__file__), "static"),
             template_path = os.path.join(os.path.dirname(__file__), "templates"),
-            gzip = True,
             login_url = "/login",
             cookie_secret = Settings['cookie_secret'],
             ui_modules = ui_modules,
