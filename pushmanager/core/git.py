@@ -422,6 +422,7 @@ class GitQueue(object):
             "pull",
             "--no-ff",
             "--no-commit",
+            "--no-rebase",
             pickme_request['repo'],
             pickme_request['branch'],
             cwd=master_repo_path)
