@@ -32,6 +32,7 @@ from pushmanager.core.util import del_from_tags_str
 from pushmanager.core.util import EscapedDict
 from pushmanager.core.util import tags_contain
 from pushmanager.core.xmppclient import XMPPQueue
+from sqlalchemy import or_
 from tornado.escape import xhtml_escape
 
 
@@ -290,8 +291,8 @@ class GitQueueTask(object):
     - VERIFY_BRANCH: check that a branch can be found and is not a duplicate
     - TEST_PICKME_CONFLICT: check which (if any) branches also pickme'd for the
         same push cause merge conflicts with this branch
-    - TEST_ALL_PICKMES: Takes a push id, and queues every pushme with
-        TEST_PICKME_CONFLICT. Used when an item is de-pickmed to ensure that
+    - TEST_ALL_PICKMES: Takes a push id, and queues every pushme with a conflict-pickme tag
+    - TEST_CONFLICTING_PICKMES. Used when an item is de-pickmed to ensure that
         anything it might have conlficted with is unmarked
     """
 
@@ -392,6 +393,11 @@ class GitQueue(object):
         cls.sha_worker_process.daemon = True
         cls.sha_worker_process.start()
         worker_pids.append(cls.sha_worker_process.pid)
+
+        cls.check_sha_worker_proc = Process(target=cls.check_active_request_shas, name='git-branch-sha-updater-daemon')
+        cls.check_sha_worker_proc.daemon = True
+        cls.check_sha_worker_proc.start()
+        worker_pids.append(cls.check_sha_worker_proc.pid)
 
         return worker_pids
 
@@ -561,7 +567,7 @@ class GitQueue(object):
         return repository
 
     @classmethod
-    def _get_branch_sha_from_repo(cls, req):
+    def _get_branch_sha_from_repo(cls, req, alert=True):
         user_to_notify = req['user']
         query_details = {
             'user': req['user'],
@@ -601,7 +607,8 @@ class GitQueue(object):
             query_details['stderr'] = e.giterr
             msg %= EscapedDict(query_details)
             subject = '[push error] %s - %s' % (req['user'], req['title'])
-            MailQueue.enqueue_user_email([user_to_notify], msg, subject)
+            if alert:
+                MailQueue.enqueue_user_email([user_to_notify], msg, subject)
             return None
 
         # successful ls-remote, build up the refs list
@@ -631,7 +638,8 @@ class GitQueue(object):
             """)
         msg %= EscapedDict(query_details)
         subject = '[push error] %s - %s' % (req['user'], req['title'])
-        MailQueue.enqueue_user_email([user_to_notify], msg, subject)
+        if alert:
+            MailQueue.enqueue_user_email([user_to_notify], msg, subject)
         return None
 
     @classmethod
@@ -1308,6 +1316,65 @@ class GitQueue(object):
             )
 
     @classmethod
+    def _notify_updated_request_sha(cls, updated_req, new_sha):
+        msg  = """
+                <p>
+                    Your open request for the merging of branch %(branch)s has been updated
+                </p>
+                <p>
+                    <strong>%(user)s - %(title)s</strong><br />
+                    <em>%(repo)s/%(branch)s</em>
+                </p>
+                <p>
+                    Old SHA of branch's head: %(revision)s<br/>
+                    New SHA of branch's head: %(new_sha)s
+                </p>
+                <p>
+                    Regards,<br/>
+                    PushManager
+                </p>
+                """
+        repl_dict = {
+                'branch' : updated_req['branch'],
+                'user' : updated_req['user'],
+                'title' : updated_req['title'],
+                'repo' : updated_req['repo'],
+                'revision' : updated_req['revision'],
+                'new_sha' : new_sha
+                }
+        msg %= repl_dict
+        subject = '[push] %s - %s' % (updated_req['user'], updated_req['title'])
+        user_to_notify = updated_req['user']
+        MailQueue.enqueue_user_email([user_to_notify], msg, subject)
+        return
+
+    @classmethod
+    def _get_active_requests(cls):
+        ''' Returns any 'active' meaning any request that is still a live
+        branch that has not been merged into any deploy or production branches.
+
+        Request states that currently fall under this label are 'requested', 'pickme',
+        and 'added' states. Any of these are 'active' and possibly subject to more
+        change before they've been merged.
+        '''
+        result = [None]
+
+        def on_db_return(success, db_results):
+            assert success, "Database error."
+            result[0] = db_results.fetchall()
+            db_results.close()
+
+        req_active_query = db.push_requests.select(or_(
+            db.push_requests.c.state == 'requested',
+            db.push_requests.c.state == 'pickme',
+            db.push_requests.c.state == 'added')
+        )
+
+        db.execute_cb(req_active_query, on_db_return)
+        reqs = result[0]
+        return reqs
+
+    @classmethod
     def process_sha_queue(cls):
         logging.info("Starting GitConflictQueue")
         while True:
@@ -1362,6 +1429,78 @@ class GitQueue(object):
                 logging.error('THREAD ERROR:', exc_info=True)
             finally:
                 cls.conflict_queue.task_done()
+
+    @classmethod
+    def check_active_request_shas(cls):
+        '''Process daemon function that will continually poll the HEAD
+        of a branch requested for inclusion in a push, update the request
+        with the newest sha for that branch, and alert the user of the change.
+
+        Will re-run conflict checks for requests in the pickme or added state to
+        verify that updates to this branch will not include any new conflicts. And
+        clears conflict tags if conflicts have been resolved.
+        '''
+
+        logging.info("Starting GitCheckActiveRequestSHADaemon")
+        while True:
+            time.sleep(1) #Throttle a bit
+            active_requests = cls._get_active_requests()
+
+            if active_requests is None:
+                continue
+
+            for req in active_requests:
+                time.sleep(.04) # Try not to hammer the git repo
+                sha = cls._get_branch_sha_from_repo(req, alert=False)
+                if sha is None or cls.request_is_excluded_from_git_verification(req):
+                    continue
+                if not req['branch'] or not req['revision']:
+                    continue
+                if sha == req['revision']:
+                    continue
+                try:
+                    cls._update_req_sha_and_queue_pickme(req, sha)
+                    cls._notify_updated_request_sha(req, sha)
+                except Exception as e:
+                    logging.error('THREAD ERROR: %s' % (e))
+
+    @classmethod
+    def _update_req_sha_and_queue_pickme(cls, req, sha):
+        ''' Update request with new sha and re-run conflict checks if
+        request is in pickme or added state.
+
+        Args:
+            req (dict): request to be updated
+            sha (string): sha to update req['revision'] to
+
+        Raises:
+            Exception if fails to update request in DB
+        '''
+        logging.info("Updating: %s request's sha from %s to %s" % (req['title'], req['revision'], sha))
+        updated_sha = {'revision': sha}
+        updated_request = cls._update_request(req, updated_sha)
+        if not updated_request:
+            raise Exception("Failed to update pickme"
+                            "%s request's sha from %s to %s" % (req['title'], req['revision'], sha))
+        if req['state'] in ('pickme', 'added'):
+            if  'no-conflicts' in req['tags'] or 'conflict-master' in req['tags']:
+                # Only run conflict checks on this branch, since any other affected by it will be new
+                # conflict-pickmes and caught normally
+                GitQueue.enqueue_request(
+                    GitTaskAction.TEST_PICKME_CONFLICT,
+                    req['id'],
+                    # TODO: No way to use proxy URL in daemon. Make URL prettier eventually
+                    pushmanager_url='https://%s:%s' % (Settings['main_app']['servername'], Settings['main_app']['port'])
+                )
+            elif 'conflict-pickme' in req['tags']:
+                # Run on all conflict checks on all conflict-pickmes since this might resolve
+                # conflicts between this branch and others
+                GitQueue.enqueue_request(
+                    GitTaskAction.TEST_CONFLICTING_PICKMES,
+                    cls._get_push_for_request(req['id'])['push'],
+                    # TODO: No way to use proxy URL in daemon. Make URL prettier eventually
+                    pushmanager_url='https://%s:%s' % (Settings['main_app']['servername'], Settings['main_app']['port'])
+                )
 
     @classmethod
     def enqueue_request(cls, task_type, request_id, **kwargs):
