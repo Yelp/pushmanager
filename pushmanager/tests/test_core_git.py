@@ -758,22 +758,23 @@ class CoreGitTest(T.TestCase):
         pickme_request['state'] = 'pickme'
         pickme_request['tags'] = 'no-conflicts'
         with mock.patch('pushmanager.core.git.GitQueue.enqueue_request') as enqueue_req:
-            GitQueue._update_req_sha_and_queue_pickme(pickme_request, new_sha)
+            with mock.patch.dict(Settings, MockedSettings):
+                GitQueue._update_req_sha_and_queue_pickme(pickme_request, new_sha)
 
-            result = [None]
-            def on_db_return(success, db_results):
-                assert success, "Database error"
-                result[0] = db_results.first()
+                result = [None]
+                def on_db_return(success, db_results):
+                    assert success, "Database error"
+                    result[0] = db_results.first()
 
-            request_info_query = db.push_requests.select().where(
-                db.push_requests.c.id == self.fake_request['id']
-            )
-            db.execute_cb(request_info_query, on_db_return)
-            T.assert_equal(result[0][5], new_sha)
-            enqueue_req.assert_has_calls([
-                mock.call(GitTaskAction.TEST_PICKME_CONFLICT, 1,
-                          pushmanager_url='https://%s:%s' % (MockedSettings['main_app']['servername'], MockedSettings['main_app']['port']))
-            ])
+                request_info_query = db.push_requests.select().where(
+                    db.push_requests.c.id == self.fake_request['id']
+                )
+                db.execute_cb(request_info_query, on_db_return)
+                T.assert_equal(result[0][5], new_sha)
+                enqueue_req.assert_has_calls([
+                    mock.call(GitTaskAction.TEST_PICKME_CONFLICT, 1,
+                              pushmanager_url='https://%s:%s' % (MockedSettings['main_app']['servername'], MockedSettings['main_app']['port']))
+                ])
 
     def test_update_req_sha_and_queue_pickme_added_test_conflicting_pickmes(self):
         new_sha = "1"*40
@@ -781,24 +782,25 @@ class CoreGitTest(T.TestCase):
         pickme_request['state'] = 'added'
         pickme_request['tags'] = 'conflict-pickme'
         with mock.patch('pushmanager.core.git.GitQueue.enqueue_request') as enqueue_req:
-            GitQueue._update_req_sha_and_queue_pickme(pickme_request, new_sha)
+            with mock.patch.dict(Settings, MockedSettings):
+                GitQueue._update_req_sha_and_queue_pickme(pickme_request, new_sha)
 
-            result = [None]
-            def on_db_return(success, db_results):
-                assert success, "Database error"
-                result[0] = db_results.first()
+                result = [None]
+                def on_db_return(success, db_results):
+                    assert success, "Database error"
+                    result[0] = db_results.first()
 
-            request_info_query = db.push_requests.select().where(
-                db.push_requests.c.id == self.fake_request['id']
-            )
-            db.execute_cb(request_info_query, on_db_return)
-            T.assert_equal(result[0][5], new_sha)
-            enqueue_req.assert_has_calls([
-                mock.call(
-                    GitTaskAction.TEST_CONFLICTING_PICKMES,
-                    GitQueue._get_push_for_request(pickme_request['id'])['push'],
-                    pushmanager_url='https://%s:%s' % (MockedSettings['main_app']['servername'], MockedSettings['main_app']['port']))
-            ])
+                request_info_query = db.push_requests.select().where(
+                    db.push_requests.c.id == self.fake_request['id']
+                )
+                db.execute_cb(request_info_query, on_db_return)
+                T.assert_equal(result[0][5], new_sha)
+                enqueue_req.assert_has_calls([
+                    mock.call(
+                        GitTaskAction.TEST_CONFLICTING_PICKMES,
+                        GitQueue._get_push_for_request(pickme_request['id'])['push'],
+                        pushmanager_url='https://%s:%s' % (MockedSettings['main_app']['servername'], MockedSettings['main_app']['port']))
+                ])
 
     def test_stderr_and_stdout_in_conflict_text(self):
         welsh_req = {'id': 2, 'user': 'test', 'user': 'test', 'tags':'git-ok', 'title':'Welsh', 'repo':'.', 'branch':'change_welsh'}
