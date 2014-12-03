@@ -749,7 +749,7 @@ class CoreGitTest(T.TestCase):
                 db.push_requests.c.id == self.fake_request['id']
             )
             db.execute_cb(request_info_query, on_db_return)
-            T.assert_false(enqueue_req.called)
+            T.assert_equals(enqueue_req.call_count, 1)
             T.assert_equal(result[0][5], new_sha)
 
     def test_update_req_sha_and_queue_pickme_pickme_test_pickme_conflict(self):
@@ -771,6 +771,7 @@ class CoreGitTest(T.TestCase):
                 )
                 db.execute_cb(request_info_query, on_db_return)
                 T.assert_equal(result[0][5], new_sha)
+                T.assert_equals(enqueue_req.call_count, 2)
                 enqueue_req.assert_has_calls([
                     mock.call(GitTaskAction.TEST_PICKME_CONFLICT, 1,
                               pushmanager_url='https://%s:%s' % (MockedSettings['main_app']['servername'], MockedSettings['main_app']['port']))
@@ -795,6 +796,7 @@ class CoreGitTest(T.TestCase):
                 )
                 db.execute_cb(request_info_query, on_db_return)
                 T.assert_equal(result[0][5], new_sha)
+                T.assert_equals(enqueue_req.call_count, 2)
                 enqueue_req.assert_has_calls([
                     mock.call(
                         GitTaskAction.TEST_CONFLICTING_PICKMES,
