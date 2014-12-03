@@ -1452,11 +1452,12 @@ class GitQueue(object):
             for req in active_requests:
                 time.sleep(.04) # Try not to hammer the git repo
                 sha = cls._get_branch_sha_from_repo(req, alert=False)
-                if sha is None or cls.request_is_excluded_from_git_verification(req):
+                if sha is None:
+                    sha = '0'*40
+
+                if cls.request_is_excluded_from_git_verification(req):
                     continue
-                if not req['branch'] or not req['revision']:
-                    continue
-                if sha == req['revision']:
+                if not req['branch'] or not req['revision'] or sha == req['revision']:
                     continue
                 try:
                     cls._update_req_sha_and_queue_pickme(req, sha)
@@ -1482,6 +1483,14 @@ class GitQueue(object):
         if not updated_request:
             raise Exception("Failed to update pickme"
                             "%s request's sha from %s to %s" % (req['title'], req['revision'], sha))
+        # TODO: No way to use proxy URL in daemon. Make URL prettier eventually
+        raw_url='https://%s:%s' % (Settings['main_app']['servername'], Settings['main_app']['port'])
+        GitQueue.enqueue_request(
+            GitTaskAction.VERIFY_BRANCH,
+            req['id'],
+            pushmanager_url=raw_url
+        )
+
         if req['state'] in ('pickme', 'added'):
             if  'no-conflicts' in req['tags'] or 'conflict-master' in req['tags']:
                 # Only run conflict checks on this branch, since any other affected by it will be new
@@ -1489,8 +1498,7 @@ class GitQueue(object):
                 GitQueue.enqueue_request(
                     GitTaskAction.TEST_PICKME_CONFLICT,
                     req['id'],
-                    # TODO: No way to use proxy URL in daemon. Make URL prettier eventually
-                    pushmanager_url='https://%s:%s' % (Settings['main_app']['servername'], Settings['main_app']['port'])
+                    pushmanager_url=raw_url
                 )
             elif 'conflict-pickme' in req['tags']:
                 # Run on all conflict checks on all conflict-pickmes since this might resolve
@@ -1498,8 +1506,7 @@ class GitQueue(object):
                 GitQueue.enqueue_request(
                     GitTaskAction.TEST_CONFLICTING_PICKMES,
                     cls._get_push_for_request(req['id'])['push'],
-                    # TODO: No way to use proxy URL in daemon. Make URL prettier eventually
-                    pushmanager_url='https://%s:%s' % (Settings['main_app']['servername'], Settings['main_app']['port'])
+                    pushmanager_url=raw_url
                 )
 
     @classmethod
