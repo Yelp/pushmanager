@@ -1,3 +1,26 @@
+0.3.12   2014-12-02
+
+ IMPROVEMENTS
+
+ * Dynamic test tag loads on all pages now (kkellyy, #129)
+ * Pushes can now include link to generic test runs of themselves (kkellyy, #130)
+ * testtag servlet is now more robust:
+   404s on no id param and is asynchronous (kkellyy, #133)
+ * Automatically detect and update SHA of request branches, notify the request's
+   user and re-check for git conflicts if in pickme/added state (kkellyy, #134, #137)
+
+ BUG FIXES
+
+ * copy_dict in core/util now ignores keys not defined in original dict (kkellyy, #130)
+ * Pushmaster message users no longer case-sensitive (kkellyy, #130)
+ * checklist servlet no longer generates spurious 500s (kkellyy, #132)
+ * Explicitly add --no-rebase on git merge conflict testing to guaranteed
+   git behvaior (kkellyy, #135)
+
+ DEPRECATED
+
+ * No longer gzip responses by default. (kkellyy, #131)
+
 0.3.11   2014-11-12
 
  IMPROVEMENTS
