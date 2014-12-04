@@ -1,3 +1,10 @@
+0.3.13   2014-12-02
+
+ BUG FIXES
+
+ * verify_branch no longer has false positives if request_id given
+   is not canonical DB type (kkellyy, #138)
+
 0.3.12   2014-12-02
 
  IMPROVEMENTS
