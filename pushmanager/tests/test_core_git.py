@@ -149,6 +149,31 @@ class CoreGitTest(T.TestCase):
 
         T.assert_equal(result[0][5], self.fake_request['revision'])
 
+    def test_process_queue_req_with_str_id(self):
+        """Update the request with its sha"""
+        with nested(
+            mock.patch("%s.pushmanager.core.git.GitQueue.verify_branch_failure" % __name__),
+            mock.patch("%s.pushmanager.core.git.GitQueue.verify_branch_successful" % __name__),
+            mock.patch("%s.pushmanager.core.git.time" % __name__),
+            mock.patch("%s.pushmanager.core.git.MailQueue" % __name__),
+            mock.patch("%s.pushmanager.core.git.webhook_req" % __name__),
+            mock.patch(
+                "%s.pushmanager.core.git.GitQueue._get_branch_sha_from_repo" % __name__,
+                return_value=self.fake_request['revision']
+            ),
+            mock.patch(
+                "%s.pushmanager.core.git.GitQueue._get_request" % __name__,
+                return_value=self.fake_request
+            ),
+            mock.patch(
+                "%s.pushmanager.core.git.GitQueue._get_request_with_sha" % __name__,
+                return_value=self.fake_request
+            ),
+        ):
+            pushmanager.core.git.GitQueue.verify_branch(str(self.fake_request['id']), 'http://example.com')
+            T.assert_equal(pushmanager.core.git.GitQueue.verify_branch_failure.call_count, 0)
+            T.assert_equal(pushmanager.core.git.GitQueue.verify_branch_successful.call_count, 1)
+
     def test_process_queue_duplicate(self):
         duplicate_req = copy.deepcopy(self.fake_request)
         duplicate_req['id'] = 11
