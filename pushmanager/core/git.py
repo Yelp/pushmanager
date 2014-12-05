@@ -494,7 +494,7 @@ class GitQueue(object):
                 add_remote.run()
             except GitException, e:
                 # If the remote already exists, git will return err 128
-                if e.gitret is 128:
+                if e.gitret == 128:
                     pass
                 else:
                     raise e
@@ -1171,7 +1171,7 @@ class GitQueue(object):
         if (
             duplicate_req and 'state' in duplicate_req
             and not duplicate_req['state'] == "discarded"
-            and duplicate_req['id'] is not req['id']
+            and duplicate_req['id'] != req['id']
         ):
             error_msg = "Git queue worker found another request with the same revision sha (ids %s and %s)" % (
                 duplicate_req['id'],

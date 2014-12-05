@@ -43,7 +43,7 @@ class CoreGitTest(T.TestCase):
             'user': 'testuser',
             'tags': 'super-safe,logs',
             'revision': "0"*40,
-            'reviewid': 1,
+            'reviewid': 9001,
             'state': 'requested',
             'repo': 'testuser',
             'branch': 'super_safe_fix',
