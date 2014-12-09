@@ -1,6 +1,7 @@
 language: python
 env: # These should match the tox env list
-    - TOXENV=py
+    - TOXENV=py26
+    - TOXENV=py27
 
 before_install:
     - pip install --use-mirrors mysql-python==1.2.5 python-ldap==2.4.13
