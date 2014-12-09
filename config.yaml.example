@@ -108,8 +108,7 @@ git:
     # change. Push requests with certain tags just modify the workflow
     # and are not associated with a git branch. We do not need to
     # verify the branch for those requests.
-    exclude_from_verification:
-        - "l10n-only"
+    exclude_from_verification: []
 
 # Pushmanager can POST to a given URL with the data below. This
 # preliminary support for webhooks is used for an internal Yelp tool

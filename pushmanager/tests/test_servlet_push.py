@@ -72,17 +72,3 @@ class PushServletTest(PushServletTestBase):
             first_request = all_requests[0]
             buildbot_link = "https://%s/rev/%s" % (Settings['buildbot']['servername'], first_request['revision'])
             T.assert_equal(self.find_buildbot_link(response, buildbot_link), True)
-
-
-class LocalizablesTest(PushServletTestBase):
-    def test_push_page_is_using_push_js(self):
-        with self.request_fake_pushdata() as fakepush:
-            pushdata, response = fakepush
-            T.assert_in("js/push.js", response.body)
-
-    def test_localizables_push_website_command_is_correct_in_push_js(self):
-        with self.request_fake_pushdata():
-            response = self.fetch("/static/js/push.js")
-            T.assert_in("localizables_push_website.py", response.body)
-            # Old (bash) version of the script shouldn't be there
-            T.assert_not_in("localizables-push-website", response.body)

@@ -175,22 +175,10 @@ $(function() {
         }
 
         var merge_string = "merge-branches";
-        var localizations = false;
         requests.each(function() {
             var req = $(this).closest('.request-module');
-            if(req.find('.tag-l10n').length > 0) {
-                localizations = true;
-            }
-            if(req.find('.tag-l10n-only').length > 0) {
-                localizations = true;
-            } else {
-                merge_string += ' ' + req.attr('cherry_string');
-            }
+            merge_string += ' ' + req.attr('cherry_string');
         });
-
-        if(localizations) {
-            merge_string += ' && localizables_push_website.py';
-        }
 
         $('#merge-branches-command').text(merge_string);
         $('#merge-requests').dialog('open');
