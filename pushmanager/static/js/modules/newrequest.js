@@ -23,14 +23,6 @@ $(function() {
             return false;
         }
 
-        // Validate l10n-only request
-        if(d.find('#request-form-tags').val().match('[ ]?l10n-only[ ]?') && d.find('#request-form-branch').val() !== '') {
-            alert("l10n-only request should not have a branch. " +
-                  "Use l10n request tag if you have a repository change to be pushed. " +
-                  "Please remove l10n-only tag or branch name from your request.");
-            return false;
-        }
-
         return true;
     };
     $('#request-info-form').submit(PushManager.NewRequestDialog.validate);

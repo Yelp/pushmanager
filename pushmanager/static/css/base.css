@@ -723,8 +723,6 @@ ul.tags > .tag-accepting	{ background: #ddf; }
 ul.tags > .tag-live		{ background: #dfd; }
 ul.tags > .tag-search-backend { background: #dcc; }
 ul.tags > .tag-experiment { background: #6dd; }
-ul.tags > .tag-l10n { background: #ccc; }
-ul.tags > .tag-l10n-only { background: #f90; }
 ul.tags > .tag-hoods { background: #f9a; }
 ul.tags > .tag-feature { background: #000; color: #fff; }
 ul.tags > .tag-fix { background: #000; color: #fff; }
