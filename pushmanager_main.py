@@ -1,12 +1,15 @@
 #!/usr/bin/python
 from __future__ import with_statement
 import os
-import tornado.httpserver
-import tornado.web
 import urlparse
 
+from onelogin.saml2.auth import OneLogin_Saml2_Auth as authenticate_saml
+import tornado.httpserver
+import tornado.web
+
+
 from core.application import Application
-from core.auth import authenticate
+from core.auth import authenticate_ldap
 import core.db as db
 from core.git import GitQueue
 from core.mail import MailQueue
@@ -15,7 +18,6 @@ from core.requesthandler import RequestHandler
 from core.settings import Settings
 from core.util import get_servlet_urlspec
 from core.xmppclient import XMPPQueue
-
 from servlets.addrequest import AddRequestServlet
 from servlets.api import APIServlet
 from servlets.checklist import ChecklistServlet
@@ -48,9 +50,36 @@ from servlets.verifyrequest import VerifyRequestServlet
 
 import ui_modules
 
+
+def prepare_request_for_saml_toolkit(request):
+    port = urlparse.urlparse(request.uri).port
+    if not port:
+        schemes = {"http": 80, "https": 443}
+        port = schemes[request.protocol]
+
+    return {
+        'http_host': request.host,
+        'server_port': port,
+        'script_name': request.path,
+        'get_data': dict((k, ''.join(v)) for k, v in request.arguments.items()),
+        'post_data': dict((k, ''.join(v)) for k, v in request.arguments.items())
+    }
+
+
+def login(request_handler, username, next_url):
+    request_handler.set_secure_cookie("user", username)
+    return request_handler.redirect(next_url or "/")
+
+
+def logout(request_handler):
+    request_handler.clear_cookie("user")
+    return request_handler.redirect("/")
+
+
 class NullRequestHandler(RequestHandler):
     def get(self): pass
     def post(self): pass
+
 
 class BookmarkletHandler(RequestHandler):
     bookmarklet = None
@@ -58,21 +87,32 @@ class BookmarkletHandler(RequestHandler):
         if self.bookmarklet:
             self.render(self.bookmarklet)
 
+
 class CreateRequestBookmarkletHandler(BookmarkletHandler):
     bookmarklet = "create_request_bookmarklet.js"
     # Create Request Bookmarklet is served from /bookmarklet to keep backwards compatibility.
     url = r"/bookmarklet"
 
+
 class CheckSitesBookmarkletHandler(BookmarkletHandler):
     bookmarklet = "check_sites_bookmarklet.js"
     url = r"/checksitesbookmarklet"
+
 
 class LoginHandler(RequestHandler):
     def get(self):
         next_url = self.request.arguments.get('next', [None])[0]
         if self.current_user:
             return self.redirect(next_url or '/')
-        self.render("login.html", page_title="Login", errors=None, next_url=next_url)
+        if Settings['login_strategy'] == 'ldap':
+            self.render("login.html", page_title="Login", errors=None, next_url=next_url)
+        elif Settings['login_strategy'] == 'saml':
+            req = prepare_request_for_saml_toolkit(self.request)
+            auth = authenticate_saml(req, custom_base_path=Settings['saml_config_folder'])
+            return self.redirect(auth.login())
+        else:
+            return self.render("login.html", page_title="Login", next_url=next_url,
+                               errors="No login strategy currently configured. Please have a friendly sysadmin fix this.")
 
     def post(self):
         next_url = self.request.arguments.get('next', [None])[0]
@@ -82,21 +122,63 @@ class LoginHandler(RequestHandler):
         if self.current_user:
             return self.redirect(next_url or '/')
 
-        if not username or not password:
-            return self.render("login.html", page_title="Login", next_url=next_url,
-                errors="Please enter both a username and a password.")
-        if not authenticate(username, password):
-            return self.render("login.html", page_title="Login", next_url=next_url,
-                errors="Invalid username or password specified.")
+        if Settings['login_strategy'] == 'ldap':
+            # LDAP is our basic auth strategy.
+            if not username or not password:
+                return self.render("login.html", page_title="Login", next_url=next_url,
+                                   errors="Please enter both a username and a password.")
+            if not authenticate_ldap(username, password):
+                return self.render("login.html", page_title="Login", next_url=next_url,
+                                   errors="Invalid username or password specified.")
+            login(self, username, next_url)
 
-        self.set_secure_cookie("user", username)
-        return self.redirect(next_url or "/")
+        elif Settings['login_strategy'] == 'saml':
+            # They shouldn't be POSTing, but it's cool. Blatantly ignore their form and redirect them to the IdP to try again.
+            # SAML doesn't support friendly redirects to next_url for security, so they'll end up on the landing page after auth.
+            return self.redirect(authenticate_saml.login())
+        else:
+            # TODO: Turn this into an HTTP status code along 4xx
+            # Give them the basic auth page with an error telling them logins are currently botched.
+            return self.render("login.html", page_title="Login", next_url=next_url,
+                               errors="No login strategy currently configured. Please have a friendly sysadmin fix this.")            
 
-class LogoutHandler(RequestHandler):
+
+class SamlACSHandler(RequestHandler):
+    """TODO Handles calls to the SAML service provider consumer assertion endpoint."""
+    def post(self):
+        req = prepare_request_for_saml_toolkit(self.request)
+        auth = authenticate_saml(req, custom_base_path=Settings['saml_config_folder'])
+        auth.process_response()
+        errors = auth.get_errors()
+        if not errors:
+            if auth.is_authenticated():
+                login(self, str(auth.get_attributes(), "/"))  # TODO: Get an actual username
+            else:
+                self.render('Not authenticated')  # TODO: Promote these to HTTP status codes with responses
+        else:
+            self.render("Error when processing SAML Response: %s %s" % (', '.join(errors), auth.get_last_error_reason()))
+
+
+class LdapLogoutHandler(RequestHandler):
     def get(self):
-        self.clear_cookie("user")
-        return self.redirect("/")
+        logout(self)
     post = get
+
+
+class SamlSLSHandler(RequestHandler):
+    """Handles calls to the SAML service provider single logout endpoint."""
+    def get(self):
+        req = prepare_request_for_saml_toolkit(self.request)
+        auth = authenticate_saml(req, custom_base_path=Settings['saml_config_folder'])
+        url = auth.process_slo(delete_session_cb=lambda _: logout(self))
+        errors = auth.get_errors()
+        if len(errors) == 0:
+            if url is not None:
+                return HttpResponseRedirect(url)
+            else:
+                success_slo = True
+    post = get  # TODO: just support POST
+
 
 class RedirHandler(tornado.web.RequestHandler):
     def get(self, path):
@@ -115,8 +197,12 @@ def get_url_specs():
         (CreateRequestBookmarkletHandler.url, CreateRequestBookmarkletHandler),
         (CheckSitesBookmarkletHandler.url, CheckSitesBookmarkletHandler),
         (r'/login', LoginHandler),
-        (r'/logout', LogoutHandler),
     ]
+    if Settings['login_strategy'] == 'ldap':
+        url_specs.append((r'/logout', LdapLogoutHandler))
+    elif Settings['login_strategy'] == 'saml':
+        url_specs.extend([(r'/acs', SamlACSHandler),
+                          (r'/sls', SamlSLSHandler)])
     for servlet in (APIServlet,
                     ChecklistServlet,
                     ChecklistToggleServlet,
@@ -148,6 +234,7 @@ def get_url_specs():
                     MsgServlet):
         url_specs.append(get_servlet_urlspec(servlet))
     return url_specs
+
 
 class PushManagerApp(Application):
     name = "main"
