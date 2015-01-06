@@ -21,7 +21,7 @@ class LoginTest(T.TestCase, T.ServletTestMixin):
         T.MockedSettings['login_strategy'] = ''
         with nested(mock.patch.object(logging, "exception"),
                     mock.patch.dict(Settings, T.MockedSettings)):
-    
+
             response = self.fetch(
                 "/login",
                 method="POST",
@@ -37,7 +37,7 @@ class LoginTest(T.TestCase, T.ServletTestMixin):
         T.MockedSettings['login_strategy'] = 'ldap'
         with nested(mock.patch.object(logging, "exception"),
                     mock.patch.dict(Settings, T.MockedSettings)):
-    
+
             response = self.fetch(
                 "/login",
                 method="POST",
