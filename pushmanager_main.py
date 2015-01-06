@@ -3,7 +3,10 @@ from __future__ import with_statement
 import os
 import urlparse
 
-from onelogin.saml2.auth import OneLogin_Saml2_Auth as authenticate_saml
+try:
+    from onelogin.saml2.auth import OneLogin_Saml2_Auth as authenticate_saml
+except ImportError:
+    pass
 import tornado.httpserver
 import tornado.web
 
@@ -107,9 +110,7 @@ class LoginHandler(RequestHandler):
         if Settings['login_strategy'] == 'ldap':
             self.render("login.html", page_title="Login", errors=None, next_url=next_url)
         elif Settings['login_strategy'] == 'saml':
-            req = prepare_request_for_saml_toolkit(self.request)
-            auth = authenticate_saml(req, custom_base_path=Settings['saml_config_folder'])
-            return self.redirect(auth.login())
+            return self._saml_login()
         else:
             return self.render("login.html", page_title="Login", next_url=next_url,
                                errors="No login strategy currently configured. Please have a friendly sysadmin fix this.")
@@ -135,12 +136,17 @@ class LoginHandler(RequestHandler):
         elif Settings['login_strategy'] == 'saml':
             # They shouldn't be POSTing, but it's cool. Blatantly ignore their form and redirect them to the IdP to try again.
             # SAML doesn't support friendly redirects to next_url for security, so they'll end up on the landing page after auth.
-            return self.redirect(authenticate_saml.login())
-        else:
-            # TODO: Turn this into an HTTP status code along 4xx
-            # Give them the basic auth page with an error telling them logins are currently botched.
-            return self.render("login.html", page_title="Login", next_url=next_url,
-                               errors="No login strategy currently configured. Please have a friendly sysadmin fix this.")            
+            return self._saml_login()
+
+        # TODO: Turn this into an HTTP status code along 4xx
+        # Give them the basic auth page with an error telling them logins are currently botched.
+        return self.render("login.html", page_title="Login", next_url=next_url,
+                           errors="No login strategy currently configured.")            
+
+    def _saml_login(self):
+        req = prepare_request_for_saml_toolkit(self.request)
+        auth = authenticate_saml(req, custom_base_path=Settings['saml_config_folder'])
+        return self.redirect(auth.login())
 
 
 class SamlACSHandler(RequestHandler):
