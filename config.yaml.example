@@ -11,7 +11,6 @@ api_app:
     port: 8843
 
 # The strategy used for authentication. Either "ldap" or "saml".
-# See README.SAML.rst for more details on saml support.
 login_strategy: "ldap"
 
 # Only required for the saml login strategy. Defines where to find
