@@ -26,9 +26,9 @@
 			<li><a href="/requests?user={{ escape(current_user) }}">My Requests</a></li>
 			<li><a href="/logout">Logout ({{ escape(current_user) }})</a></li>
 			Bookmarklets:
-			<li><a href="javascript:$.getScript('https://{{ Settings['main_app']['servername'] }}:{{ Settings['main_app']['port'] }}/bookmarklet');">
+			<li><a href="javascript:($.getScript('https://{{ Settings['main_app']['servername'] }}:{{ Settings['main_app']['port'] }}/bookmarklet'))();">
 				PushManager: Create Request</a></li>
-			<li><a href="javascript:$.getScript('https://{{ Settings['main_app']['servername'] }}:{{ Settings['main_app']['port'] }}/checksitesbookmarklet');">
+			<li><a href="javascript:($.getScript('https://{{ Settings['main_app']['servername'] }}:{{ Settings['main_app']['port'] }}/checksitesbookmarklet'))();">
 				PushManager: Check Sites</a></li>
 			<li><a href="/api">API</a></li>
 			{% end %}
