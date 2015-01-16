@@ -104,7 +104,7 @@ class LoginHandler(RequestHandler):
         # TODO: Turn this into an HTTP status code along 4xx
         # Give them the basic auth page with an error telling them logins are currently botched.
         return self.render("login.html", page_title="Login", next_url=next_url,
-                           errors="No login strategy currently configured.")            
+                           errors="No login strategy currently configured.")
 
     def _saml_login(self):
         req = prepare_request_for_saml_toolkit(self.request)
