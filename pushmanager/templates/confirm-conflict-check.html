@@ -1,0 +1,15 @@
+<form id="confirm-conflict-check" class="popup-form" action="/conflictcheck" method="POST">
+<div class="form-wrapper">
+
+    <h2>Check Push for Conflicts</h2>
+
+    <input type="hidden" name="id" value="{{ int(push_info['id']) }}" />
+
+    Re-run conflict detection on all requests pickme'd for this push?
+
+    <div class="buttons">
+        <input type="submit" id="check-conflicts" name="check-conflicts" value="Run" />
+        <input type="reset" id="cancel-conflict-check" name="cancel-conflict-check" value="Don't Run" />
+    </div>
+</div>
+</form>

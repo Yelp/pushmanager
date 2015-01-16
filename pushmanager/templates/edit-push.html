@@ -1,0 +1,26 @@
+<form id="push-info-form" class="popup-form" action="/editpush" method="POST">
+<div class="form-wrapper">
+
+	<h2>Edit Push</h2>
+
+	<label for="push-title">Title</label>
+	<input name="push-title" id="push-title" value="{{ escape(push_info['title']) }}" />
+
+	<label for="push-branch">Branch</label>
+	<input name="push-branch" id="push-branch" value="{{ escape(push_info['branch']) }}" />
+
+	<label for="push-stageenv">Stage Environment</label>
+	<input name="push-stageenv" id="push-stageenv" value="{% if push_info['stageenv'] %}{{ escape(push_info['stageenv']) }}{% end%}" />
+
+	<input type="hidden" name="id" value="{{ int(push_info['id']) }}" />
+
+	{% if not push_info['user'] == current_user %}
+	<p id="update-notice">Updating this push will transfer its ownership to you.</p>
+	{% end %}
+
+	<div class="buttons">
+		<input type="submit" id="push-create" name="push-submit" value="Update Push" />
+		<input type="reset" id="push-cancel" name="push-cancel" value="Cancel" />
+	</div>
+</div>
+</form>

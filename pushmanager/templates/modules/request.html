@@ -1,0 +1,69 @@
+<div class="request-module"
+	request="{{ int(request['id']) }}"
+	cherry_string="{{ escape(cherry_string) }}"
+	repo="{{ escape(request['repo']) }}"
+	branch="{{ escape(request['branch']) }}"
+	user="{{ escape(request['user']) }}"
+	{% if request['watchers'] %}watchers="{{ escape(request['watchers']) }}"{% end %}
+	reviewid="{{ escape(str(request['reviewid'] or '')) }}"
+	request_title="{{ escape(request['title']) }}"
+	revision="{{ escape(request['revision']) }}"
+>
+
+<img src="{{ static_url('img/button_expand.gif') }}" class="request-item-expander" height="19" width="19" expand="{{ 'yes' if expand else 'no' }}" />
+
+{% include "request-buttons.html" %}
+
+{% include "request-info.html" %}
+
+<div class="request-info-extended">
+
+	<ul class="request-extended-fields">
+
+	{% if review %}
+	<li><span class="label">Review #</span><span class="value">
+		<a target="_blank" href="{{ escape(review['url']) }}">{{ escape(review['display']) }}</a></span></li>
+	{% else %}
+	<li><span class="omitted">No Review #</span></li>
+	{% end %}
+
+	<li><span class="label">Repo</span><span class="value">
+		<a target="_blank" href="{{ escape(repo_url) }}">{{ escape(request['repo']) }}</a></span></li>
+
+	<li><span class="label">Branch</span><span class="value">
+		<a target="_blank" href="{{ escape(branch_url) }}">{{ escape(request['branch']) }}</a></span></li>
+
+	<li><span class="label">Permalink</span><span class="value"><a target="_blank" href="/request?id={{ int(request['id']) }}">url</a></span></li>
+
+	<li><span class="label">{{ web_hooks['service_name'] }}</span><span class="value"><a target="_blank" href="{{ web_hooks['get_request_url'] }}/{{ int(request['id']) }}">url</a></span></li>
+
+	<li><span class="label">Created</span><span class="value">{{ escape(create_time) }}</span></li>
+
+	{% if not request['created'] == request['modified'] %}
+	<li><span class="label">Modified</span><span class="value">{{ escape(modify_time) }}</span></li>
+	{% end %}
+
+	{% if request['conflicts'] %}
+	<p>Conflicts:</p>
+	<div class="request-conflicts">{{ request['conflicts'].replace('\n', '<br />') }}</div>
+	{% end %}
+
+	{% if request['description'] %}
+	<p>Description:</p>
+	<div class="request-description">{{ escape(request['description']) }}</div>
+	{% end %}
+
+	{% if request['revision'] %}
+	<p>Revision:</p>
+	<div class="request-revision">{{ escape(request['revision']) }}</div>
+	{% end %}
+
+	{% if request['comments'] %}
+	<p>Comments:</p>
+	<div class="request-comments">{{ escape(request['comments']) }}</div>
+	{% end %}
+
+	</ul>
+</div>
+
+</div>

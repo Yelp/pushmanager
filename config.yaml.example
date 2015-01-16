@@ -5,6 +5,7 @@ main_app:
     redir_port: 80
     ssl_certfile: "/path/to/file.pem"
     ssl_keyfile: "/path/to/file.key"
+    debug: False
 
 api_app:
     servername: "pushmanager.example.com"
@@ -38,6 +39,7 @@ cookie_secret: "changethis"
 auth_ldap:
     url: "ldap://ldap.example.com:389"
     domain: "example.com"
+    basedn: "CN=Users,OU=Groups,OU=Company,DC=example,DC=com"
     cert_file: "/path/to/file.crt"
 
 # IRC channels to report to
@@ -56,6 +58,7 @@ mail:
 # Credentials for XMPP notifications
 xmpp:
     default_domain: "example.com"
+    server: "xmpp_server"
     username: "someone@example.com"
     password: "abc123"
 
@@ -69,8 +72,29 @@ reviewboard:
 buildbot:
     servername: buildbot.mydomain.com
 
-trac:
-    servername: trac.example.com
+# Set dynamic test tag using a REST api (http or https)
+# Request's SHA will replace %SHA% and %BRANCH% will be replaced with branchname
+tests_tag:
+    # User-added tag that will be replaced with api result
+    tag: "test-framework"
+    # JSON 'tag' value from POST response of this URL will replace tag
+    tag_api_endpoint: "http://example.com/api/v1/tests_tag"
+    tag_api_body: '{ "sha" : "%SHA%" }'
+
+    # If defined, tag will link to servername below and replace %ID%
+    # with the 'id' field in the JSON returned by url_api
+    url_api_endpoint: "http://example.com/api/v1/test_results_id"
+    url_api_body: '{ "sha" : "%SHA%" }'
+    # The run's ID from api will replace %ID% 
+    url_tmpl: "example.com/run/%SHA%/%ID%"
+
+    # Link template for url to results for push's branch
+    # (can only replace branch, not sha or id)
+    push_url_tmpl: "http://example.com/branch/%BRANCH%"
+    push_test_label: "Test Runs"
+
+# The string %TICKET% will be replaced by the ticket id
+ticket_tracker_url_format: "http://server:port/path/%TICKET%"
 
 git:
     scheme: "git"
@@ -80,14 +104,18 @@ git:
     gitweb_servername: "gitweb.example.com"
     main_repository: "main-repository"
     dev_repositories_dir: "devs"
+    local_repo_path: "/place/to/store/on-disk/git/repos/"
+    local_mirror: "/rererence/repository/for/main_repository"
+    use_local_mirror: False
+    conflict-threads: 1
+
     # A background worker tries to verify the given branch in a push
     # request by checking the SHA of the branch in the repository and
     # in DB - to see if there was already a request for the
     # change. Push requests with certain tags just modify the workflow
     # and are not associated with a git branch. We do not need to
     # verify the branch for those requests.
-    exclude_from_verification:
-        - "l10n-only"
+    exclude_from_verification: []
 
 # Pushmanager can POST to a given URL with the data below. This
 # preliminary support for webhooks is used for an internal Yelp tool
@@ -120,3 +148,10 @@ check_sites_bookmarklet:
     substitutions:
         - 'production_id' : 'non_production_id'
 
+tornado:
+   num_workers: 4
+
+
+# Upon completion of a push, Pushmanager can optionally display a button to fill out a survey.
+# If this is not defined, no button to a survey is displayed.
+# push_survey_url: 'https://examplesurvey'

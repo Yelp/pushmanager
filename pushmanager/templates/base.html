@@ -1,0 +1,70 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<title>{{ escape(page_title) }} - Push Management</title>
+	<script type="text/javascript">
+		PushMgr = {};
+	</script>
+	<link href="{{ static_url("css/base.css") }}" type="text/css" rel="stylesheet" />
+	<link href="{{ static_url("css/flick/jquery-ui-1.8.12.custom.css") }}" type="text/css" rel="stylesheet" />
+	<link href="{{ static_url("img/favicon.gif") }}" rel="shortcut icon" type="image/gif" />
+</head>
+<body>
+<div id="page-wrapper">
+	<div id="page-header">
+		<h1>Push Management - {% block page_name %}{% end %}</h1>
+		<ul id="page-menubar">
+		{% block default_menu %}
+			{% if not current_user %}
+			<li><a href="/login">Login</a></li>
+			{% end %}
+			<li><a href="/pushes">Pushes</a></li>
+			<li><a href="/userlist">Users</a></li>
+			<li><a href="/requests">Open Requests</a></li>
+			{% if current_user %}
+			<li><a href="/requests?user={{ escape(current_user) }}">My Requests</a></li>
+			<li><a href="/logout">Logout ({{ escape(current_user) }})</a></li>
+			Bookmarklets:
+			<li><a href="javascript:$.getScript('https://{{ Settings['main_app']['servername'] }}:{{ Settings['main_app']['port'] }}/bookmarklet');">
+				PushManager: Create Request</a></li>
+			<li><a href="javascript:$.getScript('https://{{ Settings['main_app']['servername'] }}:{{ Settings['main_app']['port'] }}/checksitesbookmarklet');">
+				PushManager: Check Sites</a></li>
+			<li><a href="/api">API</a></li>
+			{% end %}
+		{% end %}{% block custom_menu %}
+		{% end %}
+		</ul>
+	</div>
+	<div id="page-content">{% block content %}Content content content.<br/>Content content content.{% end %}</div>
+</div>
+<script src="{{ static_url("js/jquery-1.4.2.min.js") }}" type="text/javascript"></script>
+<script src="{{ static_url("js/jquery-ui-1.8.12.custom.min.js") }}" type="text/javascript"></script>
+<script type="text/javascript">
+PushManager = {};
+PushManager.current_user = "{% if current_user %}{{ escape(current_user) }}{% end %}";
+(function() {
+	PushManager.urlParams = {};
+	var e,
+		a = /\+/g,
+		r = /([^&=]+)=?([^&]*)/g,
+		d = function (s) { return decodeURIComponent(s.replace(a, " ")); },
+		q = window.location.search.substring(1);
+
+	while (e = r.exec(q)) {
+	   PushManager.urlParams[d(e[1])] = d(e[2]);
+	}
+})();
+</script>
+<script type="text/javascript">
+var Settings = {{ JSSettings_json }}
+if ('tests_tag' in Settings) {
+  setTimeout(function() {
+    $('.tag-'+Settings['tests_tag']['tag']).each(function() { PushManager.Request.load_test_api_tags(this); });
+  }, 1000)
+}
+</script>
+{% block scripts %}
+{% end %}
+</body>
+</html>

@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block page_name %}{{ escape(push_info['user']) }} \ {{ escape(push_info['title']) }}{% end %}
+
+{% block content %}
+<div id="form-anchor">&nbsp;
+	{% include 'edit-push.html' %}
+</div>
+<div id="form-anchor">&nbsp;
+	{% include 'confirm-conflict-check.html' %}
+</div>
+<!-- ========= PUSH INFO ========== -->
+{% include 'push-info.html' %}
+<!-- ========= BUTTON BAR ========== -->
+{% include 'push-button-bar.html' %}
+
+{% include 'push-status.html' %}
+
+{% include 'push-dialogs.html' %}
+
+{% end %}
+
+{% block scripts %}
+<script type="text/javascript" src="{{ static_url('js/push.js') }}"></script>
+<script type="text/javascript">
+	{% if push_survey_url %}
+        $('#go-survey').click(function() {
+                window.location.href = "{{ escape(push_survey_url) }}";
+        })
+        $('#push-survey')[0].maybe_open = function() { $('#push-survey').dialog('open'); }
+        {% else %}
+        $('#push-survey')[0].maybe_open = function() { window.location.reload(); }
+        {% end %}
+</script>
+{% end %}

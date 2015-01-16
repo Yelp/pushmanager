@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block page_name %}Pushes{% end %}
+
+{% block content %}
+<p id="announce">
+Please remember to run all deployment branches on <strong>bb8</strong> and <strong>selenium2</strong>. You can use <code>bb-push</code> to do this in a single command.
+</p>
+<ul id="action-buttons">
+	<li><button id="expand-pushes">Expand All</button></li>
+	<li><button id="collapse-pushes">Collapse All</button></li>
+	&mdash;
+	<li><button id="new-push">New Push</button></li>
+	&mdash;
+	<li>{{ modules.NewRequestDialog() }}</li>
+</ul>
+<div id="form-anchor">&nbsp;
+<form id="push-info-form" class="popup-form" action="/newpush" method="POST">
+<div class="form-wrapper">
+
+	<h2>New Push</h2>
+
+	<label for="push-title">Title</label>
+	<input name="push-title" id="push-title" />
+
+	<label for="push-branch">Branch</label>
+	<input name="push-branch" id="push-branch" value="deploy-branch-with-descriptive-name" />
+
+	<label for="push-type">Push Type</label>
+	<select name="push-type" id="push-type">
+		<option selected="selected" value="regular">Regular</option>
+		<option value="urgent">Urgent (P0-only)</option>
+		<option value="morning">Morning (Use 'Regular' if it's already morning)</option>
+		<option value="private">Private (By invitation only)</option>
+	</select>
+
+	<div class="buttons">
+		<input type="submit" id="push-create" name="push-submit" value="Create Push" />
+		<input type="reset" id="push-cancel" name="push-cancel" value="Cancel" />
+	</div>
+</div>
+</form>
+</div>
+<ul id="pushes">
+{% for push in pushes %}
+	<li class="push" pushid="{{ int(push['id']) }}">
+		<div class="push-endcap {{ escape(push['state']) }}">&nbsp;</div>
+		<div class="push-contents">
+			<div class="push-header">
+				<a href="/push?id={{ int(push['id']) }}">{{ escape(push['title']) }}</a>
+			</div>
+			<ul class="push-info">
+				<li><span class="label">Pushmaster</span><span class="value">{{ escape(push['user']) }}</span></li>
+				<li><span class="label">Push Type</span><span class="value">{{ escape(push['pushtype']) }}</span></li>
+				<li><span class="label">Branch</span><span class="value">{{ escape(push['branch']) }}</span></li>
+				<li><span class="label">Created</span><span class="value">{{ datetime.datetime.fromtimestamp(push['created']).strftime("%x %X") }}</span></li>
+			{% if not push['created'] == push['modified'] %}
+				<li><span class="label">Modified</span><span class="value">{{ datetime.datetime.fromtimestamp(push['modified']).strftime("%x %X") }}</span></li>
+			{% end %}
+			<li><span class="label">Requests</span><span class="value"><a href="#" class="show-items">Load</a></span></li>
+			</ul>
+			<ul class="push-items not-loaded"><li>Loading...</li></ul>
+		</div>
+	</li>
+{% end %}
+</ul>
+
+<div id="paginator">
+	{% if pushes and pushes[0]['id'] < last_push %}
+		<a href="/pushes?rpp={{ rpp }}&amp;before={{ pushes[0]['id'] + rpp + 1 }}"> Newer</a>
+	{% end if %}
+	{% if pushes and pushes[-1]['id'] > 1 %}
+		<a href="/pushes?rpp={{ rpp }}&amp;before={{ pushes[-1]['id'] }}">Older</a>
+	{% end if %}
+</div>
+
+{% end %}
+
+{% block scripts %}
+<script type="text/javascript">
+$(function() {
+	$('#new-push').click(function() {
+		$('#push-info-form').show();
+	});
+
+	$('#push-cancel').click(function() {
+		$('#push-info-form').hide();
+	});
+
+	$('.show-items').click(function() {
+		var push = $(this).closest('li.push');
+		var pushitems = push.find('.push-items');
+		if(pushitems.hasClass('not-loaded')) {
+			pushitems.load('/pushitems', 'push='+push.attr('pushid'));
+			pushitems.removeClass('not-loaded');
+		}
+		pushitems.toggle();
+		if($(this).text() == 'Hide') {
+			$(this).text('Show');
+		} else {
+			$(this).text('Hide');
+		}
+		return false;
+	});
+
+	$('#expand-pushes').click(function() {
+		$('.push-items.not-loaded').each(function() {
+			var that = $(this);
+			var push = that.closest('li.push');
+			that.load('/pushitems', 'push='+push.attr('pushid'));
+			that.removeClass('not-loaded');
+		});
+		$('li.push').each(function() {
+			var that = $(this);
+			that.find('.push-items').show();
+			that.find('.show-items').text('Hide');
+		});
+	});
+
+	$('#collapse-pushes').click(function() {
+		$('li.push').each(function() {
+			var that = $(this);
+			that.find('.push-items').hide();
+			if(that.find('.push-items').hasClass('not-loaded')) {
+				that.find('.show-items').text('Load');
+			} else {
+				that.find('.show-items').text('Show');
+			}
+		});
+	});
+
+	$('.push-item-expander').live('click', function() {
+		var that = $(this);
+		that.parent().find('.push-item-extended').toggle();
+		if(that.text() == "→") {
+			that.text("←");
+		} else {
+			that.text("→");
+		}
+	});
+});
+</script>
+{% end %}

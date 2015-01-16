@@ -1,0 +1,76 @@
+2014-09-05
+  AFFECTS: Users with existing installs before 0.3.7
+  AUTHOR: milki
+
+  Config option trac.servername has been removed in favour of
+  ticket_tracker_url_format
+
+2014-08-22
+  AFFECTS: Users with existing installs before 0.3.6
+  AUTHOR: milki
+
+  0.3.6 introduces a new config option git.conflict-threads that dictates how
+  many addiotional worker threads are dedicated to conflict detection.
+
+2014-08-14
+  AFFECTS: Users with existing installs before 0.3.1
+  AUTHOR: milki
+
+  0.3.1 introduces a new config option for debugging. Currently,
+  it only enables git operation logging. 'config.yaml.sample' has
+  been updated with the option disabled.
+
+2014-08-12
+  AFFECTS: Users with existing installs before 0.3.0
+  AUTHOR: milki
+
+  As of 0.3.0, a new column has been added to the db and
+  several new config options have been added.
+
+  The 'config.yaml.sample' has been updated to reflect the new config
+  options and a convenient script, 'pushplans/add_conflicts.sql' has
+  been included to facilitate the database update.
+
+2013-10-39
+  AFFECTS: Users with existing installs before commit ecb989b7
+  AUTHOR: milki
+
+  As of commit ecb989b7, a new column 'stageenv' has been added to the
+  'pull_pushes' table. Existing installs will 500 error until the
+  database has been updated.
+
+  A convenience script, 'pushplans/add_stageenv.sql' has been included
+  to facilitate the database update.
+
+2013-07-29
+  AFFECTS: Users with existing installs before commit b3f8fa5
+  AUTHOR: milki
+
+  As of commit b3f8fa5, a new column 'watchers' has been added to the
+  'pull_requests' table. Existing installs will 500 error until the
+  database has been updated.
+
+  A convenience script, 'pushplans/add_watchers.sql' has been included
+  to facilitate the database update.
+
+2013-06-18:
+  AFFECTS: Users with existing installs before commit 7a896c5
+  AUTHOR: milki
+
+  As of commit 7a896c5, the tag 'plans' was renamed to 'pushplans' in order
+  to clarify the confusion between testplans and pushplans.
+
+  In order to upgrade from an existing pushmanager setup, existing push
+  requests and push checklists in the database with the tag 'plans' should be
+  changed to use 'pushplans' instead.
+
+  Two convenience scripts, tools/rename_tag.py and
+  tools/rename_checklist_type.py have been included to facilitate these
+  changes. Additionally, pushplans/rename_push_to_pushplans.sh has been
+  provided for this particular change.
+
+  To run:
+    sh pushplans/rename_push_to_pushplan.sh
+
+  from the production pushmanager root such that the production config.yaml is
+  present and readable

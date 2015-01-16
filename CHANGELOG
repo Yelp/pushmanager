@@ -1,0 +1,184 @@
+0.3.15   2015-01-09
+
+ BUG FIXES
+
+ * Fix id tags in reviewboard bookmarklet for RB 2.x (ymilki, #143)
+
+0.3.14   2014-12-05
+
+ BUG FIXES
+
+ * Equality comparison for duplicate branches is != instead of 'is not'
+   so it doesn't do object comparisons for request ids > 256 (kkellyy, #139)
+
+0.3.13   2014-12-02
+
+ BUG FIXES
+
+ * verify_branch no longer has false positives if request_id given
+   is not canonical DB type (kkellyy, #138)
+
+0.3.12   2014-12-02
+
+ IMPROVEMENTS
+
+ * Dynamic test tag loads on all pages now (kkellyy, #129)
+ * Pushes can now include link to generic test runs of themselves (kkellyy, #130)
+ * testtag servlet is now more robust:
+   404s on no id param and is asynchronous (kkellyy, #133)
+ * Automatically detect and update SHA of request branches, notify the request's
+   user and re-check for git conflicts if in pickme/added state (kkellyy, #134, #137)
+
+ BUG FIXES
+
+ * copy_dict in core/util now ignores keys not defined in original dict (kkellyy, #130)
+ * Pushmaster message users no longer case-sensitive (kkellyy, #130)
+ * checklist servlet no longer generates spurious 500s (kkellyy, #132)
+ * Explicitly add --no-rebase on git merge conflict testing to guarantee
+   git behavior (kkellyy, #135)
+
+ DEPRECATED
+
+ * No longer gzip responses by default. (kkellyy, #131)
+
+0.3.11   2014-11-12
+
+ IMPROVEMENTS
+
+ * Seagull is included in the quick tag list
+ * Tests tag allows for generic support for any testing framework to
+   dynamically populate a tag with test results and link to framework, similar
+   to buidlbot (kkelly, #126)
+
+0.3.10  2014-09-29
+
+ BUG FIXES
+
+ * Include pushmanager_url when testing pickmes for merge conflcits
+   (kkellyy, #124)
+
+0.3.9   2014-09-29
+
+ IMPROVEMENTS
+
+ * tags can contain the string 'conflict' again (asottile, #119)
+ * 'git-ok' tag now links to gitweb (kkellyy, #117)
+ * pushmanager is now proxy aware (kkellyy, #116)
+ * 'After certifying' checklist now says 'Before certifying' (kkellyy, #122)
+
+ BUG FIXES
+
+ * reviewboard links no longer contains the pushmanager port (kkellyy, #121)
+
+ DEPRECATED
+
+ * 'hoods' tag no longer has post-stage checklist steps (kkellyy, #120)
+
+0.3.8   2014-09-10
+
+ IMPROVEMENTS
+
+ * Split new push announcement into multiple lines (Mango-J, #113)
+ * Comment dialogue box for a push request is larger (kkellyy, #114)
+
+0.3.7   2014-09-05
+
+ BUG FIXES
+
+ * Strip whitespace from sensitive request fields (rschlaikjer, #108)
+ * Expand the linkify regex to accept dashes and port numbers (fede1024, #110)
+
+ IMPROVEMENTS
+
+ * Split pushmanager messages across multiple lines to avoid max char limit
+   (Mango-J, #35, #106)
+ * Replaced the trac specific ticket link with a general link. (fede1024, #105)
+ * Improve pickme conflict detection (rschlaikjer, #104)
+
+0.3.6   2014-08-22
+
+ BUG FIXES
+
+ * Track worker pids (rschlaikjer, #98)
+ * Skip pickmes in conlfict detection if they are no longer valid (rschlaikjer, #101, #102)
+
+ IMPROVEMENTS
+
+ * Include stdout on conflict-master pickmes (rschlaikjer, #100)
+
+ PERFORMANCE TWEAKS
+
+ * Merge conflict detection uses multiple threads (rschlaikjer, #99)
+
+0.3.5   2014-08-09
+
+ BUG FIXES
+
+ * Fetch the pickme branch being checked (rschlaikjer, #96)
+
+0.3.4   2014-08-08
+
+ BUG FIXES
+
+ * When checking if a pickme has already been merged, use
+   the pickme's id. (rschlaikjer, #94)
+
+0.3.3   2014-08-08
+
+ BUG FIXES
+
+ * Don't run merge detection on merged requests (rschlaikjer, #84, #91)
+ * Fetch non-ff branches (rschlaikjer, #85, #90)
+
+ IMPROVEMENTS
+
+ * Manually rerun merge detection (rschlaikjer, #86, #92)
+
+ PERFORMANCE TWEAKS
+
+ * Separate git sha retrieval from git merge conflict detection.
+   (rschlaikjer, #82, #83)
+
+0.3.2   2014-08-15
+
+ PERFORMANCE TWEAKS
+
+ * Only requeue existing conflicted pickme's when a pickme
+   is removed. (rschlaikjer, #79, #80)
+
+0.3.1   2014-08-14
+
+ BUG FIXES
+
+ * Ensure submodules are refreshed for merge conflict detection
+   (rschlaikjer, #73, #75)
+ * Ensure the proper remote is fetched for merge conflict detection
+   (rschlaikjer, #74, #75)
+ * Hard reset and clean pre-checkout to prevent checkout being blocked
+   by unstaged changes (rschlaikjer, #76)
+ * Force delete / recreate of test branches, to fix branches that
+   might not have been cleaned up properly (rschlaikjer, #76)
+
+ PERFORMANCE TWEAKS
+
+ * For performance reasons, only perform a fetch when a new remote or
+   pickme has been added (rschlaikjer, #76)
+
+0.3.0   2014-08-12
+
+ NEW FEATURES
+
+ * Automatic merge conflict detection (rschlaikjer, #66)
+
+0.2.1   2014-08-04
+
+ IMPROVEMENTS
+
+ * Add pushmaster name to IRC messages (asotille, #63)
+ * Clean up imports (asotille)
+ * New submodule-bump tag for requests that include submodule
+   changes (jagg81, #60)
+
+ DEPRECATED
+
+ * l10n and l10n-only tags are no longer used (jagg81, #60)
