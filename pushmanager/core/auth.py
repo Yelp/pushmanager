@@ -41,4 +41,4 @@ def authenticate_ldap(username, password):
         return False
 
 
-__all__ = ['authenticate_ldap', 'authenticate_saml']
+__all__ = ['authenticate_ldap']
