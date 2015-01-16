@@ -63,6 +63,7 @@ def get_url_specs():
         (CheckSitesBookmarkletHandler.url, CheckSitesBookmarkletHandler),
         (r'/login', LoginHandler),
         (r'/logout', LogoutHandler),
+        (r'/acs', SamlACSHandler),
     ]
     for servlet in (APIServlet,
                     ChecklistServlet,
