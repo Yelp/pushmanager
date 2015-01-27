@@ -121,7 +121,7 @@ class SamlACSHandler(RequestHandler):
         errors = auth.get_errors()
         if not errors:
             if auth.is_authenticated():
-                login(self, str(auth.get_attributes(), "/"))  # TODO: Get an actual username
+                login(self, auth.get_attributes()["User.Username"][0], "/")
             else:
                 self.render('Not authenticated')  # TODO: Promote these to HTTP status codes with responses
         else:
