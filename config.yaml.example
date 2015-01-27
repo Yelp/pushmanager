@@ -47,6 +47,7 @@ mail:
     # Email address to send copies of all outgoing email to
     notifyall:
         - "push-updates@example.com"
+    notifyonly: []
 
 # Credentials for XMPP notifications
 xmpp:
