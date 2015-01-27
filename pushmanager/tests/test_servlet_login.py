@@ -4,7 +4,9 @@ import logging
 import urllib
 
 import testify as T
+from pushmanager.core.settings import Settings
 from pushmanager.handlers import LoginHandler
+from pushmanager.testing.mocksettings import MockedSettings
 from pushmanager.testing.testservlet import ServletTestMixin
 
 
@@ -18,9 +20,9 @@ class LoginTest(T.TestCase, ServletTestMixin):
             "username": "fake_username",
             "password": "fake_password"
         }
-        T.MockedSettings['login_strategy'] = ''
+        MockedSettings['login_strategy'] = ''
         with nested(mock.patch.object(logging, "exception"),
-                    mock.patch.dict(Settings, T.MockedSettings)):
+                    mock.patch.dict(Settings, MockedSettings)):
 
             response = self.fetch(
                 "/login",
@@ -34,9 +36,9 @@ class LoginTest(T.TestCase, ServletTestMixin):
             "username": "fake_username",
             "password": "fake_password"
         }
-        T.MockedSettings['login_strategy'] = 'ldap'
+        MockedSettings['login_strategy'] = 'ldap'
         with nested(mock.patch.object(logging, "exception"),
-                    mock.patch.dict(Settings, T.MockedSettings)):
+                    mock.patch.dict(Settings, MockedSettings)):
 
             response = self.fetch(
                 "/login",
@@ -46,10 +48,10 @@ class LoginTest(T.TestCase, ServletTestMixin):
             T.assert_in("Invalid username or password specified.", response.body)
 
     def test_saml_login_post(self):
-        T.MockedSettings['login_strategy'] = 'saml'
+        MockedSettings['login_strategy'] = 'saml'
         with nested(mock.patch.object(logging, "exception"),
-                    mock.patch.dict(Settings, T.MockedSettings)):
-            with mock.patch("pushmanager_main.LoginHandler._saml_login") as mock_saml_login:
+                    mock.patch.dict(Settings, MockedSettings)):
+            with mock.patch("pushmanager.handlers.LoginHandler._saml_login") as mock_saml_login:
 
                 request = {}
                 self.fetch(
