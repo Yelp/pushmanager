@@ -12,7 +12,8 @@ os.environ['LDAPTLS_CACERT'] = Settings['auth_ldap']['cert_file']
 
 LDAP_URL = Settings['auth_ldap']['url']
 
-def authenticate(username, password):
+
+def authenticate_ldap(username, password):
     """Attempts to bind a given username/password pair in LDAP and returns whether or not it succeeded."""
     try:
         dn = "%s@%s" % (username, Settings['auth_ldap']['domain'])
@@ -39,4 +40,5 @@ def authenticate(username, password):
         logging.exception("Authentication error")
         return False
 
-__all__ = ['authenticate']
+
+__all__ = ['authenticate_ldap']

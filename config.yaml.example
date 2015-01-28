@@ -11,6 +11,13 @@ api_app:
     servername: "pushmanager.example.com"
     port: 8843
 
+# The strategy used for authentication. Either "ldap" or "saml".
+login_strategy: "ldap"
+
+# Only required for the saml login strategy. Defines where to find
+# the configuration JSON files for python-saml.
+#saml_config_folder: "saml/"
+
 # Database connection string
 db_uri: "mysql://user:password@host/database"
 

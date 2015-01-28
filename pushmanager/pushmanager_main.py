@@ -20,6 +20,7 @@ from pushmanager.handlers import LoginHandler
 from pushmanager.handlers import LogoutHandler
 from pushmanager.handlers import NullRequestHandler
 from pushmanager.handlers import RedirHandler
+from pushmanager.handlers import SamlACSHandler
 from pushmanager.servlets.addrequest import AddRequestServlet
 from pushmanager.servlets.api import APIServlet
 from pushmanager.servlets.blesspush import BlessPushServlet
@@ -63,6 +64,7 @@ def get_url_specs():
         (CheckSitesBookmarkletHandler.url, CheckSitesBookmarkletHandler),
         (r'/login', LoginHandler),
         (r'/logout', LogoutHandler),
+        (r'/acs', SamlACSHandler),
     ]
     for servlet in (APIServlet,
                     ChecklistServlet,
