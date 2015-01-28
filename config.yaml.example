@@ -55,6 +55,7 @@ xmpp:
     server: "xmpp_server"
     username: "someone@example.com"
     password: "abc123"
+    notifyonly: []
 
 # ReviewBoard instance
 reviewboard:
