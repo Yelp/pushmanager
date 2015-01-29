@@ -64,6 +64,20 @@ class CoreXMPPClientTest(T.TestCase):
             T.assert_equal(pushmanager.core.xmppclient.XMPPQueue.message_queue.put.call_count, 0)
             T.assert_equal(pushmanager.core.xmppclient.XMPPQueue.message_queue.task_done.call_count, 1)
 
+    def test_process_queue_item_no_alias(self):
+        with nested(
+            mock.patch("%s.pushmanager.core.xmppclient.xmpp.Message" % __name__),
+            mock.patch("%s.pushmanager.core.xmppclient.XMPPQueue.message_queue" % __name__)
+        ):
+            MockedSettings['aliases'] = None
+            with mock.patch.dict(pushmanager.core.xmppclient.Settings, MockedSettings):
+                jabber_client = mock.MagicMock()
+                pushmanager.core.xmppclient.XMPPQueue.message_queue.configure_mock(**self.fake_queue_attrs)
+
+                pushmanager.core.xmppclient.XMPPQueue._process_queue_item(jabber_client)
+
+                T.assert_equal(jabber_client.send.call_count, 1)
+
     def test_process_queue_item_retry(self):
         def raise_ioerror(*args):
             raise IOError("Fake IOError")
