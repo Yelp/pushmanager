@@ -137,15 +137,21 @@ class XMPPQueue(object):
             raise ValueError('Recipient(s) must be a string or iterable of strings')
 
     @classmethod
-    def enqueue_user_xmpp(cls, recipients, *args, **kwargs):
+    def enqueue_user_xmpp(cls, recipients, message):
         """Transforms a list of 'user' to 'user@default_domain', then invokes enqueue_xmpp."""
         domain = Settings['xmpp']['default_domain']
+
         if isinstance(recipients, (list,set,tuple)):
             recipients = ['%s@%s' % (recepient, domain) if '@' not in recepient else recepient for recepient in recipients]
         elif isinstance(recipients, (str,unicode)):
             recipients = '%s@%s' % (recipients, domain) if '@' not in recipients else recipients
         else:
             raise ValueError('Recipient(s) must be a string or iterable of strings')
-        return cls.enqueue_xmpp(recipients, *args, **kwargs)
+
+        notifyonly = Settings['xmpp']['notifyonly']
+        if notifyonly:
+            message = "Original recipients: %s\n\n%s" % (recipients, message)
+            recipients = ['%s@%s' % (recepient, domain) if '@' not in recepient else recepient for recepient in notifyonly]
+        return cls.enqueue_xmpp(recipients, message)
 
 __all__ = ['XMPPQueue']

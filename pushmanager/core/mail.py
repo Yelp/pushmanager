@@ -49,6 +49,15 @@ class MailQueue(object):
         msg = email.mime.text.MIMEText(message, 'html')
         msg['Subject'] = subject
         msg['From'] = from_email
+
+        notifyonly = Settings['mail']['notifyonly']
+        if notifyonly:
+            msg['To'] = ', '.join(notifyonly)
+            msg.set_payload('Original recipients: %s\n\n%s' % (recipient, msg.get_payload()))
+            cls.smtp.sendmail(from_email, notifyonly, msg.as_string())
+            cls.message_queue.task_done()
+            return
+
         msg['To'] = recipient
         cls.smtp.sendmail(from_email, [recipient], msg.as_string())
         other_recipients = set(Settings['mail']['notifyall']) - set([recipient])

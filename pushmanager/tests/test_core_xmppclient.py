@@ -1,10 +1,12 @@
 from contextlib import contextmanager
 from contextlib import nested
 
+import copy
 import mock
-import pushmanager.core.xmppclient
 import testify as T
-from pushmanager.testing.mocksettings import MockedSettings
+
+from pushmanager.core.settings import Settings
+import pushmanager.core.xmppclient
 
 
 class CoreXMPPClientTest(T.TestCase):
@@ -25,6 +27,10 @@ class CoreXMPPClientTest(T.TestCase):
         self.fake_queue_attrs = {
             "get.return_value": ('testuser@example.com', "Fake Message")
         }
+
+    @T.setup
+    def mock_settings(self):
+        self.MockedSettings = copy.deepcopy(Settings)
 
     @contextmanager
     def fake_xmpp_connect(self):
@@ -91,19 +97,33 @@ class CoreXMPPClientTest(T.TestCase):
     def test_enqueue_user_xmpp_with_string(self):
         fake_domain = "fakedomain.com"
         fake_user = "fakeuser"
-        MockedSettings['xmpp'] = {'default_domain': fake_domain}
-        with mock.patch.dict(pushmanager.core.xmppclient.Settings, MockedSettings):
+        self.MockedSettings['xmpp']['default_domain'] = fake_domain
+        with mock.patch.dict(pushmanager.core.xmppclient.Settings, self.MockedSettings):
             with mock.patch.object(pushmanager.core.xmppclient.XMPPQueue, "enqueue_xmpp") as mock_enqueue_xmpp:
-                pushmanager.core.xmppclient.XMPPQueue.enqueue_user_xmpp(fake_user)
-                mock_enqueue_xmpp.assert_called_with("%s@%s" % (fake_user, fake_domain))
+                pushmanager.core.xmppclient.XMPPQueue.enqueue_user_xmpp(fake_user, 'message')
+                mock_enqueue_xmpp.assert_called_with("%s@%s" % (fake_user, fake_domain), 'message')
 
 
     def test_enqueue_user_xmpp_with_list(self):
         fake_domain = "fakedomain.com"
         fake_users = ["fakeuser1", "fakeuser2"]
-        MockedSettings['xmpp'] = {'default_domain': fake_domain}
-        with mock.patch.dict(pushmanager.core.xmppclient.Settings, MockedSettings):
+        self.MockedSettings['xmpp']['default_domain'] = fake_domain
+        self.MockedSettings['xmpp']['notifyonly'] = []
+        with mock.patch.dict(pushmanager.core.xmppclient.Settings, self.MockedSettings):
             with mock.patch.object(pushmanager.core.xmppclient.XMPPQueue, "enqueue_xmpp") as mock_enqueue_xmpp:
-                pushmanager.core.xmppclient.XMPPQueue.enqueue_user_xmpp(fake_users)
+                pushmanager.core.xmppclient.XMPPQueue.enqueue_user_xmpp(fake_users, 'message')
                 fake_ids = ["%s@%s" % (fake_user, fake_domain) for fake_user in fake_users]
-                mock_enqueue_xmpp.assert_called_with(fake_ids)
+                mock_enqueue_xmpp.assert_called_with(fake_ids, 'message')
+
+    def test_enqueue_user_xmpp_with_notifyonly(self):
+        fake_domain = "fakedomain.com"
+        fake_users = ["fakeuser1", "fakeuser2"]
+        self.MockedSettings['xmpp']['default_domain'] = fake_domain
+        self.MockedSettings['xmpp']['notifyonly'] = ['notifyme']
+        with mock.patch.dict(pushmanager.core.xmppclient.Settings, self.MockedSettings):
+            with mock.patch.object(pushmanager.core.xmppclient.XMPPQueue, "enqueue_xmpp") as mock_enqueue_xmpp:
+                pushmanager.core.xmppclient.XMPPQueue.enqueue_user_xmpp(fake_users, 'message')
+                fake_ids = ["%s@%s" % (fake_user, fake_domain) for fake_user in fake_users]
+                mock_enqueue_xmpp.assert_called_with(
+                        ['%s@%s' % (user, fake_domain) for user in self.MockedSettings['xmpp']['notifyonly']],
+                        "Original recipients: %s\n\nmessage" % fake_ids)

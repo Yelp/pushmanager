@@ -54,6 +54,7 @@ mail:
     # Email address to send copies of all outgoing email to
     notifyall:
         - "push-updates@example.com"
+    notifyonly: []
 
 # Credentials for XMPP notifications
 xmpp:
@@ -61,6 +62,7 @@ xmpp:
     server: "xmpp_server"
     username: "someone@example.com"
     password: "abc123"
+    notifyonly: []
 
 # ReviewBoard instance
 reviewboard:
