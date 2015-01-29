@@ -53,7 +53,9 @@ class XMPPQueue(object):
         recipient, message = msg
 
         # Apply alias mapping, if any exists
-        recipient = Settings['aliases'].get(recipient, recipient)
+        aliases = Settings['aliases']
+        if aliases:
+            recipient = aliases.get(recipient, recipient)
 
         xmpp_message = xmpp.protocol.Message(recipient, message)
         try:
