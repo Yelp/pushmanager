@@ -1,3 +1,18 @@
+0.4.0   2015-02-10
+
+ NEW FEATURES
+
+ * SAML 2.0 Authentication Backend (y-trobinso, #146)
+
+ IMPROVEMENTS
+
+ * New configuration options: xmpp.notifyonly and mail.notifyonly (ymilki, #148)
+
+ BUG FIXES
+
+ * Update travis config for py26, py27 envs (asottile, #142)
+ * Fix reviewboard bookmarklet for all browsers (bpicolo, #145)
+
 0.3.15   2015-01-09
 
  BUG FIXES

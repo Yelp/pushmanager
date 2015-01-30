@@ -1,3 +1,20 @@
+2015-01-30
+  AFFECTS: Users with existing installs before 0.4.0
+  AUTHOR: milki
+
+  New config options must be defined:
+    mail.notifyonly
+    xmpp.notifyonly
+    login_strategy
+    saml_config_folder: "saml/" (if login_strategy is saml)
+
+  SAML 2.0 Authentication requires additional packages:
+    python-saml
+    swig
+    libxmlsec1-dev
+
+  Additionally, a settings.json file must be placed in the saml_config_folder
+
 2014-09-05
   AFFECTS: Users with existing installs before 0.3.7
   AUTHOR: milki
