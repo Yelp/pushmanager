@@ -7,7 +7,8 @@ $(function() {
         title: 'Push Checklist',
         width: 400,
         height: 600,
-        position: 'right'
+        position: 'right',
+        opacity: 0.8
     });
     PushManager.reload_checklist = function() {
         $('#push-checklist').load('/checklist',
