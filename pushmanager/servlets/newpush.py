@@ -51,7 +51,7 @@ class NewPushServlet(RequestHandler):
         insert_query = db.push_pushes.insert({
             'title': self._arg('push-title'),
             'user': self.current_user,
-            'branch': self._arg('push-branch'),
+            'branch': self._arg('push-branch').strip(),
             'revision': "0"*40,
             'created': time.time(),
             'modified': time.time(),
