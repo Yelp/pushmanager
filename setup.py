@@ -33,8 +33,13 @@ setup(
             'pushmanager_main = pushmanager.pushmanager_main:main',
         ],
     },
+    scripts=[
+        'scripts/pushmanager',
+    ],
     setup_requires=['setuptools'],
     install_requires=[
+        'PyYAML == 3.11',
+        'SQLAlchemy == 0.9.8',
         'lxml == 2.2.4',
         'mysql-python == 1.2.5',
         'python-daemon == 1.5.2',
