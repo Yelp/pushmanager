@@ -61,6 +61,31 @@ class APITests(T.TestCase, ServletTestMixin, FakeDataMixin):
                     T.assert_gte(push['modified'], lastpush['modified'])
             lastpush = push
 
+    def test_pushes_user_filter(self):
+        self.insert_pushes()
+        pushes, last_push = self.api_call("pushes?user=troscoe")
+        T.assert_length(pushes, 1)
+        for push in pushes:
+            T.assert_equal(push['user'], 'troscoe')
+
+    def test_pushes_state_filter(self):
+        self.insert_pushes()
+        pushes, last_push = self.api_call("pushes?state=live")
+        T.assert_length(pushes, 1)
+        for push in pushes:
+            T.assert_equal(push['state'], 'live')
+
+    def test_pushes_filters(self):
+        self.insert_pushes()
+        pushes, last_push = self.api_call("pushes?user=heyjoe&state=accepting")
+        T.assert_length(pushes, 1)
+        for push in pushes:
+            T.assert_equal(push['user'], 'heyjoe')
+            T.assert_equal(push['state'], 'accepting')
+
+        pushes, last_push = self.api_call("pushes?user=heyjoe&state=live")
+        T.assert_length(pushes, 0)
+
     def test_pushcontents(self):
         pushcontents = self.api_call("pushcontents?id=1")
         T.assert_length(pushcontents, 1)
