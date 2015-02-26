@@ -23,6 +23,7 @@
 			<li><a href="/userlist">Users</a></li>
 			<li><a href="/requests">Open Requests</a></li>
 			{% if current_user %}
+			<li><a href="/pushes?user={{ escape(current_user) }}">My Pushes</a></li>
 			<li><a href="/requests?user={{ escape(current_user) }}">My Requests</a></li>
 			<li><a href="/logout">Logout ({{ escape(current_user) }})</a></li>
 			Bookmarklets:
