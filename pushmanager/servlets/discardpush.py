@@ -21,7 +21,8 @@ class DiscardPushServlet(RequestHandler):
             'modified': time.time(),
             })
         request_query_pickme = db.push_requests.update().where(
-            SA.exists([1],
+            SA.exists(
+                [1],
                 SA.and_(
                     db.push_pushcontents.c.push == self.pushid,
                     db.push_pushcontents.c.request == db.push_requests.c.id,
@@ -31,7 +32,8 @@ class DiscardPushServlet(RequestHandler):
                 'state': 'requested',
             })
         delete_query = db.push_pushcontents.delete().where(
-            SA.exists([1],
+            SA.exists(
+                [1],
                 SA.and_(
                     db.push_pushcontents.c.push == self.pushid,
                     db.push_pushcontents.c.request == db.push_requests.c.id,
@@ -39,7 +41,8 @@ class DiscardPushServlet(RequestHandler):
                 )
             ))
         request_query_all = db.push_requests.update().where(
-            SA.exists([1],
+            SA.exists(
+                [1],
                 SA.and_(
                     db.push_pushcontents.c.push == self.pushid,
                     db.push_pushcontents.c.request == db.push_requests.c.id,
@@ -47,7 +50,10 @@ class DiscardPushServlet(RequestHandler):
             )).values({
                 'state': 'requested',
             })
-        db.execute_transaction_cb([push_query, request_query_pickme, delete_query, request_query_all], self.on_db_complete)
+        db.execute_transaction_cb(
+            [push_query, request_query_pickme, delete_query, request_query_all],
+            self.on_db_complete
+        )
 
     def on_db_complete(self, success, db_results):
         self.check_db_results(success, db_results)

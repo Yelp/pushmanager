@@ -12,6 +12,7 @@ def _repo(base):
     main_repository = Settings['git']['main_repository']
     return os.path.join(dev_repos_dir, base) if base != main_repository else base
 
+
 class PushServlet(RequestHandler):
 
     @tornado.web.asynchronous

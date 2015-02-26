@@ -60,11 +60,11 @@ class AddRequestServlet(RequestHandler):
                 })
             subject = "[push] %s - %s" % (user_string, req['title'])
             MailQueue.enqueue_user_email(users, msg, subject)
-            msg = '%(pushmaster)s has accepted request "%(title)s" for %(user)s into a push:\n%(pushmanager_base_url)s/push?id=%(pushid)s' % {
-                'pushmanager_base_url': self.get_base_url(),
-                'pushmaster': self.current_user,
-                'title': req['title'],
-                'pushid': self.pushid,
-                'user': user_string,
-            }
+            msg = '{0} has accepted request "{1}" for {2} into a push:\n{3}/push?id={4}'.format(
+                self.current_user,
+                req['title'],
+                user_string,
+                self.get_base_url(),
+                self.pushid,
+            )
             XMPPQueue.enqueue_user_xmpp(users, msg)

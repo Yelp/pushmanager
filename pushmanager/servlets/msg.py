@@ -35,10 +35,11 @@ class MsgServlet(RequestHandler):
             ])
             return
 
-
         send_people_msg_in_groups(
-                                    people, message, irc_nick,
-                                    Settings['irc']['channel'],
-                                    person_per_group=5,
-                                    prefix_msg='[[pushmaster %s]]' % self.current_user
-                                )
+            people,
+            message,
+            irc_nick,
+            Settings['irc']['channel'],
+            person_per_group=5,
+            prefix_msg='[[pushmaster %s]]' % self.current_user
+        )
