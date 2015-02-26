@@ -9,6 +9,15 @@ Please remember to run all deployment branches on <strong>bb8</strong> and <stro
 <ul id="action-buttons">
 	<li><button id="expand-pushes">Expand All</button></li>
 	<li><button id="collapse-pushes">Collapse All</button></li>
+    &mdash;
+    <li>
+        Show states: <select id="state-filter">
+            <option value="">All states</option>
+            <option value="accepting" {% if state == 'accepting' %}selected="selected"{% end %}>Accepting</option>
+            <option value="live" {% if state == 'live' %}selected="selected"{% end %}>Live</option>
+            <option value="discarded" {% if state == 'discarded' %}selected="selected"{% end %}>Discarded</option>
+        </select>
+    </li>
 	&mdash;
 	<li><button id="new-push">New Push</button></li>
 	&mdash;
@@ -67,10 +76,10 @@ Please remember to run all deployment branches on <strong>bb8</strong> and <stro
 
 <div id="paginator">
 	{% if pushes and pushes[0]['id'] < last_push %}
-		<a href="/pushes?rpp={{ rpp }}&amp;before={{ pushes[0]['id'] + rpp + 1 }}"> Newer</a>
+		<a href="/pushes?rpp={{ rpp }}&amp;before={{ pushes[0]['id'] + rpp + 1 }}&amp;user={{ url_escape(push_user) }}&amp;state={{ url_escape(state) }}"> Newer</a>
 	{% end if %}
 	{% if pushes and pushes[-1]['id'] > 1 %}
-		<a href="/pushes?rpp={{ rpp }}&amp;before={{ pushes[-1]['id'] }}">Older</a>
+		<a href="/pushes?rpp={{ rpp }}&amp;before={{ pushes[-1]['id'] }}&amp;user={{ url_escape(push_user) }}&amp;state={{ url_escape(state) }}">Older</a>
 	{% end if %}
 </div>
 
@@ -138,6 +147,13 @@ $(function() {
 			that.text("→");
 		}
 	});
+
+    $('#state-filter').change(function() {
+        base_url = window.location.href.split('?')[0];
+        new_state = encodeURIComponent($(this).val());
+        new_url = base_url + '?state=' + new_state{% if push_user %} + '&user={{ url_escape(push_user) }}'{% end %};
+        window.location.href = new_url;
+    });
 });
 </script>
 {% end %}

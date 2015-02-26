@@ -116,15 +116,20 @@ class APIServlet(RequestHandler):
         """Returns a JSON representation of pushes."""
         rpp = int(self.request.arguments.get('rpp', [50])[0])
         before = int(self.request.arguments.get('before', [0])[0])
+        user = util.get_str_arg(self.request, 'user', '')
+        state = util.get_str_arg(self.request, 'state', '')
+        filters = []
         if before > 0:
-            push_query = db.push_pushes.select(
-                    whereclause=(db.push_pushes.c.id < before),
-                    order_by=db.push_pushes.c.modified.desc(),
-                )
-        else:
-            push_query = db.push_pushes.select(
-                    order_by=db.push_pushes.c.modified.desc(),
-                )
+            filters.append(db.push_pushes.c.id < before)
+        if user != '':
+            filters.append(db.push_pushes.c.user == user)
+        if state != '':
+            filters.append(db.push_pushes.c.state == state)
+
+        push_query = db.push_pushes.select(
+            whereclause=SA.and_(*filters),
+            order_by=db.push_pushes.c.modified.desc(),
+        )
 
         if rpp > 0:
             push_query = push_query.limit(rpp)
