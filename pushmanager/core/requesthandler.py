@@ -24,20 +24,22 @@ def async_api_call_error():
         else:
             raise
 
+
 def get_base_url(request):
 
-    default_ports = { 'https' : ':443', 'http' : ':80' }
-    protocol = request.headers.get('X-Forwarded-Proto', request.protocol).lower() 
+    default_ports = {'https': ':443', 'http': ':80'}
+    protocol = request.headers.get('X-Forwarded-Proto', request.protocol).lower()
     pushmanager_port = ':%s' % request.headers.get('X-Forwarded-Port', Settings['main_app']['port'])
     if default_ports[protocol] == pushmanager_port:
         pushmanager_port = ''
 
-    pushmanager_base_url =  '%(protocol)s://%(pushmanager_servername)s%(pushmanager_port)s' % {
-            'protocol' : protocol,
-            'pushmanager_servername' : Settings['main_app']['servername'], 
-            'pushmanager_port' : pushmanager_port
+    pushmanager_base_url = '%(protocol)s://%(pushmanager_servername)s%(pushmanager_port)s' % {
+            'protocol': protocol,
+            'pushmanager_servername': Settings['main_app']['servername'],
+            'pushmanager_port': pushmanager_port
             }
     return pushmanager_base_url
+
 
 class RequestHandler(tornado.web.RequestHandler):
 

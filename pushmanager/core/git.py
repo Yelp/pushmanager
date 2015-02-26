@@ -277,6 +277,7 @@ def git_merge_context_manager(test_branch, master_repo_path):
             master_repo_path
         )
 
+
 class GitTaskAction(object):
     VERIFY_BRANCH = 1
     TEST_PICKME_CONFLICT = 2
@@ -442,7 +443,6 @@ class GitQueue(object):
 
         # Verify that submodules are OK
         _stale_submodule_check(master_repo_path)
-
 
     @classmethod
     def create_or_update_local_repo(cls, worker_id, repo_name, branch, checkout=True, fetch=False):
@@ -1019,8 +1019,8 @@ class GitQueue(object):
             return
         push_id = push['push']
 
-        #### Set up the environment as though we are preparing a deploy push
-        ## Create a branch pickme_test_PUSHID_PICKMEID
+        # Set up the environment as though we are preparing a deploy push
+        # Create a branch pickme_test_PUSHID_PICKMEID
 
         # Ensure that the local copy of master is up-to-date
         cls.create_or_update_local_repo(
@@ -1119,7 +1119,7 @@ class GitQueue(object):
                 ),
                 'conflicts': updated_request['conflicts'].replace('\n', '<br/>'),
                 'reviewboard_servername': Settings['reviewboard']['servername'],
-                'pushmanager_url' : pushmanager_url
+                'pushmanager_url': pushmanager_url
             }
         )
         escaped_request = EscapedDict(updated_request)
@@ -1141,7 +1141,7 @@ class GitQueue(object):
                 ),
                 'pickme_name': updated_request['branch'],
                 'pickme_id': updated_request['id'],
-                'pushmanager_url' : pushmanager_url
+                'pushmanager_url': pushmanager_url
             }
         XMPPQueue.enqueue_user_xmpp([user_to_notify], msg)
 
@@ -1169,9 +1169,10 @@ class GitQueue(object):
 
         duplicate_req = cls._get_request_with_sha(sha)
         if (
-            duplicate_req and 'state' in duplicate_req
-            and not duplicate_req['state'] == "discarded"
-            and duplicate_req['id'] != req['id']
+            duplicate_req and
+            'state' in duplicate_req and
+            not duplicate_req['state'] == "discarded" and
+            duplicate_req['id'] != req['id']
         ):
             error_msg = "Git queue worker found another request with the same revision sha (ids %s and %s)" % (
                 duplicate_req['id'],
@@ -1214,7 +1215,7 @@ class GitQueue(object):
             """
         )
         updated_request.update({
-            'pushmanager_url' : pushmanager_url,
+            'pushmanager_url': pushmanager_url,
             'reviewboard_servername': Settings['reviewboard']['servername']
         })
         msg %= EscapedDict(updated_request)
@@ -1286,7 +1287,7 @@ class GitQueue(object):
         )
         request.update({
             'failure_msg': failure_msg,
-            'pushmanager_url' : pushmanager_url,
+            'pushmanager_url': pushmanager_url,
             'reviewboard_servername': Settings['reviewboard']['servername']
         })
         msg %= EscapedDict(request)
@@ -1303,8 +1304,7 @@ class GitQueue(object):
         if conflicting_only:
             request_details = [
                 req for req in request_details
-                if req and req['tags']
-                and 'conflict-pickme' in req['tags']
+                if req and req['tags'] and 'conflict-pickme' in req['tags']
             ]
 
         for req in request_details:
@@ -1317,7 +1317,7 @@ class GitQueue(object):
 
     @classmethod
     def _notify_updated_request_sha(cls, updated_req, new_sha):
-        msg  = """
+        msg = """
                 <p>
                     Your open request for the merging of branch %(branch)s has been updated
                 </p>
@@ -1335,12 +1335,12 @@ class GitQueue(object):
                 </p>
                 """
         repl_dict = {
-                'branch' : updated_req['branch'],
-                'user' : updated_req['user'],
-                'title' : updated_req['title'],
-                'repo' : updated_req['repo'],
-                'revision' : updated_req['revision'],
-                'new_sha' : new_sha
+                'branch': updated_req['branch'],
+                'user': updated_req['user'],
+                'title': updated_req['title'],
+                'repo': updated_req['repo'],
+                'revision': updated_req['revision'],
+                'new_sha': new_sha
                 }
         msg %= repl_dict
         subject = '[push] %s - %s' % (updated_req['user'], updated_req['title'])
@@ -1443,14 +1443,14 @@ class GitQueue(object):
 
         logging.info("Starting GitCheckActiveRequestSHADaemon")
         while True:
-            time.sleep(1) #Throttle a bit
+            time.sleep(1)  # Throttle a bit
             active_requests = cls._get_active_requests()
 
             if active_requests is None:
                 continue
 
             for req in active_requests:
-                time.sleep(.04) # Try not to hammer the git repo
+                time.sleep(.04)  # Try not to hammer the git repo
                 sha = cls._get_branch_sha_from_repo(req, alert=False)
                 if sha is None:
                     sha = '0'*40
@@ -1484,7 +1484,7 @@ class GitQueue(object):
             raise Exception("Failed to update pickme"
                             "%s request's sha from %s to %s" % (req['title'], req['revision'], sha))
         # TODO: No way to use proxy URL in daemon. Make URL prettier eventually
-        raw_url='https://%s:%s' % (Settings['main_app']['servername'], Settings['main_app']['port'])
+        raw_url = 'https://%s:%s' % (Settings['main_app']['servername'], Settings['main_app']['port'])
         GitQueue.enqueue_request(
             GitTaskAction.VERIFY_BRANCH,
             req['id'],
@@ -1492,7 +1492,7 @@ class GitQueue(object):
         )
 
         if req['state'] in ('pickme', 'added'):
-            if  'no-conflicts' in req['tags'] or 'conflict-master' in req['tags']:
+            if 'no-conflicts' in req['tags'] or 'conflict-master' in req['tags']:
                 # Only run conflict checks on this branch, since any other affected by it will be new
                 # conflict-pickmes and caught normally
                 GitQueue.enqueue_request(
@@ -1521,6 +1521,7 @@ class GitQueue(object):
                 logging.error("Attempted to put to nonexistent GitConflictQueue!")
                 return
             cls.conflict_queue.put(GitQueueTask(task_type, request_id, **kwargs))
+
 
 def webhook_req(left_type, left_token, right_type, right_token):
     webhook_url = Settings['web_hooks']['post_url']

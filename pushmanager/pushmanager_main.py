@@ -115,13 +115,13 @@ class PushManagerApp(Application):
         self.main_app = tornado.web.Application(
             get_url_specs(),
             # Server settings
-            static_path = os.path.join(os.path.dirname(__file__), "static"),
-            template_path = os.path.join(os.path.dirname(__file__), "templates"),
-            login_url = "/login",
-            cookie_secret = Settings['cookie_secret'],
-            ui_modules = ui_modules,
-            ui_methods = ui_methods,
-            autoescape = None,
+            static_path=os.path.join(os.path.dirname(__file__), "static"),
+            template_path=os.path.join(os.path.dirname(__file__), "templates"),
+            login_url="/login",
+            cookie_secret=Settings['cookie_secret'],
+            ui_modules=ui_modules,
+            ui_methods=ui_methods,
+            autoescape=None,
         )
 
     def start_services(self):

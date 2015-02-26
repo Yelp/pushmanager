@@ -19,12 +19,12 @@ api_application = tornado.web.Application(
         get_servlet_urlspec(APIServlet),
     ],
     # Server settings
-    static_path = os.path.join(os.path.dirname(__file__), "static"),
-    template_path = os.path.join(os.path.dirname(__file__), "templates"),
-    login_url = "/login",
-    cookie_secret = Settings['cookie_secret'],
-    ui_modules = ui_modules,
-    autoescape = None,
+    static_path=os.path.join(os.path.dirname(__file__), "static"),
+    template_path=os.path.join(os.path.dirname(__file__), "templates"),
+    login_url="/login",
+    cookie_secret=Settings['cookie_secret'],
+    ui_modules=ui_modules,
+    autoescape=None,
 )
 
 

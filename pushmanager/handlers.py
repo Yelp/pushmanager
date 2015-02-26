@@ -44,11 +44,13 @@ def logout(request_handler):
 
 class NullRequestHandler(RequestHandler):
     def get(self): pass
+
     def post(self): pass
 
 
 class BookmarkletHandler(RequestHandler):
     bookmarklet = None
+
     def get(self):
         if self.bookmarklet:
             self.render(self.bookmarklet)
@@ -97,8 +99,10 @@ class LoginHandler(RequestHandler):
             return login(self, username, next_url)
 
         elif Settings['login_strategy'] == 'saml':
-            # They shouldn't be POSTing, but it's cool. Blatantly ignore their form and redirect them to the IdP to try again.
-            # SAML doesn't support friendly redirects to next_url for security, so they'll end up on the landing page after auth.
+            # They shouldn't be POSTing, but it's cool. Blatantly ignore their
+            # form and redirect them to the IdP to try again.
+            # SAML doesn't support friendly redirects to next_url for security,
+            # so they'll end up on the landing page after auth.
             return self._saml_login()
 
         # TODO: Turn this into an HTTP status code along 4xx
@@ -123,9 +127,15 @@ class SamlACSHandler(RequestHandler):
             if auth.is_authenticated():
                 login(self, auth.get_attributes()["User.Username"][0], "/")
             else:
-                self.render('Not authenticated')  # TODO: Promote these to HTTP status codes with responses
+                # TODO: Promote these to HTTP status codes with responses
+                self.render('Not authenticated')
         else:
-            self.render("Error when processing SAML Response: %s %s" % (', '.join(errors), auth.get_last_error_reason()))
+            self.render(
+                "Error when processing SAML Response: %s %s" % (
+                    ', '.join(errors),
+                    auth.get_last_error_reason()
+                )
+            )
 
 
 class LogoutHandler(RequestHandler):
