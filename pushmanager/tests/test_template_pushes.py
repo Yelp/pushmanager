@@ -13,7 +13,9 @@ class PushesTemplateTest(TemplateTestCase):
             page_title=page_title,
             pushes=pushes,
             rpp=pushes_per_page,
-            last_push=last_push
+            last_push=last_push,
+            push_user='',
+            state='',
         )
 
     def test_include_new_push(self):
