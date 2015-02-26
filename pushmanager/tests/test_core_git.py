@@ -21,6 +21,7 @@ from pushmanager.testing.mocksettings import MockedSettings
 
 pushmanager_url = 'www.example.com'
 
+
 class CoreGitTest(T.TestCase):
 
     @T.class_setup
@@ -138,6 +139,7 @@ class CoreGitTest(T.TestCase):
             T.assert_equal(pushmanager.core.git.GitQueue.verify_branch_successful.call_count, 1)
 
         result = [None]
+
         def on_db_return(success, db_results):
             assert success, "Database error"
             result[0] = db_results.first()
@@ -339,13 +341,24 @@ class CoreGitTest(T.TestCase):
     def test_create_or_update_local_repo_master(self):
         expected_cwd = '/place/to/store/on-disk/git/repos/main-repository.0'
         with mock.patch('pushmanager.core.git.GitCommand') as GC:
-            pushmanager.core.git.GitQueue.create_or_update_local_repo(0, Settings['git']['main_repository'], 'test_branch', fetch=True)
+            pushmanager.core.git.GitQueue.create_or_update_local_repo(
+                0,
+                Settings['git']['main_repository'],
+                'test_branch',
+                fetch=True,
+            )
             calls = [
                 mock.call('clone', 'git://git.example.com/main-repository', expected_cwd),
                 mock.call().run(),
                 mock.call('remote', 'add', 'origin', 'git://git.example.com/main-repository', cwd=expected_cwd),
                 mock.call().run(),
-                mock.call('fetch', '--prune', 'origin', '+refs/heads/test_branch:refs/remotes/origin/test_branch', cwd=expected_cwd),
+                mock.call(
+                    'fetch',
+                    '--prune',
+                    'origin',
+                    '+refs/heads/test_branch:refs/remotes/origin/test_branch',
+                    cwd=expected_cwd
+                ),
                 mock.call().run(),
                 mock.call('reset', '--hard', 'HEAD', cwd=expected_cwd),
                 mock.call().run(),
@@ -365,11 +378,27 @@ class CoreGitTest(T.TestCase):
         with mock.patch('pushmanager.core.git.GitCommand') as GC:
             pushmanager.core.git.GitQueue.create_or_update_local_repo(0, 'some_dev_name', 'test_branch', fetch=True)
             calls = [
-                mock.call('clone', 'git://git.example.com/main-repository', '/place/to/store/on-disk/git/repos/main-repository.0'),
+                mock.call(
+                    'clone',
+                    'git://git.example.com/main-repository',
+                    '/place/to/store/on-disk/git/repos/main-repository.0'
+                ),
                 mock.call().run(),
-                mock.call('remote', 'add', 'some_dev_name', 'git://git.example.com/devs/some_dev_name', cwd=expected_cwd),
+                mock.call(
+                    'remote',
+                    'add',
+                    'some_dev_name',
+                    'git://git.example.com/devs/some_dev_name',
+                    cwd=expected_cwd
+                ),
                 mock.call().run(),
-                mock.call('fetch', '--prune', 'some_dev_name', '+refs/heads/test_branch:refs/remotes/some_dev_name/test_branch', cwd=expected_cwd),
+                mock.call(
+                    'fetch',
+                    '--prune',
+                    'some_dev_name',
+                    '+refs/heads/test_branch:refs/remotes/some_dev_name/test_branch',
+                    cwd=expected_cwd
+                ),
                 mock.call().run(),
                 mock.call('reset', '--hard', 'HEAD', cwd=expected_cwd),
                 mock.call().run(),
@@ -405,9 +434,21 @@ class CoreGitTest(T.TestCase):
                 calls = [
                     mock.call('clone', 'git://git.example.com/main-repository', '--reference', '/', expected_cwd),
                     mock.call().run(),
-                    mock.call('remote', 'add', 'some_dev_name', 'git://git.example.com/devs/some_dev_name', cwd=expected_cwd),
+                    mock.call(
+                        'remote',
+                        'add',
+                        'some_dev_name',
+                        'git://git.example.com/devs/some_dev_name',
+                        cwd=expected_cwd
+                    ),
                     mock.call().run(),
-                    mock.call('fetch', '--prune', 'some_dev_name', '+refs/heads/test_branch:refs/remotes/some_dev_name/test_branch', cwd=expected_cwd),
+                    mock.call(
+                        'fetch',
+                        '--prune',
+                        'some_dev_name',
+                        '+refs/heads/test_branch:refs/remotes/some_dev_name/test_branch',
+                        cwd=expected_cwd
+                    ),
                     mock.call().run(),
                     mock.call('reset', '--hard', 'HEAD', cwd=expected_cwd),
                     mock.call().run(),
@@ -469,7 +510,9 @@ class CoreGitTest(T.TestCase):
             mock.patch('pushmanager.core.git.GitQueue.enqueue_request'),
             mock.patch('pushmanager.core.git.GitQueue._get_branch_sha_from_repo'),
             mock.patch('pushmanager.core.git.GitQueue._sha_exists_in_master'),
-        ) as (update_repo, merge_pickme, branch_mgr, merge_mgr, ids_in_push, get_req, enqueue_req, get_sha, sha_in_master):
+        ) as (update_repo, merge_pickme, branch_mgr, merge_mgr, ids_in_push,
+              get_req, enqueue_req, get_sha, sha_in_master):
+
             def throw_gitexn(*args):
                 raise GitException(
                     "GitException!",
@@ -491,7 +534,7 @@ class CoreGitTest(T.TestCase):
                 pushmanager_url,
                 True
             )
-            assert conflicts == False
+            assert conflicts is False
             enqueue_req.assert_has_calls([
                 mock.call(GitTaskAction.TEST_PICKME_CONFLICT, 2, pushmanager_url=pushmanager_url, requeue=False)
             ])
@@ -551,7 +594,7 @@ class CoreGitTest(T.TestCase):
             pushmanager.core.git.GitQueue.git_merge_pickme(0, german_req, repo_path)
             update_repo.assert_called_with(0, '.', 'change_german', checkout=False)
 
-        with nested (
+        with nested(
                 mock.patch('pushmanager.core.git.GitQueue._get_push_for_request'),
                 mock.patch('pushmanager.core.git.GitQueue._get_request_ids_in_push'),
                 mock.patch('pushmanager.core.git.GitQueue._get_request'),
@@ -560,7 +603,7 @@ class CoreGitTest(T.TestCase):
                 mock.patch('pushmanager.core.git.GitQueue.create_or_update_local_repo'),
                 mock.patch('pushmanager.core.git.GitQueue._update_request'),
                 mock.patch.dict(Settings, test_settings, clear=True)
-        ) as (p_for_r, r_in_p, get_req, get_sha, sha_exists, _, update_req, _) :
+        ) as (p_for_r, r_in_p, get_req, get_sha, sha_exists, _, update_req, _):
             p_for_r.return_value = {'push': 1}
             r_in_p.return_value = [1, 2]
             get_req.return_value = welsh_req
@@ -598,7 +641,7 @@ class CoreGitTest(T.TestCase):
         with open(os.path.join(repo_path, "code.py"), 'w') as f:
             f.write('#!/usr/bin/env python\n\nprint("Hallo Welt!")\nPrint("Goodbye!")\n')
         GitCommand('commit', '-a', '-m', 'verpflichten', cwd=repo_path).run()
-        german_req = {'id': 1, 'tags':'git-ok', 'title':'German', 'repo':'.', 'branch':'change_german'}
+        german_req = {'id': 1, 'tags': 'git-ok', 'title': 'German', 'repo': '.', 'branch': 'change_german'}
 
         # Back on master, make a conflicting change
         GitCommand('checkout', 'master', cwd=repo_path).run()
@@ -619,7 +662,7 @@ class CoreGitTest(T.TestCase):
             def __exit__(self, *args):
                 pass
 
-        with nested (
+        with nested(
                 mock.patch('pushmanager.core.git.GitQueue._update_request'),
                 mock.patch(
                     'pushmanager.core.git.git_branch_context_manager',
@@ -627,7 +670,7 @@ class CoreGitTest(T.TestCase):
                 ),
                 mock.patch('pushmanager.core.git.GitQueue.create_or_update_local_repo'),
                 mock.patch.dict(Settings, test_settings, clear=True)
-        ) as (update_req, _, _, _) :
+        ) as (update_req, _, _, _):
             conflict, _ = pushmanager.core.git.GitQueue._test_pickme_conflict_master(
                 0,
                 german_req,
@@ -727,7 +770,7 @@ class CoreGitTest(T.TestCase):
         GitCommand('add', submodule_path, cwd=submodule_path).run()
         GitCommand('commit', '-a', '-m', 'Master Commit', cwd=submodule_path).run()
 
-        ## Make two incompatible branches in the submodule
+        # Make two incompatible branches in the submodule
         GitCommand('checkout', '-b', 'change_german', cwd=submodule_path).run()
         with open(os.path.join(submodule_path, "codemodule.py"), 'w') as f:
             f.write('#!/usr/bin/env python\n\nprint("Hallo Welt!")\nPrint("Goodbye!")\n')
@@ -766,6 +809,7 @@ class CoreGitTest(T.TestCase):
             GitQueue._update_req_sha_and_queue_pickme(request, new_sha)
 
             result = [None]
+
             def on_db_return(success, db_results):
                 assert success, "Database error"
                 result[0] = db_results.first()
@@ -787,6 +831,7 @@ class CoreGitTest(T.TestCase):
                 GitQueue._update_req_sha_and_queue_pickme(pickme_request, new_sha)
 
                 result = [None]
+
                 def on_db_return(success, db_results):
                     assert success, "Database error"
                     result[0] = db_results.first()
@@ -798,8 +843,14 @@ class CoreGitTest(T.TestCase):
                 T.assert_equal(result[0][5], new_sha)
                 T.assert_equals(enqueue_req.call_count, 2)
                 enqueue_req.assert_has_calls([
-                    mock.call(GitTaskAction.TEST_PICKME_CONFLICT, 1,
-                              pushmanager_url='https://%s:%s' % (MockedSettings['main_app']['servername'], MockedSettings['main_app']['port']))
+                    mock.call(
+                        GitTaskAction.TEST_PICKME_CONFLICT,
+                        1,
+                        pushmanager_url='https://%s:%s' % (
+                            MockedSettings['main_app']['servername'],
+                            MockedSettings['main_app']['port']
+                        )
+                    )
                 ])
 
     def test_update_req_sha_and_queue_pickme_added_test_conflicting_pickmes(self):
@@ -812,6 +863,7 @@ class CoreGitTest(T.TestCase):
                 GitQueue._update_req_sha_and_queue_pickme(pickme_request, new_sha)
 
                 result = [None]
+
                 def on_db_return(success, db_results):
                     assert success, "Database error"
                     result[0] = db_results.first()
@@ -826,11 +878,21 @@ class CoreGitTest(T.TestCase):
                     mock.call(
                         GitTaskAction.TEST_CONFLICTING_PICKMES,
                         GitQueue._get_push_for_request(pickme_request['id'])['push'],
-                        pushmanager_url='https://%s:%s' % (MockedSettings['main_app']['servername'], MockedSettings['main_app']['port']))
+                        pushmanager_url='https://%s:%s' % (
+                            MockedSettings['main_app']['servername'],
+                            MockedSettings['main_app']['port'])
+                        )
                 ])
 
     def test_stderr_and_stdout_in_conflict_text(self):
-        welsh_req = {'id': 2, 'user': 'test', 'user': 'test', 'tags':'git-ok', 'title':'Welsh', 'repo':'.', 'branch':'change_welsh'}
+        welsh_req = {
+            'id': 2,
+            'user': 'test',
+            'tags': 'git-ok',
+            'title': 'Welsh',
+            'repo': '.',
+            'branch': 'change_welsh',
+        }
         with nested(
             mock.patch('pushmanager.core.git.GitQueue.create_or_update_local_repo'),
             mock.patch('pushmanager.core.git.GitQueue.git_merge_pickme'),
@@ -856,6 +918,6 @@ class CoreGitTest(T.TestCase):
                 False
             )
 
-            assert conflict == True
+            assert conflict is True
             assert "some_stderr_string" in details['conflicts']
             assert "some_stdout_string" in details['conflicts']

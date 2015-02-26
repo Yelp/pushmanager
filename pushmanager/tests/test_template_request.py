@@ -44,12 +44,12 @@ class RequestTemplateTest(TemplateTestCase):
             'create_time': 'nodate'
             }
 
-
     def render_module_request_with_users(self, request, request_user, current_user, **kwargs):
         """Provide enough information to render modules/request"""
         request['user'] = request_user
 
-        return self.render_etree(self.request_page,
+        return self.render_etree(
+            self.request_page,
             current_user=current_user,
             request=request,
             **kwargs
@@ -68,7 +68,7 @@ class RequestTemplateTest(TemplateTestCase):
         T.assert_equal(num, len(buttons))
 
     def test_include_request_info(self):
-        tree = self.render_module_request_with_users(self.basic_request,'testuser', 'testuser', **self.basic_kwargs)
+        tree = self.render_module_request_with_users(self.basic_request, 'testuser', 'testuser', **self.basic_kwargs)
 
         found_ul = []
         for ul in tree.iter('ul'):
@@ -81,11 +81,13 @@ class RequestTemplateTest(TemplateTestCase):
         request = dict(self.basic_request)
         request['watchers'] = 'watcher1, watcher2'
 
-        tree = self.render_etree(self.request_info_page,
+        tree = self.render_etree(
+            self.request_info_page,
             request=request,
             show_ago=False,
             tags=None,
-            show_state_inline=False)
+            show_state_inline=False
+        )
 
         # user names are listed in the first li of the list
         # <ul><li><span>title</span></li> ... </ul>

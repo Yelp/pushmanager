@@ -78,7 +78,7 @@ class PushTemplateTest(TemplateTestCase):
             'Pushmaster': basic_push['user'],
             'Branch': basic_push['branch'],
             'Buildbot Runs': 'https://%s/branch/%s' % (Settings['buildbot']['servername'], basic_push['branch']),
-            'Test Runs': Settings['tests_tag']['push_url_tmpl'].replace("%BRANCH%",basic_push['branch']),
+            'Test Runs': Settings['tests_tag']['push_url_tmpl'].replace("%BRANCH%", basic_push['branch']),
             'State': basic_push['state'],
             'Push Type': basic_push['pushtype'],
             'Created': time.strftime("%x %X", time.localtime(basic_push['created']))
@@ -285,7 +285,7 @@ class PushTemplateTest(TemplateTestCase):
 
         found_form = []
         for form in tree.iter('form'):
-            if form.attrib['id'] ==  'push-info-form':
+            if form.attrib['id'] == 'push-info-form':
                 found_form.append(form)
 
         T.assert_equal(len(found_form), 1)
@@ -298,7 +298,7 @@ class PushTemplateTest(TemplateTestCase):
 
         found_divs = []
         for div in tree.iter('div'):
-            if 'id' in div.attrib and div.attrib['id'] ==  'dialog-prototypes':
+            if 'id' in div.attrib and div.attrib['id'] == 'dialog-prototypes':
                 found_divs.append(div)
 
         T.assert_equal(len(found_divs), 1)
@@ -320,7 +320,6 @@ class PushTemplateTest(TemplateTestCase):
 
     def assert_push_info_attributes(self, ul_attributes, expected):
         T.assert_dicts_equal(ul_attributes, expected)
-
 
     def assert_push_info_listitems(self, list_items, push_info_items):
         for li in list_items:
@@ -460,7 +459,7 @@ class PushTemplateTest(TemplateTestCase):
             T.assert_in(div.attrib['id'], self.dialog_ids)
             found_divs.append(div)
 
-        T.assert_equal(len(found_divs),len(self.dialog_ids))
+        T.assert_equal(len(found_divs), len(self.dialog_ids))
 
 
 if __name__ == '__main__':

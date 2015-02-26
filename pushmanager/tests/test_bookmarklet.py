@@ -32,7 +32,6 @@ class BookmarkletTest(T.TestCase, AsyncTestCase):
             T.assert_in("codeReview", response.body)
             T.assert_in("%TICKET%", response.body)
 
-
     def test_check_sites_bookmarklet(self):
         with self.page(CheckSitesBookmarkletHandler) as response:
             # See comment above in test_create_request_bookmarklet

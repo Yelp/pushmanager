@@ -29,7 +29,7 @@ class MailQueueTest(T.TestCase):
         self.mocked_smtp.sendmail.assert_any_call(from_email, self.MockedSettings['mail']['notifyall'], mock.ANY)
 
     def test_mail_notifyonly(self):
-        self.MockedSettings['mail']['notifyonly'] = [ 'notifyme', 'notifyyou', 'notifyhim', 'notifyher' ]
+        self.MockedSettings['mail']['notifyonly'] = ['notifyme', 'notifyyou', 'notifyhim', 'notifyher']
         with mock.patch.dict(Settings, self.MockedSettings):
             recipient = "test@test.com"
             message = "test message"
@@ -39,7 +39,11 @@ class MailQueueTest(T.TestCase):
             pushmanager.core.mail.MailQueue._send_email(recipient, message, subject, from_email)
 
             T.assert_equal(self.mocked_smtp.sendmail.called, True)
-            self.mocked_smtp.sendmail.assert_called_once_with(from_email, self.MockedSettings['mail']['notifyonly'], mock.ANY)
+            self.mocked_smtp.sendmail.assert_called_once_with(
+                from_email,
+                self.MockedSettings['mail']['notifyonly'],
+                mock.ANY,
+            )
 
             args = self.mocked_smtp.sendmail.call_args_list[0][0]
             body = "Original recipients: %s\n\n%s" % (recipient, message)

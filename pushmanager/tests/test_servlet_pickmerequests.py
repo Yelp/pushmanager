@@ -22,7 +22,7 @@ class PickMeRequestServletTest(T.TestCase, ServletTestMixin):
             mock.patch.object(
                 PickMeRequestServlet,
                 "get_current_user",
-                return_value = "test_user"
+                return_value="test_user"
             )
         ):
             yield
@@ -37,6 +37,7 @@ class PickMeRequestServletTest(T.TestCase, ServletTestMixin):
 
     def test_pickmerequest(self):
         push_contents = []
+
         def on_db_return(success, db_results):
             assert success
             push_contents.extend(db_results.fetchall())

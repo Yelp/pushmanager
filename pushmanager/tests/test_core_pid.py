@@ -23,14 +23,14 @@ class TestPid(T.TestCase):
             assert pid.is_process_alive(1)
 
     def test_is_process_alive_permission_error(self):
-        def side_effect(x,y):
+        def side_effect(x, y):
             raise OSError(errno.EPERM, "Access denied")
 
         with self.mock_method('%s.pid.os.kill' % __name__, None, side_effect):
             assert pid.is_process_alive(1)
 
     def test_is_process_alive_generic_error(self):
-        def side_effect(x,y):
+        def side_effect(x, y):
             raise Exception("fake error for testing")
 
         with self.mock_method('%s.pid.os.kill' % __name__, None, side_effect):
