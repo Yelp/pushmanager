@@ -1,13 +1,12 @@
 #!/usr/bin/env python
 
+from pushmanager.core.settings import Settings
 import copy
 import sys
 
 
 sys.path.append(".")
 sys.path.append("..")
-
-from pushmanager.core.settings import Settings
 
 
 MockedSettings = copy.deepcopy(Settings)

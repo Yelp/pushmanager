@@ -4,6 +4,7 @@ from pushmanager.ui_modules import Request
 from pushmanager.core.settings import Settings
 from pushmanager.testing.mocksettings import MockedSettings
 
+
 class StubHandler(object):
     def __init__(self):
         self.request = 'request'
@@ -11,11 +12,12 @@ class StubHandler(object):
         self.current_user = 'curr_user'
         self.locale = 'the_moon'
 
+
 class UIModuleTest(T.TestCase):
 
     def test_generate_tag_list_no_special(self):
         request = Request(StubHandler())
-        request_info = {'tags':'git-not-ok', 'branch':'test'}
+        request_info = {'tags': 'git-not-ok', 'branch': 'test'}
         MockedSettings['git']['gitweb_servername'] = 'example.com'
         with mock.patch.dict(Settings, MockedSettings):
             gen_tags = request._generate_tag_list(request_info, 'repo')
@@ -23,7 +25,7 @@ class UIModuleTest(T.TestCase):
 
     def test_generate_tag_list_gitok(self):
         request = Request(StubHandler())
-        request_info = {'tags':'git-ok', 'branch':'test'}
+        request_info = {'tags': 'git-ok', 'branch': 'test'}
         MockedSettings['git']['gitweb_servername'] = 'example.com'
         with mock.patch.dict(Settings, MockedSettings):
             gen_tags = request._generate_tag_list(request_info, 'repo')

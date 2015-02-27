@@ -3,12 +3,13 @@
 import mock
 import testify as T
 
-import  tornado.httpserver
+import tornado.httpserver
 
 from pushmanager.core.requesthandler import RequestHandler
 from pushmanager.core.requesthandler import get_base_url
 from pushmanager.core.settings import Settings
 from pushmanager.testing.mocksettings import MockedSettings
+
 
 class RequestHandlerTest(T.TestCase):
 
@@ -24,7 +25,7 @@ class RequestHandlerTest(T.TestCase):
         MockedSettings['main_app'] = {'port': 1111, 'servername': 'example.com'}
         request = tornado.httpserver.HTTPRequest('GET', '')
         request.protocol = 'https'
-        
+
         with mock.patch.dict(Settings, MockedSettings):
             T.assert_equal(
                 get_base_url(request),
@@ -42,13 +43,13 @@ class RequestHandlerTest(T.TestCase):
         request = tornado.httpserver.HTTPRequest('GET', '')
         request.protocol = 'https'
         request.headers['X-Forwarded-Proto'] = 'http'
-        
+
         with mock.patch.dict(Settings, MockedSettings):
             T.assert_equal(
                 get_base_url(request),
                 'http://example.com:1111'
             )
-            
+
             Settings['main_app']['port'] = 80
             T.assert_equal(
                 get_base_url(request),
@@ -60,7 +61,7 @@ class RequestHandlerTest(T.TestCase):
         request = tornado.httpserver.HTTPRequest('GET', '')
         request.protocol = 'https'
         request.headers['X-Forwarded-Port'] = '4321'
-        
+
         with mock.patch.dict(Settings, MockedSettings):
             T.assert_equal(
                 get_base_url(request),
@@ -73,20 +74,20 @@ class RequestHandlerTest(T.TestCase):
                 'https://example.com'
             )
 
-
     def test_RequestHandler_get_base_url(self):
         MockedSettings['main_app'] = {'port': 1111, 'servername': 'example.com'}
         request = tornado.httpserver.HTTPRequest('GET', '')
         request.protocol = 'https'
+
         class FakeRequest(object):
             def __init__(self):
-                 self.request = request
-        
+                self.request = request
+
         with mock.patch.dict(Settings, MockedSettings):
             fake_requesthandler = FakeRequest()
             T.assert_equal(
-                #Accessing raw, unbound function, so that type of self is not checked
-                #http://stackoverflow.com/a/12935356
+                # Accessing raw, unbound function, so that type of self is not checked
+                # http://stackoverflow.com/a/12935356
                 RequestHandler.get_base_url.__func__(fake_requesthandler),
                 'https://example.com:1111'
             )

@@ -11,7 +11,8 @@ class SmartDestServlet(RequestHandler):
     def get(self):
         query = db.push_pushes.select(SA.and_(
                         db.push_pushes.c.state == 'accepting',
-                        SA.exists([1],
+                        SA.exists(
+                            [1],
                             SA.and_(
                                 db.push_pushcontents.c.push == db.push_pushes.c.id,
                                 db.push_pushcontents.c.request == db.push_requests.c.id,

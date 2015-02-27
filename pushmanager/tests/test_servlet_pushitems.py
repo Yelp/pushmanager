@@ -31,7 +31,6 @@ class PushsItemsServletTest(T.TestCase, ServletTestMixin):
         }
         self.fake_requests_response = "[%s]" % json.dumps(self.fake_request_data)
 
-
     def test_pushitems(self):
         with contextlib.nested(
             mock.patch.object(PushItemsServlet, "get_current_user", return_value=self.fake_request_data["user"]),

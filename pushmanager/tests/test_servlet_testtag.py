@@ -22,7 +22,7 @@ class TestTagServletTest(T.TestCase):
         MockedSettings['tests_tag']['url_api_body'] = '{ "sha" : "%SHA%" }'
         MockedSettings['tests_tag']['url_tmpl'] = 'www.example.com/%ID%'
 
-        request_info = {'tags':'test', 'branch':'test', 'revision': 'abc123'}
+        request_info = {'tags': 'test', 'branch': 'test', 'revision': 'abc123'}
         with mock.patch.dict(Settings, MockedSettings):
             gen_tags = TestTagServlet._gen_test_tag_resp(request_info)
             T.assert_equals({'tag': 'tag 0 fails', 'url': "www.example.com/123"}, gen_tags)
@@ -41,7 +41,7 @@ class TestTagServletTest(T.TestCase):
         MockedSettings['tests_tag']['url_api_body'] = '{ "sha" : "%SHA%" }'
         MockedSettings['tests_tag']['url_tmpl'] = 'www.example.com/%ID%'
 
-        request_info = {'tags':'test', 'branch':'test', 'revision': 'abc123'}
+        request_info = {'tags': 'test', 'branch': 'test', 'revision': 'abc123'}
         with mock.patch.dict(Settings, MockedSettings):
             gen_tags = TestTagServlet._gen_test_tag_resp(request_info)
             T.assert_equals({'tag': 'tag 0 fails', 'url': ""}, gen_tags)
@@ -49,7 +49,7 @@ class TestTagServletTest(T.TestCase):
     def test_generate_test_tag_none(self):
         del MockedSettings['tests_tag']
 
-        request_info = {'tags':'test', 'branch':'test', 'revision': 'abc123'}
+        request_info = {'tags': 'test', 'branch': 'test', 'revision': 'abc123'}
         with mock.patch.dict(Settings, MockedSettings):
             gen_tags = TestTagServlet._gen_test_tag_resp(request_info)
             T.assert_equals({}, gen_tags)

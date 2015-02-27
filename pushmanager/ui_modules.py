@@ -16,12 +16,18 @@ class Request(UIModule):
         return [self.handler.static_url('css/modules/request.css')]
 
     def render(self, request, **kwargs):
-        kwargs.setdefault('edit_buttons', False) # Whether or not to show the 'Edit'/'Takeover' button
-        kwargs.setdefault('expand', False) # Whether to automatically expand this entry (only used on /request)
-        kwargs.setdefault('push_buttons', False) # Whether or not to show buttons related to push management
-        kwargs.setdefault('pushmaster', False) # Whether or not to show pushmaster-related push buttons (Add/Remove)
-        kwargs.setdefault('show_ago', False) # Whether or not to show relative time indicator at the beginning of the entry
-        kwargs.setdefault('show_state_inline', False) # Whether or not to show state (requested, added, etc) at the end of the entry
+        # Whether or not to show the 'Edit'/'Takeover' button
+        kwargs.setdefault('edit_buttons', False)
+        # Whether to automatically expand this entry (only used on /request)
+        kwargs.setdefault('expand', False)
+        # Whether or not to show buttons related to push management
+        kwargs.setdefault('push_buttons', False)
+        # Whether or not to show pushmaster-related push buttons (Add/Remove)
+        kwargs.setdefault('pushmaster', False)
+        # Whether or not to show relative time indicator at the beginning of the entry
+        kwargs.setdefault('show_ago', False)
+        # Whether or not to show state (requested, added, etc) at the end of the entry
+        kwargs.setdefault('show_state_inline', False)
 
         if request['repo'] != Settings['git']['main_repository']:
             kwargs['cherry_string'] = '%s/%s' % (request['repo'], request['branch'])
@@ -83,6 +89,7 @@ class Request(UIModule):
             )
 
         return sorted(tags.iteritems())
+
 
 class NewRequestDialog(UIModule):
     """Displays a button which opens a dialog to create a new request."""

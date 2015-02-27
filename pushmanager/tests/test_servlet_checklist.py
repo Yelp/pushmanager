@@ -31,6 +31,7 @@ def fake_checklist_request():
     ):
         yield
 
+
 def on_db_return(success, db_results):
     assert success
 
@@ -143,7 +144,6 @@ class ChecklistServletTest(T.TestCase, ServletTestMixin, FakeDataMixin):
             T.assert_not_in("multiple requests", response.body)
             T.assert_in("for testuser1", response.body)
             T.assert_in("Before Certifying - Do In Stage", response.body)
-
 
     def test_hoods_checklists(self):
         with fake_checklist_request():

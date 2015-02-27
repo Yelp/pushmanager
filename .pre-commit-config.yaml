@@ -1,0 +1,11 @@
+-   repo: git@git.yelpcorp.com:mirrors/pre-commit/pre-commit-hooks
+    sha: 9f107a03276857c668fe3e090752d3d22a4195e5
+    hooks:
+    -   id: trailing-whitespace
+    -   id: end-of-file-fixer
+    -   id: autopep8-wrapper
+        args: ['-i', '--ignore=E265,E309,E501']
+    -   id: check-yaml
+    -   id: debug-statements
+    -   id: flake8
+    -   id: requirements-txt-fixer

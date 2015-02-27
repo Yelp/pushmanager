@@ -133,7 +133,7 @@ class APIServlet(RequestHandler):
             columns=[SA.func.max(db.push_pushes.c.id)]
         )
 
-        db.execute_transaction_cb([push_query, last_push_query,], self._on_PUSHES_db_response)
+        db.execute_transaction_cb([push_query, last_push_query, ], self._on_PUSHES_db_response)
 
     def _on_PUSHES_db_response(self, success, db_results):
         self.check_db_results(success, db_results)

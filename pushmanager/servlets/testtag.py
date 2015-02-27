@@ -54,14 +54,20 @@ class TestTagServlet(RequestHandler):
                     resp = urllib2.urlopen(result_api_url, result_api_body)
                     result_id = url_escape(json.loads(resp.read())['id'])
                     if result_id != '':
-                        response['url'] = Settings['tests_tag']['url_tmpl'].replace('%ID%', result_id).replace('%SHA%', request['revision'])
+                        response['url'] = Settings['tests_tag']['url_tmpl'].replace(
+                            '%ID%',
+                            result_id
+                        ).replace(
+                            '%SHA%',
+                            request['revision']
+                        )
                         response['url'] = response['url'].replace('%BRANCH%', request['branch'])
                 except Exception as e:
                     logging.warning(e)
-                    logging.warning("Couldn't load results for results test URL from %s with body %s" %
-                            (
-                                Settings['tests_tag']['url_api_endpoint'].replace('%SHA%', request['revision']),
-                                Settings['tests_tag']['url_api_body'].replace('%SHA%', request['revision'])
-                            )
+                    logging.warning(
+                        "Couldn't load results for results test URL from %s with body %s" % (
+                            Settings['tests_tag']['url_api_endpoint'].replace('%SHA%', request['revision']),
+                            Settings['tests_tag']['url_api_body'].replace('%SHA%', request['revision'])
                         )
+                    )
         return response

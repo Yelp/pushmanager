@@ -21,6 +21,7 @@ from tornado.testing import AsyncHTTPTestCase
 FORMAT = "%(asctime)-15s %(message)s"
 logging.basicConfig(format=FORMAT)
 
+
 class AsyncTestCase(AsyncHTTPTestCase):
 
     @T.class_setup
@@ -37,12 +38,12 @@ class AsyncTestCase(AsyncHTTPTestCase):
     def get_app(self):
         app = tornado.web.Application(
             self.get_handlers(),
-            static_path = os.path.join(os.path.dirname(__file__), "../static"),
-            template_path = os.path.join(os.path.dirname(__file__), "../templates"),
-            cookie_secret = 'cookie_secret',
-            ui_modules = ui_modules,
-            ui_methods = ui_methods,
-            autoescape = None,
+            static_path=os.path.join(os.path.dirname(__file__), "../static"),
+            template_path=os.path.join(os.path.dirname(__file__), "../templates"),
+            cookie_secret='cookie_secret',
+            ui_modules=ui_modules,
+            ui_methods=ui_methods,
+            autoescape=None,
         )
         return app
 

@@ -39,6 +39,7 @@ def send_notifications(people, pushtype, pushmanager_url):
     subject = "New push notification"
     MailQueue.enqueue_user_email(Settings['mail']['notifyall'], msg, subject)
 
+
 class NewPushServlet(RequestHandler):
 
     def _arg(self, key):

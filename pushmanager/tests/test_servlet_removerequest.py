@@ -92,7 +92,6 @@ class RemoveRequestServletTest(T.TestCase, ServletTestMixin):
         T.assert_in('testuser (testuser1,testuser2) - title', watched_call_args[1])
         T.assert_in('[push] testuser (testuser1,testuser2) - title', watched_call_args[2])
 
-
     @mock.patch('pushmanager.core.db.execute_transaction_cb')
     @mock.patch('pushmanager.core.mail.MailQueue.enqueue_user_email')
     @mock.patch('pushmanager.core.xmppclient.XMPPQueue.enqueue_user_xmpp')

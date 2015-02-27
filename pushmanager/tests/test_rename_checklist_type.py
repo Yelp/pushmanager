@@ -13,7 +13,7 @@ from tools import rename_checklist_type
 
 class RenameTagTest(T.TestCase, FakeDataMixin):
 
-    checklist_keys = [ 'id', 'request', 'type', 'complete', 'target']
+    checklist_keys = ['id', 'request', 'type', 'complete', 'target']
 
     checklist_data = [
         [1, 0, 'search', 0, 'stage'],
@@ -78,10 +78,12 @@ class RenameTagTest(T.TestCase, FakeDataMixin):
 
     @patch('tools.rename_checklist_type.convert_checklist')
     @patch('optparse.OptionParser.error')
-    @patch('optparse.OptionParser.parse_args',
-            return_value=[None, ['oldtag', 'newtag']])
+    @patch(
+        'optparse.OptionParser.parse_args',
+        return_value=[None, ['oldtag', 'newtag']]
+    )
     def test_main_twoargs(self, parser, error, convert_checklist):
-        parser.return_value=[None, ['oldtag', 'newtag']]
+        parser.return_value = [None, ['oldtag', 'newtag']]
         rename_checklist_type.main()
         convert_checklist.assert_called_once_with('oldtag', 'newtag')
         T.assert_equal(False, error.called)
@@ -95,7 +97,6 @@ class RenameTagTest(T.TestCase, FakeDataMixin):
         rename_checklist_type.convert_checklist('nonexistent', 'random')
         cb = partial(self.verify_database_state, self.checklist_data)
         db.execute_cb(db.push_checklist.select(), cb)
-
 
 
 if __name__ == '__main__':

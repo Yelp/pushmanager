@@ -19,6 +19,7 @@ def is_process_alive(pid):
     else:
         return True
 
+
 def kill_processes(pids):
     while pids:
         pid = pids.pop()
@@ -36,6 +37,7 @@ def kill_processes(pids):
                 # We'll check if the process is dead in a later iteration
                 pids.insert(0, pid)
 
+
 def check(path):
     try:
         logging.info("Checking pidfile '%s'", path)
@@ -46,6 +48,7 @@ def check(path):
             logging.warning("pidfile '%s' not found" % path)
         else:
             raise
+
 
 def write(path, append=False, pid=None):
     try:
@@ -74,6 +77,7 @@ def write(path, append=False, pid=None):
             pidfile.close()
         except:
             pass
+
 
 def remove(path):
     try:

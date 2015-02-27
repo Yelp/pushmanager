@@ -12,7 +12,7 @@ class RequestsServlet(RequestHandler):
     def get(self):
         username = pushmanager.core.util.get_str_arg(self.request, 'user')
         limit_count = pushmanager.core.util.get_int_arg(self.request, 'max')
-        arguments = {'limit' : limit_count}
+        arguments = {'limit': limit_count}
 
         if username:
             arguments['user'] = username

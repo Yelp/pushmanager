@@ -16,7 +16,7 @@ try:
         Settings = yaml.safe_load(settings_yaml)
 except:
     logging.error("Can not load configuration from '%s'." % configuration_file)
-    sys.exit(1);
+    sys.exit(1)
 
 # JS files in static/js need to know some of the configuration options
 # too, but we do not have to export everything, just what's

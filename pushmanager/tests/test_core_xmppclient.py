@@ -103,7 +103,6 @@ class CoreXMPPClientTest(T.TestCase):
                 pushmanager.core.xmppclient.XMPPQueue.enqueue_user_xmpp(fake_user, 'message')
                 mock_enqueue_xmpp.assert_called_with("%s@%s" % (fake_user, fake_domain), 'message')
 
-
     def test_enqueue_user_xmpp_with_list(self):
         fake_domain = "fakedomain.com"
         fake_users = ["fakeuser1", "fakeuser2"]

@@ -22,7 +22,8 @@ class VerifyRequestServlet(RequestHandler):
         update_query = db.push_requests.update().where(SA.and_(
             db.push_requests.c.state == 'staged',
             db.push_requests.c.id == self.requestid,
-            SA.exists([1],
+            SA.exists(
+                [1],
                 SA.and_(
                     db.push_pushcontents.c.push == self.pushid,
                     db.push_pushcontents.c.request == self.requestid,
@@ -32,7 +33,8 @@ class VerifyRequestServlet(RequestHandler):
             })
         finished_query = db.push_requests.select().where(SA.and_(
             db.push_requests.c.state == 'staged',
-            SA.exists([1],
+            SA.exists(
+                [1],
                 SA.and_(
                     db.push_pushcontents.c.push == self.pushid,
                     db.push_pushcontents.c.request == db.push_requests.c.id,
