@@ -11,7 +11,7 @@ class PushesServlet(RequestHandler):
     @tornado.gen.engine
     def get(self):
         pushes_per_page = pushmanager.core.util.get_int_arg(self.request, 'rpp', 50)
-        before = pushmanager.core.util.get_int_arg(self.request, 'before', 0)
+        offset = pushmanager.core.util.get_int_arg(self.request, 'offset', 0)
         push_user = pushmanager.core.util.get_str_arg(self.request, 'user', '')
         state = pushmanager.core.util.get_str_arg(self.request, 'state', '')
         response = yield tornado.gen.Task(
@@ -19,7 +19,7 @@ class PushesServlet(RequestHandler):
                         'pushes',
                         {
                             'rpp': pushes_per_page,
-                            'before': before,
+                            'offset': offset,
                             'user': push_user,
                             'state': state,
                         }
@@ -29,13 +29,14 @@ class PushesServlet(RequestHandler):
         if not results:
             self.finish()
 
-        pushes, last_push = results
+        pushes, pushes_count = results
         self.render(
             "pushes.html",
             page_title="Pushes",
             pushes=pushes,
+            offset=offset,
             rpp=pushes_per_page,
             push_user=push_user,
             state=state,
-            last_push=last_push
+            pushes_count=pushes_count,
         )

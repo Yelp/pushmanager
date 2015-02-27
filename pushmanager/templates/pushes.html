@@ -76,11 +76,11 @@ Please remember to run all deployment branches on <strong>bb8</strong> and <stro
 </ul>
 
 <div id="paginator">
-	{% if pushes and pushes[0]['id'] < last_push %}
-		<a href="/pushes?rpp={{ rpp }}&amp;before={{ pushes[0]['id'] + rpp + 1 }}&amp;user={{ url_escape(push_user) }}&amp;state={{ url_escape(state) }}"> Newer</a>
+	{% if pushes and offset > 0 %}
+		<a href="/pushes?rpp={{ rpp }}&amp;offset={{ max(offset - rpp, 0) }}&amp;user={{ url_escape(push_user) }}&amp;state={{ url_escape(state) }}"> Newer</a>
 	{% end if %}
-	{% if pushes and pushes[-1]['id'] > 1 %}
-		<a href="/pushes?rpp={{ rpp }}&amp;before={{ pushes[-1]['id'] }}&amp;user={{ url_escape(push_user) }}&amp;state={{ url_escape(state) }}">Older</a>
+	{% if pushes and offset + rpp < pushes_count %}
+		<a href="/pushes?rpp={{ rpp }}&amp;offset={{ offset + rpp }}&amp;user={{ url_escape(push_user) }}&amp;state={{ url_escape(state) }}">Older</a>
 	{% end if %}
 </div>
 

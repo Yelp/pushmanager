@@ -115,12 +115,11 @@ class APIServlet(RequestHandler):
     def _api_PUSHES(self):
         """Returns a JSON representation of pushes."""
         rpp = int(self.request.arguments.get('rpp', [50])[0])
-        before = int(self.request.arguments.get('before', [0])[0])
+        offset = int(self.request.arguments.get('offset', [0])[0])
         user = util.get_str_arg(self.request, 'user', '')
         state = util.get_str_arg(self.request, 'state', '')
+
         filters = []
-        if before > 0:
-            filters.append(db.push_pushes.c.id < before)
         if user != '':
             filters.append(db.push_pushes.c.user == user)
         if state != '':
@@ -131,19 +130,19 @@ class APIServlet(RequestHandler):
             order_by=db.push_pushes.c.modified.desc(),
         )
 
+        pushes_count = push_query.alias('pushes_count').count()
+
+        if offset > 0:
+            push_query = push_query.offset(offset)
         if rpp > 0:
             push_query = push_query.limit(rpp)
 
-        last_push_query = SA.select(
-            columns=[SA.func.max(db.push_pushes.c.id)]
-        )
-
-        db.execute_transaction_cb([push_query, last_push_query,], self._on_PUSHES_db_response)
+        db.execute_transaction_cb([push_query, pushes_count,], self._on_PUSHES_db_response)
 
     def _on_PUSHES_db_response(self, success, db_results):
         self.check_db_results(success, db_results)
 
-        push_results, last_push_results = db_results
+        push_results, pushes_count = db_results
 
         def accepting_first(current, previous):
             # swap only if current push is accepting and previous push not accepting
@@ -152,7 +151,7 @@ class APIServlet(RequestHandler):
             return 0
 
         push_results = sorted([util.push_to_jsonable(result) for result in push_results], cmp=accepting_first)
-        return self._xjson([push_results, last_push_results.first()[0]])
+        return self._xjson([push_results, pushes_count.first()[0]])
 
     def _api_PUSHCONTENTS(self):
         """Returns a set of JSON representations of requests in a given push."""

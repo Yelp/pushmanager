@@ -8,12 +8,12 @@ class PushesTemplateTest(TemplateTestCase):
     pushes_page = 'pushes.html'
     new_push_page = 'new-push.html'
 
-    def render_pushes_page(self, page_title='Pushes', pushes=[], pushes_per_page=50, last_push=None):
+    def render_pushes_page(self, page_title='Pushes', pushes=[], pushes_per_page=50, offset=0):
         return self.render_etree(self.pushes_page,
             page_title=page_title,
             pushes=pushes,
             rpp=pushes_per_page,
-            last_push=last_push,
+            offset=offset,
             push_user='',
             state='',
         )
