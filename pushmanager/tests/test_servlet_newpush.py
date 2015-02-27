@@ -77,7 +77,7 @@ class NewPushServletTest(T.TestCase, ServletTestMixin):
 
         with nested(
             mock.patch.dict(db.Settings, MockedSettings),
-            mock.patch.object(NewPushServlet, "get_current_user", return_value = "jblack"),
+            mock.patch.object(NewPushServlet, "get_current_user", return_value="jblack"),
             mock.patch.object(NewPushServlet, "redirect"),
             mock.patch.object(MailQueue, "enqueue_user_email"),
         ):

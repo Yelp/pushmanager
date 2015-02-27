@@ -7,7 +7,5 @@
         args: ['-i', '--ignore=E265,E309,E501']
     -   id: check-yaml
     -   id: debug-statements
-    -   id: name-tests-test
-        files: ^pushmanager/tests/.+\.py$
     -   id: flake8
     -   id: requirements-txt-fixer
