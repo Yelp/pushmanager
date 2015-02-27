@@ -131,7 +131,6 @@ class NewRequestServletTest(T.TestCase, ServletTestMixin, FakeDataMixin):
             basic_request.update({'user': 'testuser'})
             self.assert_request(basic_request, edit_req)
 
-
     def test_editrequest_no_takeover(self):
         last_req = self.assert_submit_request(self.basic_request)
         basic_request = dict(self.basic_request)
@@ -243,6 +242,7 @@ class NewRequestChecklistMixin(ServletTestMixin, FakeDataMixin):
 
     def get_checklists(self, requestid):
         checklists = list()
+
         def on_select_return(success, db_results):
             assert success
             for cl in db_results.fetchall():

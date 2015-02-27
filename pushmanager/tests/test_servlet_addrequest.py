@@ -38,7 +38,7 @@ class AddRequestServletTest(T.TestCase, ServletTestMixin):
         db.execute_cb(db.push_pushcontents.select(), self.record_pushcontents)
         num_results_before = len(self.results)
 
-        request = { 'request': 1, 'push': 1 }
+        request = {'request': 1, 'push': 1}
         response = self.fetch(
             '/addrequest',
             method='POST',
@@ -54,7 +54,7 @@ class AddRequestServletTest(T.TestCase, ServletTestMixin):
         db.execute_cb(db.push_pushcontents.select(), self.record_pushcontents)
         num_results_before = len(self.results)
 
-        request = { 'request': 2, 'push': 1 }
+        request = {'request': 2, 'push': 1}
         response = self.fetch(
             '/addrequest',
             method='POST',
@@ -68,7 +68,7 @@ class AddRequestServletTest(T.TestCase, ServletTestMixin):
 
     @mock.patch('pushmanager.core.db.execute_transaction_cb')
     def test_pushcontent_insert_ignore(self, mock_transaction):
-        request = { 'request': 1, 'push': 1 }
+        request = {'request': 1, 'push': 1}
         response = self.fetch(
             '/addrequest',
             method='POST',

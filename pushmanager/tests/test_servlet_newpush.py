@@ -30,7 +30,7 @@ class NewPushServletTest(T.TestCase, ServletTestMixin):
 
         with nested(
             mock.patch.dict(db.Settings, MockedSettings),
-            mock.patch.object(NewPushServlet, "get_current_user", return_value = "jblack"),
+            mock.patch.object(NewPushServlet, "get_current_user", return_value="jblack"),
             mock.patch.object(NewPushServlet, "redirect"),
             mock.patch.object(MailQueue, "enqueue_user_email"),
         ):
@@ -39,7 +39,7 @@ class NewPushServletTest(T.TestCase, ServletTestMixin):
                 branch = "jblack"
                 push_type = "regular"
 
-                uri = "/newpush?push-title=%s&branch=%s&push-type=%s" % (
+                uri = "/newpush?push-title=%s&push-branch=%s&push-type=%s" % (
                     title, branch, push_type
                 )
 
@@ -48,7 +48,7 @@ class NewPushServletTest(T.TestCase, ServletTestMixin):
                 num_pushes_before = len(pushes)
 
                 response = self.fetch(uri)
-                assert response.error == None
+                assert response.error is None
 
                 pushes = []
                 db.execute_cb(db.push_pushes.select(), on_db_return)
@@ -65,12 +65,36 @@ class NewPushServletTest(T.TestCase, ServletTestMixin):
                 mocked_call.assert_called_once_with([
                     '/nail/sys/bin/nodebot',
                     '-i',
-                    mock.ANY, # nickname
-                    mock.ANY, # channel
-                    mock.ANY, # msg
+                    mock.ANY,  # nickname
+                    mock.ANY,  # channel
+                    mock.ANY,  # msg
                 ])
 
+    def test_removed_trailing_whitespace_in_branch_name(self):
+        def on_db_return(success, db_results):
+            assert success
+            pushes.extend(db_results.fetchall())
 
+        with nested(
+            mock.patch.dict(db.Settings, MockedSettings),
+            mock.patch.object(NewPushServlet, "get_current_user", return_value="jblack"),
+            mock.patch.object(NewPushServlet, "redirect"),
+            mock.patch.object(MailQueue, "enqueue_user_email"),
+        ):
+            with mock.patch("%s.pushmanager.servlets.newpush.subprocess.call" % __name__):
+                title = "BestPushInTheWorld"
+                branch = "%20branch-name-with-whitespaces%20"
+                push_type = "regular"
+
+                self.fetch(
+                    "/newpush?push-title=%s&push-branch=%s&push-type=%s" % (
+                        title, branch, push_type
+                    )
+                )
+
+                pushes = []
+                db.execute_cb(db.push_pushes.select(), on_db_return)
+                T.assert_equal('branch-name-with-whitespaces', pushes[-1]['branch'])
 
     def call_on_db_complete(self, urgent=False):
         mocked_self = mock.Mock()
@@ -141,7 +165,7 @@ class NotificationsTestCase(T.TestCase):
             mocked_mail.assert_called_once_with(
                 Settings['mail']['notifyall'],
                 msg,
-                mock.ANY, # subject
+                mock.ANY,  # subject
             )
             mocked_xmpp.assert_called_once_with(
                 self.people,
@@ -162,12 +186,12 @@ class NotificationsTestCase(T.TestCase):
                 '-i',
                 Settings['irc']['nickname'],
                 Settings['irc']['channel'],
-                mock.ANY, # msg
+                mock.ANY,  # msg
             ])
             mocked_mail.assert_called_once_with(
                 Settings['mail']['notifyall'],
-                mock.ANY, # msg
-                mock.ANY, # subject
+                mock.ANY,  # msg
+                mock.ANY,  # subject
             )
             T.assert_is(mocked_xmpp.called, False)
 

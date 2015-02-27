@@ -1,0 +1,55 @@
+#!/bin/bash
+
+COMMAND=$1
+
+PUSHMANAGER_MAIN=pushmanager_main
+PUSHMANAGER_API=pushmanager_api
+
+service_start() {
+    echo -n "Starting"
+    $PUSHMANAGER_API start
+    $PUSHMANAGER_MAIN start
+    print_okay $?
+}
+
+service_stop() {
+    echo -n "Stopping"
+    $PUSHMANAGER_API stop
+    $PUSHMANAGER_MAIN stop
+    print_okay $?
+}
+
+service_reload()
+{
+    echo -n "Reloading"
+    $PUSHMANAGER_API restart
+    $PUSHMANAGER_MAIN restart
+    print_okay $?
+}
+
+print_okay() {
+    if [ "$1" = 0 ]; then
+        echo "... [OK]"
+    else
+        echo "... [Failed]"
+    fi
+}
+
+case "$COMMAND" in
+    start)
+        service_start
+        ;;
+
+    stop)
+        service_stop
+        ;;
+
+    restart|reload)
+        service_reload
+        ;;
+
+    *)
+        echo "Usage: $0 {start|stop|reload|restart}"
+        exit 1
+        ;;
+esac

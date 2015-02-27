@@ -24,7 +24,8 @@ class LivePushServlet(RequestHandler):
             })
         request_query = db.push_requests.update().where(SA.and_(
             db.push_requests.c.state == 'blessed',
-            SA.exists([1],
+            SA.exists(
+                [1],
                 SA.and_(
                     db.push_pushcontents.c.push == self.pushid,
                     db.push_pushcontents.c.request == db.push_requests.c.id,
@@ -34,7 +35,8 @@ class LivePushServlet(RequestHandler):
                 'modified': time.time(),
             })
         reset_query = db.push_requests.update().where(
-            SA.exists([1],
+            SA.exists(
+                [1],
                 SA.and_(
                     db.push_requests.c.state == 'pickme',
                     db.push_pushcontents.c.push == self.pushid,
@@ -52,9 +54,12 @@ class LivePushServlet(RequestHandler):
         live_query = db.push_requests.select().where(
             SA.and_(db.push_requests.c.state == 'live',
                     db.push_pushcontents.c.push == self.pushid,
-                    db.push_pushcontents.c.request == db.push_requests.c.id,
-            ))
-        db.execute_transaction_cb([push_query, request_query, reset_query, delete_query, live_query], self.on_db_complete)
+                    db.push_pushcontents.c.request == db.push_requests.c.id)
+            )
+        db.execute_transaction_cb(
+            [push_query, request_query, reset_query, delete_query, live_query],
+            self.on_db_complete,
+        )
 
     def on_db_complete(self, success, db_results):
         self.check_db_results(success, db_results)

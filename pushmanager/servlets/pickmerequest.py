@@ -29,11 +29,16 @@ class PickMeRequestServlet(RequestHandler):
         if pushrow[db.push_pushes.c.state] != 'accepting':
             return self.send_error(403)
 
-        insert_queries = [db.push_pushcontents.insert({'request': int(i), 'push': self.pushid}) for i in self.request_ids]
+        insert_queries = [
+            db.push_pushcontents.insert({
+                'request': int(i),
+                'push': self.pushid
+            }) for i in self.request_ids
+        ]
         update_query = db.push_requests.update().where(SA.and_(
                 db.push_requests.c.id.in_(self.request_ids),
                 db.push_requests.c.state == 'requested',
-            )).values({'state':'pickme'})
+            )).values({'state': 'pickme'})
         request_query = db.push_requests.select().where(
             db.push_requests.c.id.in_(self.request_ids))
 
@@ -52,7 +57,7 @@ class PickMeRequestServlet(RequestHandler):
         db.execute_transaction_cb(
             insert_queries + [update_query, request_query],
             self.on_db_complete,
-            condition = (condition_query, condition_fn)
+            condition=(condition_query, condition_fn)
         )
 
     # allow both GET and POST
@@ -61,7 +66,12 @@ class PickMeRequestServlet(RequestHandler):
     def on_db_complete(self, success, db_results):
         self.check_db_results(success, db_results)
         for request_id in self.request_ids:
-            GitQueue.enqueue_request(GitTaskAction.TEST_PICKME_CONFLICT, request_id, pushmanager_url = self.get_base_url())
+            GitQueue.enqueue_request(
+                GitTaskAction.TEST_PICKME_CONFLICT,
+                request_id,
+                pushmanager_url=self.get_base_url()
+            )
+
 
 class UnpickMeRequestServlet(RequestHandler):
 
@@ -81,7 +91,7 @@ class UnpickMeRequestServlet(RequestHandler):
         update_query = db.push_requests.update().where(SA.and_(
                 db.push_requests.c.id == self.request_id,
                 db.push_requests.c.state == 'pickme',
-            )).values({'state':'requested'})
+            )).values({'state': 'requested'})
 
         db.execute_transaction_cb([delete_query, update_query], self.on_db_complete)
 
@@ -92,4 +102,8 @@ class UnpickMeRequestServlet(RequestHandler):
         self.check_db_results(success, db_results)
         # Re-check pickmes that are marked as conflicting, in case this was the pickme
         # that they conflicted against.
-        GitQueue.enqueue_request(GitTaskAction.TEST_CONFLICTING_PICKMES, self.pushid, pushmanager_url=self.get_base_url())
+        GitQueue.enqueue_request(
+            GitTaskAction.TEST_CONFLICTING_PICKMES,
+            self.pushid,
+            pushmanager_url=self.get_base_url()
+        )

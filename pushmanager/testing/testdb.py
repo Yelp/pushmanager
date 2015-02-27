@@ -15,10 +15,12 @@ def create_temp_db_file():
     os.close(fd)
     return db_file_path
 
+
 def get_temp_db_uri(dbfile=None):
     if not dbfile:
         dbfile = create_temp_db_file()
     return "sqlite:///" + dbfile
+
 
 def make_test_db(dbfile=None):
     if not dbfile:
@@ -55,10 +57,14 @@ class FakeDataMixin(object):
     fake_revision = "0"*40
 
     request_data = [
-        [10, 'keysersoze', 'requested', 'keysersoze', 'usual_fix', '', '',  now, now, 'Fix stuff', 'no comment', 12345, '', fake_revision, ''],
-        [11, 'bmetin', 'requested', 'bmetin', 'fix1', '', '',  now, now, 'Fixing more stuff', 'yes comment', 234, '', fake_revision, 'testuser3'],
-        [12, 'testuser1', 'requested', 'testuser2', 'fix1', 'search', '',  now, now, 'Fixing1', 'no comment', 123, '', fake_revision, 'testuser3, testuser4'],
-        [13, 'testuser2', 'requested', 'testuser2', 'fix2', 'search', '',  now, now, 'Fixing2', 'yes comment', 456, '', fake_revision, 'testuser5'],
+        [10, 'keysersoze', 'requested', 'keysersoze', 'usual_fix', '', '',
+         now, now, 'Fix stuff', 'no comment', 12345, '', fake_revision, ''],
+        [11, 'bmetin', 'requested', 'bmetin', 'fix1', '', '',  now, now,
+         'Fixing more stuff', 'yes comment', 234, '', fake_revision, 'testuser3'],
+        [12, 'testuser1', 'requested', 'testuser2', 'fix1', 'search', '',  now,
+         now, 'Fixing1', 'no comment', 123, '', fake_revision, 'testuser3, testuser4'],
+        [13, 'testuser2', 'requested', 'testuser2', 'fix2', 'search', '',  now,
+         now, 'Fixing2', 'yes comment', 456, '', fake_revision, 'testuser5'],
 
     ]
     request_keys = [
@@ -95,6 +101,7 @@ class FakeDataMixin(object):
 
     def get_push_for_request(self, requestid):
         pushid = [None]
+
         def on_select_return(success, db_results):
             assert success
             _, pushid[0] = db_results.fetchone()
@@ -108,6 +115,7 @@ class FakeDataMixin(object):
 
     def get_pushes(self):
         pushes = [None]
+
         def on_select_return(success, db_results):
             assert success
             pushes[0] = db_results.fetchall()
@@ -117,6 +125,7 @@ class FakeDataMixin(object):
 
     def get_requests(self):
         requests = [None]
+
         def on_select_return(success, db_results):
             assert success
             requests[0] = db_results.fetchall()

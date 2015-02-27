@@ -33,7 +33,7 @@ class RenameTagTest(T.TestCase, FakeDataMixin):
 
         # id, user, state, repo, branch, *tags*, created, modified, etc...
         data_tags = [d[5] for d in data]
-        #id, user, state, repo, branch, revision, *tags*, created, etc...
+        # id, user, state, repo, branch, revision, *tags*, created, etc...
         tags = [result[6] for result in db_results.fetchall()]
 
         T.assert_sorted_equal(data_tags, tags)
@@ -41,7 +41,7 @@ class RenameTagTest(T.TestCase, FakeDataMixin):
     def verify_tag_rename(self, oldtag, newtag, success, db_results):
         self.check_db_results(success, db_results)
 
-        #id, user, state, repo, branch, revision, *tags*, created, etc...
+        # id, user, state, repo, branch, revision, *tags*, created, etc...
         tags = [result[6] for result in db_results.fetchall()]
 
         T.assert_not_in(oldtag, tags)
@@ -57,10 +57,9 @@ class RenameTagTest(T.TestCase, FakeDataMixin):
 
     @patch('tools.rename_tag.convert_tag')
     @patch('optparse.OptionParser.error')
-    @patch('optparse.OptionParser.parse_args',
-            return_value=[None, ['oldtag', 'newtag']])
+    @patch('optparse.OptionParser.parse_args', return_value=[None, ['oldtag', 'newtag']])
     def test_main_twoargs(self, parser, error, convert_tag):
-        parser.return_value=[None, ['oldtag', 'newtag']]
+        parser.return_value = [None, ['oldtag', 'newtag']]
         rename_tag.main()
         convert_tag.assert_called_once_with('oldtag', 'newtag')
         T.assert_equal(False, error.called)

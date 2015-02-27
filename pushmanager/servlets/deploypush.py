@@ -17,8 +17,10 @@ class DeployPushServlet(RequestHandler):
             return self.send_error(403)
         self.pushid = pushmanager.core.util.get_int_arg(self.request, 'id')
         request_query = db.push_requests.update().where(
-            SA.and_(db.push_requests.c.state == 'added',
-                SA.exists([1],
+            SA.and_(
+                db.push_requests.c.state == 'added',
+                SA.exists(
+                    [1],
                     SA.and_(
                         db.push_pushcontents.c.push == self.pushid,
                         db.push_pushcontents.c.request == db.push_requests.c.id,
@@ -30,8 +32,8 @@ class DeployPushServlet(RequestHandler):
         staged_query = db.push_requests.select().where(
             SA.and_(db.push_requests.c.state == 'staged',
                     db.push_pushcontents.c.push == self.pushid,
-                    db.push_pushcontents.c.request == db.push_requests.c.id,
-            ))
+                    db.push_pushcontents.c.request == db.push_requests.c.id)
+            )
         push_query = db.push_pushes.select().where(
                 db.push_pushes.c.id == self.pushid,
             )
@@ -82,14 +84,14 @@ class DeployPushServlet(RequestHandler):
             subject = "[push] %s - %s" % (user_string, req['title'])
             MailQueue.enqueue_user_email(users, msg, subject)
 
-            msg = '%(pushmaster)s has deployed request "%(title)s" for %(user)s to %(pushstage)s.\nPlease verify it at %(pushmanager_base_url)s/push?id=%(pushid)s' % {
-                    'pushmaster': self.current_user,
-                    'pushmanager_base_url': self.get_base_url(),
-                    'title': req['title'],
-                    'pushid': self.pushid,
-                    'user': user_string,
-                    'pushstage': push['stageenv'],
-                }
+            msg = '{0} has deployed request "{1}" for {2} to {3}.\nPlease verify it at {4}/push?id={5}'.format(
+                self.current_user,
+                req['title'],
+                user_string,
+                push['stageenv'],
+                self.get_base_url(),
+                self.pushid,
+            )
             XMPPQueue.enqueue_user_xmpp(users, msg)
 
         if push['extra_pings']:

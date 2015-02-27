@@ -60,7 +60,6 @@ class BlessPushServletTest(T.TestCase, ServletTestMixin):
 
         mocked_self.on_db_complete('success', [None, reqs, res])
 
-
     @mock.patch('pushmanager.core.xmppclient.XMPPQueue.enqueue_user_xmpp')
     @mock.patch('pushmanager.core.mail.MailQueue.enqueue_user_email')
     def test_mailqueue_on_db_complete(self, mailq, _):

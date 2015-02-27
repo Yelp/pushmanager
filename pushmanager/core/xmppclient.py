@@ -8,6 +8,7 @@ import xmpp
 
 from pushmanager.core.settings import Settings
 
+
 class XMPPQueue(object):
 
     MAX_RETRY_COUNT = 3
@@ -43,13 +44,13 @@ class XMPPQueue(object):
     @classmethod
     def _del_retry_message(cls, msg):
         cls.retry_messages_lock.acquire(True)
-        if cls.retry_messages.has_key(msg):
+        if msg in cls.retry_messages:
             del cls.retry_messages[msg]
         cls.retry_messages_lock.release()
 
     @classmethod
     def _process_queue_item(cls, jabber_client):
-        msg = cls.message_queue.get(True) # Blocks until a message is queued
+        msg = cls.message_queue.get(True)  # Blocks until a message is queued
         recipient, message = msg
 
         # Apply alias mapping, if any exists
@@ -124,13 +125,13 @@ class XMPPQueue(object):
 
     @classmethod
     def enqueue_xmpp(cls, recipients, message):
-        if isinstance(recipients, (list,set,tuple)):
+        if isinstance(recipients, (list, set, tuple)):
             # Flatten non-string iterables
             for recipient in recipients:
                 cls.enqueue_xmpp(recipient, message)
-        elif isinstance(recipients, (str,unicode)):
+        elif isinstance(recipients, (str, unicode)):
             if cls.message_queue is not None:
-                cls.message_queue.put( (recipients, message) )
+                cls.message_queue.put((recipients, message))
             else:
                 logging.error("Could not enqueue XMPP message: XMPPQueue has not been initialized!")
         else:
@@ -141,9 +142,13 @@ class XMPPQueue(object):
         """Transforms a list of 'user' to 'user@default_domain', then invokes enqueue_xmpp."""
         domain = Settings['xmpp']['default_domain']
 
-        if isinstance(recipients, (list,set,tuple)):
-            recipients = ['%s@%s' % (recepient, domain) if '@' not in recepient else recepient for recepient in recipients]
-        elif isinstance(recipients, (str,unicode)):
+        if isinstance(recipients, (list, set, tuple)):
+            recipients = [
+                '%s@%s' % (recepient, domain)
+                if '@' not in recepient else recepient
+                for recepient in recipients
+            ]
+        elif isinstance(recipients, (str, unicode)):
             recipients = '%s@%s' % (recipients, domain) if '@' not in recipients else recipients
         else:
             raise ValueError('Recipient(s) must be a string or iterable of strings')
@@ -151,7 +156,11 @@ class XMPPQueue(object):
         notifyonly = Settings['xmpp']['notifyonly']
         if notifyonly:
             message = "Original recipients: %s\n\n%s" % (recipients, message)
-            recipients = ['%s@%s' % (recepient, domain) if '@' not in recepient else recepient for recepient in notifyonly]
+            recipients = [
+                '%s@%s' % (recepient, domain)
+                if '@' not in recepient else recepient
+                for recepient in notifyonly
+            ]
         return cls.enqueue_xmpp(recipients, message)
 
 __all__ = ['XMPPQueue']

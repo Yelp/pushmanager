@@ -27,7 +27,7 @@ class RemoveRequestServlet(RequestHandler):
                 db.push_pushcontents.c.push == self.pushid,
                 db.push_pushcontents.c.request == db.push_requests.c.id,
             )),
-        )).values({'state':'requested'})
+        )).values({'state': 'requested'})
         delete_query = db.push_pushcontents.delete(SA.and_(
             db.push_pushcontents.c.push == self.pushid,
             db.push_pushcontents.c.request.in_(self.requestid),

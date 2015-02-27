@@ -137,7 +137,7 @@ class APIServlet(RequestHandler):
         if rpp > 0:
             push_query = push_query.limit(rpp)
 
-        db.execute_transaction_cb([push_query, pushes_count,], self._on_PUSHES_db_response)
+        db.execute_transaction_cb([push_query, pushes_count, ], self._on_PUSHES_db_response)
 
     def _on_PUSHES_db_response(self, success, db_results):
         self.check_db_results(success, db_results)

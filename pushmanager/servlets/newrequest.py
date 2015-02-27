@@ -103,7 +103,7 @@ class NewRequestServlet(RequestHandler):
 
         necessary_checklist_types = set()
 
-        canonical_tag_name = { 'search': 'search-backend' }
+        canonical_tag_name = {'search': 'search-backend'}
         for cl_type in ['pushplans', 'search', 'hoods']:
             tag = canonical_tag_name.get(cl_type, cl_type)
             if tag in self.tag_list:
@@ -132,12 +132,20 @@ class NewRequestServlet(RequestHandler):
             return self.send_error(500)
 
         if self.requestid:
-            GitQueue.enqueue_request(GitTaskAction.VERIFY_BRANCH, self.requestid, pushmanager_url = self.get_base_url())
+            GitQueue.enqueue_request(
+                GitTaskAction.VERIFY_BRANCH,
+                self.requestid,
+                pushmanager_url=self.get_base_url()
+            )
 
             # Check if the request is already pickme'd for a push, and if
             # so also enqueue it to be checked for conflicts.
             request_push_id = GitQueue._get_push_for_request(self.requestid)
             if request_push_id:
-                GitQueue.enqueue_request(GitTaskAction.TEST_PICKME_CONFLICT, self.requestid, pushmanager_url = self.get_base_url())
+                GitQueue.enqueue_request(
+                    GitTaskAction.TEST_PICKME_CONFLICT,
+                    self.requestid,
+                    pushmanager_url=self.get_base_url()
+                )
 
         return self.redirect("/requests?user=%s" % self.request_user)

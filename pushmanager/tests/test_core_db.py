@@ -60,7 +60,7 @@ class CoreDBTest(T.TestCase, FakeDataMixin):
         db.execute_transaction_cb(
             [db.push_pushcontents.insert({'request': 2, 'push': 2})],
             on_return,
-            condition = (
+            condition=(
                 db.push_pushcontents.select(
                     db.push_pushcontents.c.request == requestid
                 ),
@@ -79,12 +79,13 @@ class CoreDBTest(T.TestCase, FakeDataMixin):
             db.execute_transaction_cb(
                 [db.push_pushcontents.insert({'request': 2, 'push': 2})],
                 on_return,
-                condition = (
+                condition=(
                     # Just a phony query that we don't really care about
                     db.push_pushcontents.select(),
                     lambda results: False
                 )
             )
+
 
 class InsertIgnoreTestCase(T.TestCase):
 

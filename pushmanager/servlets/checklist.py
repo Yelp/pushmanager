@@ -54,7 +54,7 @@ class ChecklistServlet(RequestHandler):
 
         db.execute_cb(query, self.on_db_complete)
 
-    post=get
+    post = get
 
     def on_db_complete(self, success, db_results):
         if not success or db_results is None:
@@ -93,7 +93,7 @@ class ChecklistServlet(RequestHandler):
                         "type": type_,
                         "complete": is_complete,
                         "id": u",".join(ids),
-                        "request": 0, # this key is not used by template/js
+                        "request": 0,  # this key is not used by template/js
                         "title": u"multiple requests",
                         "repo": u"multiple repositories",
                         "branch": u'multiple branches',
@@ -117,4 +117,4 @@ class ChecklistToggleServlet(RequestHandler):
 
         query = db.push_checklist.update().where(
             db.push_checklist.c.id == self.checklist).values({'complete': new_value})
-        db.execute_cb(query, lambda _, __:None)
+        db.execute_cb(query, lambda _, __: None)

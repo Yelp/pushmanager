@@ -34,8 +34,10 @@ class RBQueue(object):
             try:
                 cls.mark_review_as_submitted(review_id)
             except Exception:
-                logging.error("ReviewBoard queue worker encountered an error (review_id: %r)",
-                    review_id, exc_info=True)
+                logging.error(
+                    "ReviewBoard queue worker encountered an error (review_id: %r)",
+                    review_id, exc_info=True
+                )
             finally:
                 cls.review_queue.task_done()
 
@@ -64,8 +66,12 @@ class RBQueue(object):
         conn.close()
 
         if not result or result.get('stat') != 'ok':
-            logging.error("Unable to mark review %r as submitted (%r)",
-                review_id, raw_result, exc_info=True)
+            logging.error(
+                "Unable to mark review %r as submitted (%r)",
+                review_id,
+                raw_result,
+                exc_info=True
+            )
 
     @classmethod
     def enqueue_review(cls, review_id):

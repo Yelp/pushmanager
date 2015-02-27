@@ -8,6 +8,7 @@ from multiprocessing import Process
 
 from pushmanager.core.settings import Settings
 
+
 class MailQueue(object):
 
     message_queue = None
@@ -71,13 +72,13 @@ class MailQueue(object):
 
     @classmethod
     def enqueue_email(cls, recipients, message, subject='', from_email=Settings['mail']['from']):
-        if isinstance(recipients, (list,set,tuple)):
+        if isinstance(recipients, (list, set, tuple)):
             # Flatten non-string iterables
             for recipient in recipients:
                 cls.enqueue_email(recipient, message, subject, from_email)
-        elif isinstance(recipients, (str,unicode)):
+        elif isinstance(recipients, (str, unicode)):
             if cls.message_queue is not None:
-                cls.message_queue.put( (recipients, message, subject, from_email) )
+                cls.message_queue.put((recipients, message, subject, from_email))
             else:
                 logging.error("Failed to enqueue email: MailQueue not initialized")
         else:

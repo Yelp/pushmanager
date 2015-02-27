@@ -15,7 +15,7 @@ class APITests(T.TestCase, ServletTestMixin, FakeDataMixin):
 
     def api_call(self, req):
         response = self.fetch("/api/%s" % req)
-        assert response.error == None
+        assert response.error is None
         return json.loads(response.body)
 
     def test_userlist(self):
@@ -93,7 +93,7 @@ class APITests(T.TestCase, ServletTestMixin, FakeDataMixin):
 
     def test_pushbyrequest(self):
         push = self.api_call("pushbyrequest?id=1")
-        T.assert_equal(push['title'] , "Test Push")
+        T.assert_equal(push['title'], "Test Push")
 
     def test_pushitems(self):
         pushitems = self.api_call("pushitems?push_id=1")

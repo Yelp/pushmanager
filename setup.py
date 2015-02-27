@@ -27,14 +27,19 @@ setup(
     license='Copyright Yelp 2013',
     packages=find_packages(exclude=["tests"]),
     include_package_data=True,
-    entry_points = {
+    entry_points={
         'console_scripts': [
             'pushmanager_api = pushmanager.pushmanager_api:main',
             'pushmanager_main = pushmanager.pushmanager_main:main',
         ],
     },
+    scripts=[
+        'scripts/pushmanager',
+    ],
     setup_requires=['setuptools'],
     install_requires=[
+        'PyYAML == 3.11',
+        'SQLAlchemy == 0.9.8',
         'lxml == 2.2.4',
         'mysql-python == 1.2.5',
         'python-daemon == 1.5.2',
@@ -42,5 +47,9 @@ setup(
         'tornado == 2.4.1',
         'xmpppy == 0.5.0rc1',
     ],
-    long_description="""Pushmanager is a tornado web application we use to manage deployments at Yelp. It helps pushmasters to conduct the deployment by bringing together push requests from engineers and information gathered from reviews, test builds and issue tracking system.""",
+    long_description="""Pushmanager is a tornado web application we use to
+        manage deployments at Yelp. It helps pushmasters to conduct the
+        deployment by bringing together push requests from engineers and
+        information gathered from reviews, test builds and issue tracking
+        system.""",
 )

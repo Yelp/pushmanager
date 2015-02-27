@@ -17,8 +17,9 @@ class BlessPushServlet(RequestHandler):
             return self.send_error(403)
         self.pushid = pushmanager.core.util.get_int_arg(self.request, 'id')
         request_query = db.push_requests.update().where(SA.and_(
-            db.push_requests.c.state.in_(['staged','verified']),
-            SA.exists([1],
+            db.push_requests.c.state.in_(['staged', 'verified']),
+            SA.exists(
+                [1],
                 SA.and_(
                     db.push_pushcontents.c.push == self.pushid,
                     db.push_pushcontents.c.request == db.push_requests.c.id,
@@ -29,8 +30,8 @@ class BlessPushServlet(RequestHandler):
         blessed_query = db.push_requests.select().where(
             SA.and_(db.push_requests.c.state == 'blessed',
                     db.push_pushcontents.c.push == self.pushid,
-                    db.push_pushcontents.c.request == db.push_requests.c.id,
-            ))
+                    db.push_pushcontents.c.request == db.push_requests.c.id)
+            )
         push_query = db.push_pushes.select().where(
                 db.push_pushes.c.id == self.pushid,
         )

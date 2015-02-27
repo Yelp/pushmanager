@@ -16,6 +16,7 @@ from pushmanager.core.settings import Settings
 engine = None
 Base = declarative_base()
 
+
 def UnsignedInteger():
     if Settings["db_uri"].startswith("mysql"):
         return mysql.INTEGER(unsigned=True)
@@ -118,9 +119,11 @@ def init_db():
             logging.info("Creating sqlite database.")
             Base.metadata.create_all(engine)
 
+
 def finalize_db():
     global engine
     engine = None
+
 
 def execute_cb(query, callback_fn):
     success = True
@@ -134,6 +137,7 @@ def execute_cb(query, callback_fn):
     finally:
         callback_fn(success, results)
         conn.close()
+
 
 def execute_transaction_cb(queries, callback_fn, condition=None):
     """Execute a list of queries in transaction.
@@ -160,7 +164,7 @@ def execute_transaction_cb(queries, callback_fn, condition=None):
             if condition:
                 select, check_fn = condition
                 if not check_fn(conn.execute(select)):
-                    raise Exception, "Condition failed: %s" % str(select.compile())
+                    raise Exception("Condition failed: %s" % str(select.compile()))
 
             for query in queries:
                 results.append(conn.execute(query))
@@ -179,13 +183,16 @@ def execute_transaction_cb(queries, callback_fn, condition=None):
         callback_fn(success, results)
         conn.close()
 
+
 class InsertIgnore(Insert):
     pass
 
+
 @compiles(InsertIgnore)
 def prefix_insert_ignore(insert_ignore, compiler, **kw):
-    return  compiler.visit_insert(insert_ignore.prefix_with('IGNORE'), **kw)
+    return compiler.visit_insert(insert_ignore.prefix_with('IGNORE'), **kw)
+
 
 @compiles(InsertIgnore, 'sqlite')
 def prefix_insert_ignore_sqlite(insert_ignore, compiler, **kw):
-    return  compiler.visit_insert(insert_ignore.prefix_with('OR IGNORE'), **kw)
+    return compiler.visit_insert(insert_ignore.prefix_with('OR IGNORE'), **kw)

@@ -39,6 +39,7 @@ def send_notifications(people, pushtype, pushmanager_url):
     subject = "New push notification"
     MailQueue.enqueue_user_email(Settings['mail']['notifyall'], msg, subject)
 
+
 class NewPushServlet(RequestHandler):
 
     def _arg(self, key):
@@ -51,7 +52,7 @@ class NewPushServlet(RequestHandler):
         insert_query = db.push_pushes.insert({
             'title': self._arg('push-title'),
             'user': self.current_user,
-            'branch': self._arg('push-branch'),
+            'branch': self._arg('push-branch').strip(),
             'revision': "0"*40,
             'created': time.time(),
             'modified': time.time(),

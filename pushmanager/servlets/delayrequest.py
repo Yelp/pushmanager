@@ -49,8 +49,9 @@ class DelayRequestServlet(RequestHandler):
         msg = (
             """
             <p>
-                Request for %(user)s has been marked as delayed by %(pushmaster)s, and will not be accepted into pushes until you
-                mark it as requested again:
+                Request for %(user)s has been marked as delayed
+                by %(pushmaster)s, and will not be accepted into
+                pushes until you mark it as requested again:
             </p>
             <p>
                 <strong>%(user)s - %(title)s</strong><br />
