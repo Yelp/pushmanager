@@ -28,7 +28,7 @@ Quick Start
 - Point to your configuration file: ``export SERVICE_ENV_CONFIG_PATH=/etc/pushmanager/config.yaml``
 
 - Now start Pushmanager: ``pushmanager.sh start``. You should be able to point your webbrowser to
-  ``https://main_app.servername`` and see a login screen.
+  ``https://main_app.servername:main_app.port`` and see a login screen.
 
 TODO:
    README update
