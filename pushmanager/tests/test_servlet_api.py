@@ -44,8 +44,8 @@ class APITests(T.TestCase, ServletTestMixin, FakeDataMixin):
         pushes, last_push = self.api_call("pushes?rpp=1")
         T.assert_length(pushes, 1)
 
-        pushes, last_push = self.api_call("pushes?before=%d" % time.time())
-        T.assert_length(pushes, 2)
+        pushes, last_push = self.api_call("pushes?offset=1")
+        T.assert_length(pushes, 1)
 
     def test_pushes_order(self):
         self.insert_pushes()
@@ -60,6 +60,13 @@ class APITests(T.TestCase, ServletTestMixin, FakeDataMixin):
                 elif lastpush['state'] != 'accepting':
                     T.assert_gte(push['modified'], lastpush['modified'])
             lastpush = push
+
+    def test_pushes_state_filter(self):
+        self.insert_pushes()
+        pushes, last_push = self.api_call("pushes?state=live")
+        T.assert_length(pushes, 1)
+        for push in pushes:
+            T.assert_equal(push['state'], 'live')
 
     def test_pushcontents(self):
         pushcontents = self.api_call("pushcontents?id=1")
