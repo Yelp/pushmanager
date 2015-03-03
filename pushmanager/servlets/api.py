@@ -114,31 +114,32 @@ class APIServlet(RequestHandler):
 
     def _api_PUSHES(self):
         """Returns a JSON representation of pushes."""
-        rpp = int(self.request.arguments.get('rpp', [50])[0])
-        before = int(self.request.arguments.get('before', [0])[0])
-        if before > 0:
-            push_query = db.push_pushes.select(
-                    whereclause=(db.push_pushes.c.id < before),
-                    order_by=db.push_pushes.c.modified.desc(),
-                )
-        else:
-            push_query = db.push_pushes.select(
-                    order_by=db.push_pushes.c.modified.desc(),
-                )
+        rpp = util.get_int_arg(self.request, 'rpp', 50)
+        offset = util.get_int_arg(self.request, 'offset', 0)
+        state = util.get_str_arg(self.request, 'state', '')
 
+        filters = []
+        if state != '':
+            filters.append(db.push_pushes.c.state == state)
+
+        push_query = db.push_pushes.select(
+            whereclause=SA.and_(*filters),
+            order_by=db.push_pushes.c.modified.desc(),
+        )
+
+        pushes_count = push_query.alias('pushes_count').count()
+
+        if offset > 0:
+            push_query = push_query.offset(offset)
         if rpp > 0:
             push_query = push_query.limit(rpp)
 
-        last_push_query = SA.select(
-            columns=[SA.func.max(db.push_pushes.c.id)]
-        )
-
-        db.execute_transaction_cb([push_query, last_push_query, ], self._on_PUSHES_db_response)
+        db.execute_transaction_cb([push_query, pushes_count, ], self._on_PUSHES_db_response)
 
     def _on_PUSHES_db_response(self, success, db_results):
         self.check_db_results(success, db_results)
 
-        push_results, last_push_results = db_results
+        push_results, pushes_count = db_results
 
         def accepting_first(current, previous):
             # swap only if current push is accepting and previous push not accepting
@@ -147,7 +148,7 @@ class APIServlet(RequestHandler):
             return 0
 
         push_results = sorted([util.push_to_jsonable(result) for result in push_results], cmp=accepting_first)
-        return self._xjson([push_results, last_push_results.first()[0]])
+        return self._xjson([push_results, pushes_count.first()[0]])
 
     def _api_PUSHCONTENTS(self):
         """Returns a set of JSON representations of requests in a given push."""
@@ -156,9 +157,9 @@ class APIServlet(RequestHandler):
             return self.send_error(404)
 
         query = db.push_requests.select(SA.and_(
-                db.push_requests.c.id == db.push_pushcontents.c.request,
-                db.push_pushcontents.c.push == push_id,
-            ))
+            db.push_requests.c.id == db.push_pushcontents.c.request,
+            db.push_pushcontents.c.push == push_id,
+        ))
         db.execute_cb(query, self._on_PUSHCONTENTS_db_response)
 
     def _on_PUSHCONTENTS_db_response(self, success, db_results):
@@ -197,7 +198,7 @@ class APIServlet(RequestHandler):
                 db.push_requests.c.id == db.push_pushcontents.c.request,
                 db.push_requests.c.state != 'pickme',
                 db.push_pushcontents.c.push == push_id,
-                ),
+            ),
             order_by=(db.push_requests.c.user, db.push_requests.c.title),
         )
         db.execute_cb(query, self._on_PUSHITEMS_db_response)

@@ -11,22 +11,29 @@ class PushesServlet(RequestHandler):
     @tornado.gen.engine
     def get(self):
         pushes_per_page = pushmanager.core.util.get_int_arg(self.request, 'rpp', 50)
-        before = pushmanager.core.util.get_int_arg(self.request, 'before', 0)
+        offset = pushmanager.core.util.get_int_arg(self.request, 'offset', 0)
+        state = pushmanager.core.util.get_str_arg(self.request, 'state', '')
         response = yield tornado.gen.Task(
-                        self.async_api_call,
-                        "pushes",
-                        {"rpp": pushes_per_page, "before": before}
-                    )
+            self.async_api_call,
+            'pushes',
+            {
+                'rpp': pushes_per_page,
+                'offset': offset,
+                'state': state,
+            }
+        )
 
         results = self.get_api_results(response)
         if not results:
             self.finish()
 
-        pushes, last_push = results
+        pushes, pushes_count = results
         self.render(
             "pushes.html",
             page_title="Pushes",
             pushes=pushes,
+            offset=offset,
             rpp=pushes_per_page,
-            last_push=last_push
+            state=state,
+            pushes_count=pushes_count,
         )
