@@ -44,8 +44,8 @@ class APITests(T.TestCase, ServletTestMixin, FakeDataMixin):
         pushes, last_push = self.api_call("pushes?rpp=1")
         T.assert_length(pushes, 1)
 
-        pushes, last_push = self.api_call("pushes?before=%d" % time.time())
-        T.assert_length(pushes, 2)
+        pushes, last_push = self.api_call("pushes?offset=1")
+        T.assert_length(pushes, 1)
 
     def test_pushes_order(self):
         self.insert_pushes()

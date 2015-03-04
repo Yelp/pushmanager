@@ -114,16 +114,16 @@ class APIServlet(RequestHandler):
 
     def _api_PUSHES(self):
         """Returns a JSON representation of pushes."""
-        rpp = int(self.request.arguments.get('rpp', [50])[0])
-        offset = int(self.request.arguments.get('offset', [0])[0])
-        user = util.get_str_arg(self.request, 'user', '')
+        rpp = util.get_int_arg(self.request, 'rpp', 50)
+        offset = util.get_int_arg(self.request, 'offset', 0)
         state = util.get_str_arg(self.request, 'state', '')
+        user = util.get_str_arg(self.request, 'user', '')
 
         filters = []
-        if user != '':
-            filters.append(db.push_pushes.c.user == user)
         if state != '':
             filters.append(db.push_pushes.c.state == state)
+        if user != '':
+            filters.append(db.push_pushes.c.user == user)
 
         push_query = db.push_pushes.select(
             whereclause=SA.and_(*filters),
@@ -160,9 +160,9 @@ class APIServlet(RequestHandler):
             return self.send_error(404)
 
         query = db.push_requests.select(SA.and_(
-                db.push_requests.c.id == db.push_pushcontents.c.request,
-                db.push_pushcontents.c.push == push_id,
-            ))
+            db.push_requests.c.id == db.push_pushcontents.c.request,
+            db.push_pushcontents.c.push == push_id,
+        ))
         db.execute_cb(query, self._on_PUSHCONTENTS_db_response)
 
     def _on_PUSHCONTENTS_db_response(self, success, db_results):
@@ -201,7 +201,7 @@ class APIServlet(RequestHandler):
                 db.push_requests.c.id == db.push_pushcontents.c.request,
                 db.push_requests.c.state != 'pickme',
                 db.push_pushcontents.c.push == push_id,
-                ),
+            ),
             order_by=(db.push_requests.c.user, db.push_requests.c.title),
         )
         db.execute_cb(query, self._on_PUSHITEMS_db_response)

@@ -20,6 +20,16 @@ Please remember to run all deployment branches on <strong>bb8</strong> and <stro
 		</select>
 	</li>
 	&mdash;
+	<li>
+		Show states:
+		<select id="state-filter">
+			<option value="">All states</option>
+			<option value="accepting" {% if state == 'accepting' %}selected="selected"{% end %}>Accepting</option>
+			<option value="live" {% if state == 'live' %}selected="selected"{% end %}>Live</option>
+			<option value="discarded" {% if state == 'discarded' %}selected="selected"{% end %}>Discarded</option>
+		</select>
+	</li>
+	&mdash;
 	<li><button id="new-push">New Push</button></li>
 	&mdash;
 	<li>{{ modules.NewRequestDialog() }}</li>
@@ -77,10 +87,10 @@ Please remember to run all deployment branches on <strong>bb8</strong> and <stro
 
 <div id="paginator">
 	{% if pushes and offset > 0 %}
-		<a href="/pushes?rpp={{ rpp }}&amp;offset={{ max(offset - rpp, 0) }}&amp;user={{ url_escape(push_user) }}&amp;state={{ url_escape(state) }}"> Newer</a>
+		<a href="/pushes?rpp={{ rpp }}&amp;offset={{ max(offset - rpp, 0) }}&amp;state={{ url_escape(state) }}"&amp;user={{ url_escape(push_user) }}> Newer</a>
 	{% end if %}
 	{% if pushes and offset + rpp < pushes_count %}
-		<a href="/pushes?rpp={{ rpp }}&amp;offset={{ offset + rpp }}&amp;user={{ url_escape(push_user) }}&amp;state={{ url_escape(state) }}">Older</a>
+		<a href="/pushes?rpp={{ rpp }}&amp;offset={{ offset + rpp }}&amp;state={{ url_escape(state) }}"&amp;user={{ url_escape(push_user) }}>Older</a>
 	{% end if %}
 </div>
 
