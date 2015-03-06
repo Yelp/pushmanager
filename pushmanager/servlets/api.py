@@ -117,10 +117,13 @@ class APIServlet(RequestHandler):
         rpp = util.get_int_arg(self.request, 'rpp', 50)
         offset = util.get_int_arg(self.request, 'offset', 0)
         state = util.get_str_arg(self.request, 'state', '')
+        user = util.get_str_arg(self.request, 'user', '')
 
         filters = []
         if state != '':
             filters.append(db.push_pushes.c.state == state)
+        if user != '':
+            filters.append(db.push_pushes.c.user == user)
 
         push_query = db.push_pushes.select(
             whereclause=SA.and_(*filters),

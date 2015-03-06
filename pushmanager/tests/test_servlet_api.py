@@ -37,15 +37,17 @@ class APITests(T.TestCase, ServletTestMixin, FakeDataMixin):
         T.assert_equal(requests[0]['state'], "requested")
 
     def test_pushes(self):
-        pushes, last_push = self.api_call("pushes")
+        pushes, pushes_count = self.api_call("pushes")
         T.assert_length(pushes, 2)
-        T.assert_equal(last_push, 2)
+        T.assert_equal(pushes_count, 2)
 
-        pushes, last_push = self.api_call("pushes?rpp=1")
+        pushes, pushes_count = self.api_call("pushes?rpp=1")
         T.assert_length(pushes, 1)
+        T.assert_equal(pushes_count, 2)
 
-        pushes, last_push = self.api_call("pushes?offset=1")
+        pushes, pushes_count = self.api_call("pushes?offset=1")
         T.assert_length(pushes, 1)
+        T.assert_equal(pushes_count, 2)
 
     def test_pushes_order(self):
         self.insert_pushes()
@@ -61,12 +63,34 @@ class APITests(T.TestCase, ServletTestMixin, FakeDataMixin):
                     T.assert_gte(push['modified'], lastpush['modified'])
             lastpush = push
 
+    def test_pushes_user_filter(self):
+        self.insert_pushes()
+        pushes, pushes_count = self.api_call("pushes?user=troscoe")
+        T.assert_length(pushes, 1)
+        T.assert_equal(pushes_count, 1)
+        for push in pushes:
+            T.assert_equal(push['user'], 'troscoe')
+
     def test_pushes_state_filter(self):
         self.insert_pushes()
-        pushes, last_push = self.api_call("pushes?state=live")
+        pushes, pushes_count = self.api_call("pushes?state=live")
         T.assert_length(pushes, 1)
+        T.assert_equal(pushes_count, 1)
         for push in pushes:
             T.assert_equal(push['state'], 'live')
+
+    def test_pushes_filters(self):
+        self.insert_pushes()
+        pushes, pushes_count = self.api_call("pushes?user=heyjoe&state=accepting")
+        T.assert_length(pushes, 1)
+        T.assert_equal(pushes_count, 1)
+        for push in pushes:
+            T.assert_equal(push['user'], 'heyjoe')
+            T.assert_equal(push['state'], 'accepting')
+
+        pushes, pushes_count = self.api_call("pushes?user=heyjoe&state=live")
+        T.assert_length(pushes, 0)
+        T.assert_equal(pushes_count, 0)
 
     def test_pushcontents(self):
         pushcontents = self.api_call("pushcontents?id=1")

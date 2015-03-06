@@ -13,6 +13,7 @@ class PushesServlet(RequestHandler):
         pushes_per_page = pushmanager.core.util.get_int_arg(self.request, 'rpp', 50)
         offset = pushmanager.core.util.get_int_arg(self.request, 'offset', 0)
         state = pushmanager.core.util.get_str_arg(self.request, 'state', '')
+        push_user = pushmanager.core.util.get_str_arg(self.request, 'user', '')
         response = yield tornado.gen.Task(
             self.async_api_call,
             'pushes',
@@ -20,6 +21,7 @@ class PushesServlet(RequestHandler):
                 'rpp': pushes_per_page,
                 'offset': offset,
                 'state': state,
+                'user': push_user,
             }
         )
 
@@ -35,5 +37,6 @@ class PushesServlet(RequestHandler):
             offset=offset,
             rpp=pushes_per_page,
             state=state,
+            push_user=push_user,
             pushes_count=pushes_count,
         )

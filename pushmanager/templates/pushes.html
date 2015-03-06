@@ -77,10 +77,10 @@ Please remember to run all deployment branches on <strong>bb8</strong> and <stro
 
 <div id="paginator">
 	{% if pushes and offset > 0 %}
-		<a href="/pushes?rpp={{ rpp }}&amp;offset={{ max(offset - rpp, 0) }}&amp;state={{ url_escape(state) }}"> Newer</a>
+		<a href="/pushes?rpp={{ rpp }}&amp;offset={{ max(offset - rpp, 0) }}&amp;state={{ url_escape(state) }}"&amp;user={{ url_escape(push_user) }}> Newer</a>
 	{% end if %}
 	{% if pushes and offset + rpp < pushes_count %}
-		<a href="/pushes?rpp={{ rpp }}&amp;offset={{ offset + rpp }}&amp;state={{ url_escape(state) }}">Older</a>
+		<a href="/pushes?rpp={{ rpp }}&amp;offset={{ offset + rpp }}&amp;state={{ url_escape(state) }}"&amp;user={{ url_escape(push_user) }}>Older</a>
 	{% end if %}
 </div>
 
@@ -149,11 +149,11 @@ $(function() {
 		}
 	});
 
-    $('#state-filter').change(function() {
+	$('#state-filter').change(function() {
 		var that = $(this);
 		var base_url = window.location.href.split('?')[0];
 		var new_state = encodeURIComponent(that.val());
-		var new_url = base_url + '?state=' + new_state;
+		var new_url = base_url + '?state=' + new_state{% if push_user %} + '&user={{ url_escape(push_user) }}'{% end %};
 		window.location.href = new_url;
 	});
 });

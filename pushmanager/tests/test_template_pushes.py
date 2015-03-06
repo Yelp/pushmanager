@@ -16,6 +16,7 @@ class PushesTemplateTest(TemplateTestCase):
             rpp=pushes_per_page,
             offset=offset,
             state='',
+            push_user='',
         )
 
     def test_include_new_push(self):
