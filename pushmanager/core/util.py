@@ -1,8 +1,11 @@
 import copy
 import datetime
 import subprocess
+import logging
+import json
 
 from tornado.escape import xhtml_escape
+import tornado.httpclient
 
 
 class EscapedDict(object):
@@ -248,3 +251,78 @@ def send_people_msg_in_groups(people, msg, irc_nick, irc_channel, person_per_gro
             irc_channel,
             irc_message
         ])
+
+
+def query_reviewboard(reviewid, servername, username, password):
+    """Get review data for a reviewID.
+
+    Args:
+    reviewid   - review id
+    servername - reviewboard hostname
+    username   - reviewboard username
+    password   - reviewboard password
+
+    Returns: review data
+    """
+    rb_stat = None
+    http_client = tornado.httpclient.HTTPClient()
+    try:
+        response = http_client.fetch("http://%s/api/review-requests/%d/" % (
+                servername,
+                reviewid
+            ),
+            auth_username=username,
+            auth_password=password
+        )
+        rb_stat = json.loads(response.body)
+    except Exception:
+        logging.error("Failed to query reviewboard for review %d" % reviewid)
+    http_client.close()
+    return rb_stat
+
+
+def does_review_sha_match_head_of_branch(rb_stat, head_sha):
+    """check whether review sha matches head of branch.
+
+    Args:
+    rb_stat  - dict returned by reviewboard api
+    head_sha - head of branch
+
+    Returns: (status, error_msg)
+    """
+    if rb_stat is None:
+        return (False, 'Failed to match review sha with head of branch')
+
+    match = rb_stat['review_request']['commit_id'] == head_sha
+    msg = '' if match else 'Your sha of the review is not the same as HEAD of your branch'
+    return (match, msg)
+
+
+def has_shipit(rb_stat):
+    """Check whether review has a shipit from primary reviewer.
+
+    Args:
+    rb_stat - dict returned by reviewboard api
+
+    Returns: (status, error_msg)
+    """
+    if rb_stat is None:
+        return (False, 'Failed to verify shipit')
+
+    has_shipit = rb_stat['review_request']['approved']
+    msg = '' if has_shipit else rb_stat['review_request']['approval_failure']
+    return (has_shipit, msg)
+
+
+def check_tag(tags, tags_to_check):
+    """Check whether requests contain certain tags.
+
+    Args:
+    tags          - tags from requests
+    tags_to_check - tags we need to validate
+
+    Return: (status, error_message)
+    """
+    has_test_tag = tags_contain(tags, tags_to_check)
+    msg = 'Your request does not have following tag(s): %s' % ','.join(tags_to_check)
+    return (has_test_tag, '' if has_test_tag else msg)

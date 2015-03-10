@@ -1,10 +1,17 @@
 import sqlalchemy as SA
+import json
 
 import pushmanager.core.db as db
 import pushmanager.core.util
 from pushmanager.core.git import GitQueue
 from pushmanager.core.git import GitTaskAction
+from pushmanager.core.util import query_reviewboard
+from pushmanager.core.util import does_review_sha_match_head_of_branch
+from pushmanager.core.util import has_shipit
+from pushmanager.core.util import check_tag
 from pushmanager.core.requesthandler import RequestHandler
+
+from pushmanager.core.settings import Settings
 
 
 class PickMeRequestServlet(RequestHandler):
@@ -16,7 +23,39 @@ class PickMeRequestServlet(RequestHandler):
         self.pushid = pushmanager.core.util.get_int_arg(self.request, 'push')
         self.request_ids = self.request.arguments.get('request', [])
 
-        db.execute_cb(db.push_pushes.select().where(db.push_pushes.c.id == self.pushid), self.on_push_select)
+        request_query = db.push_requests.select().where(db.push_requests.c.id.in_(self.request_ids))
+        db.execute_cb(request_query, self.validate_pickme_requests)
+
+    def validate_pickme_requests(self, success, db_results):
+        if not success or not db_results:
+            return self.send_error(500)
+
+        request_row = db_results.fetchone()
+        if not request_row:
+            return self.send_error(500)
+
+        reviewboard_stats = query_reviewboard(
+            request_row[db.push_requests.c.reviewid],
+            Settings['reviewboard']['servername'],
+            Settings['reviewboard']['username'],
+            Settings['reviewboard']['password']
+        )
+
+        head_sha = request_row[db.push_requests.c.revision]
+        match, match_msg = does_review_sha_match_head_of_branch(reviewboard_stats, head_sha)
+        is_shiped, shipit_msg = has_shipit(reviewboard_stats)
+        has_test_tag, test_msg = check_tag(request_row[db.push_requests.c.tags], [Settings['tests_tag']['tag']])
+
+        is_request_valid = match and is_shiped and has_test_tag
+        msg = '\n'.join([match_msg, shipit_msg, test_msg])
+
+        self.write(json.dumps({
+            'valid': is_request_valid,
+            'msg': msg
+        }))
+
+        if is_request_valid:
+            db.execute_cb(db.push_pushes.select().where(db.push_pushes.c.id == self.pushid), self.on_push_select)
 
     def on_push_select(self, success, db_results):
         if not success or not db_results:

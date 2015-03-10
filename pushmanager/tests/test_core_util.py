@@ -5,6 +5,7 @@ import datetime
 import subprocess
 import mock
 import contextlib
+import json
 
 import testify as T
 from pushmanager.core.util import add_to_tags_str
@@ -16,6 +17,10 @@ from pushmanager.core.util import pretty_date
 from pushmanager.core.util import tags_contain
 from pushmanager.core.util import tags_str_as_set
 from pushmanager.core.util import send_people_msg_in_groups
+from pushmanager.core.util import check_tag
+from pushmanager.core.util import has_shipit
+from pushmanager.core.util import does_review_sha_match_head_of_branch
+from pushmanager.core.util import query_reviewboard
 from pushmanager.servlets.pushes import PushesServlet
 
 
@@ -161,6 +166,99 @@ class CoreUtilFunctionsTest(T.TestCase):
                 'dragon_ball',
                 '[fake_prefix_msg] 111, 222, 333, 444, 555, 666: Hello World!'
             ])
+
+    def test_check_test_tag_has_seagull_tag(self):
+        has_test_tag, msg = check_tag('seagull, tag', ['seagull'])
+        T.assert_equal(has_test_tag, True)
+        T.assert_equal(msg, '')
+
+    def test_check_test_tag_has_both_tags(self):
+        has_test_tag, msg = check_tag('seagull, buildbot', ['seagull'])
+        T.assert_equal(has_test_tag, True)
+        T.assert_equal(msg, '')
+
+    def test_check_test_tag_has_no_tag(self):
+        has_test_tag, msg = check_tag('no, tag', ['seagull'])
+        T.assert_equal(has_test_tag, False)
+        T.assert_equal(msg, 'Your request does not have following tag(s): seagull')
+
+    def test_has_shipit(self):
+        rb_stat = {
+            'review_request': {
+                'approved': True,
+                'approval_failure': None
+            }
+        }
+        has, msg = has_shipit(rb_stat)
+        T.assert_equal(has, True)
+        T.assert_equal(msg, '')
+
+    def test_has_no_shipit(self):
+        rb_stat = {
+            'review_request': {
+                'approved': False,
+                'approval_failure': 'no shipit'
+            }
+        }
+        has, msg = has_shipit(rb_stat)
+        T.assert_equal(has, False)
+        T.assert_equal(msg, 'no shipit')
+
+    def test_reviewboard_failed_to_return_data(self):
+        rb_stat = None
+        has, msg = has_shipit(rb_stat)
+        T.assert_equal(has, False)
+        T.assert_equal(msg, 'Failed to verify shipit')
+
+    def test_review_sha_matches_head_of_branch(self):
+        rb_stat = {
+            'review_request': {
+                'commit_id': 'thisismysha'
+            }
+        }
+        match, msg = does_review_sha_match_head_of_branch(rb_stat, 'thisismysha')
+        T.assert_equal(match, True)
+        T.assert_equal(msg, '')
+
+    def test_review_sha_does_not_match_head_of_branch(self):
+        rb_stat = {
+            'review_request': {
+                'commit_id': 'thisismysha'
+            }
+        }
+        match, msg = does_review_sha_match_head_of_branch(rb_stat, 'thisismyheadsha')
+        T.assert_equal(match, False)
+        T.assert_equal(msg, 'Your sha of the review is not the same as HEAD of your branch')
+
+    def test_reviewboard_failed_to_return_data_for_sha(self):
+        rb_stat = None
+        has_shipit, msg = does_review_sha_match_head_of_branch(rb_stat, 'mysha')
+        T.assert_equal(has_shipit, False)
+        T.assert_equal(msg, 'Failed to match review sha with head of branch')
+
+    @mock.patch('pushmanager.core.util.tornado.httpclient.HTTPClient')
+    def test_query_reviewboard_success(self, mockHTTPClient):
+        client = mock.Mock()
+        mockHTTPClient.return_value = client
+        mock_response = mock.Mock()
+        mock_response.body = '{"review_request": {"approved":"True", "approval_failure": null}}'
+        client.fetch = mock.Mock(return_value=mock_response)
+        rb_stat = query_reviewboard(1, 'my_reviewboard_server', 'my_user', 'my_pass')
+        client.fetch.assert_called_once_with(
+            'http://my_reviewboard_server/api/review-requests/1/',
+            auth_username='my_user',
+            auth_password='my_pass'
+        )
+        T.assert_equal(rb_stat, json.loads('{"review_request": {"approved":"True", "approval_failure": null}}'))
+
+    @mock.patch('pushmanager.core.util.tornado.httpclient.HTTPClient')
+    def test_check_reviewboard_failure(self, mockHTTPClient):
+        client = mock.Mock()
+        mockHTTPClient.return_value = client
+        client.fetch = mock.Mock(side_effect=Exception('bad request'))
+
+        rb_stat = query_reviewboard(1, 'my_reviewboard_server', 'my_user', 'my_pass')
+        T.assert_equal(rb_stat, None)
 
 
 class CoreUtilEscapedDictTest(T.TestCase):

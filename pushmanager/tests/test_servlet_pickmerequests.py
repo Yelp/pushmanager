@@ -23,6 +23,24 @@ class PickMeRequestServletTest(T.TestCase, ServletTestMixin):
                 PickMeRequestServlet,
                 "get_current_user",
                 return_value="test_user"
+            ),
+            mock.patch(
+                "pushmanager.servlets.pickmerequest.query_reviewboard",
+                return_value={
+                    'review_request': {
+                        'approved': True,
+                        'approval_failure': None,
+                        'commit_id': 'mysha'
+                    }
+                }
+            ),
+            mock.patch(
+                "pushmanager.servlets.pickmerequest.does_review_sha_match_head_of_branch",
+                return_value=(True, '')
+            ),
+            mock.patch(
+                "pushmanager.servlets.pickmerequest.check_tag",
+                return_value=(True, '')
             )
         ):
             yield
