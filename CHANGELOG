@@ -1,3 +1,22 @@
+0.4.1   2015-03-11
+
+ NEW FEATURES
+
+ * Add 'my pushes' view & ability to filter by state on pushes (sjaensch, #152)
+ * Add drop-down selector to filter pushes by state (sjaensch, #155)
+ 
+ IMPROVEMENTS
+
+ * Re-activated flake8 hooks (rockdog, #151)
+ * Updated requirements & documentation (sjaensch, #154)
+ * New start/stop/reload script (sjaensch, #154)
+ * Improve pagination implemention on /pushes (sjaensch, #155)
+ * Put pushmaster commands in textarea, so they're easier to select (chunkyg, #157)
+
+ BUG FIXES
+
+ * Strip whitespace surrounding whitespace from push branch name (michalczapko, #153) 
+
 0.4.0   2015-02-10
 
  NEW FEATURES
