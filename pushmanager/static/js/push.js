@@ -53,6 +53,13 @@ $(function() {
     PushManager.run_command_dialog = function(command, callback) {
         PushManager.run_command_dialog_callback = callback;
         $('#command-to-run').text(command);
+	var client = new ZeroClipboard( $('#d_clip_button') );
+        client.on( 'ready', function(event) {
+	        client.on( 'copy', function(event) {
+			event.clipboardData.setData('text/plain', $('#command-to-run').text());
+		});
+	});
+	$('#run-a-command').dialog({height:'auto'});
         $('#run-a-command').dialog('open');
     }
     PushManager.run_command_dialog_callback = function() {};
