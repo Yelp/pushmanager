@@ -728,3 +728,16 @@ ul.tags > .tag-feature { background: #000; color: #fff; }
 ul.tags > .tag-fix { background: #000; color: #fff; }
 ul.tags > .tag-cleanup { background: #000; color: #fff; }
 .tag-discarded	{ background: #fdd; }
+
+#d_clip_button{
+	font-size: 90%;
+	color: #333;
+}
+#d_clip_button.zeroclipboard-is-active {
+	background-color: buttonface;
+	border-right: 1px;
+	border-bottom: 1px;
+	border-top: 1px;
+	border-left: 1px;
+	font-size: 90%;
+}
