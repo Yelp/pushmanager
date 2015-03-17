@@ -208,8 +208,8 @@
 
  IMPROVEMENTS
 
- * Add pushmaster name to IRC messages (asotille, #63)
- * Clean up imports (asotille)
+ * Add pushmaster name to IRC messages (asottile, #63)
+ * Clean up imports (asottile)
  * New submodule-bump tag for requests that include submodule
    changes (jagg81, #60)
 
