@@ -38,7 +38,7 @@ class UIMethodTest(T.TestCase):
 
     def test_sort_pickmes_all_tags_in_ordering(self):
         requests = [
-            {'tags': 'no-veryify'},
+            {'tags': 'no-verify'},
             {'tags': 'urgent'},
             {'tags': 'seagull'},
         ]

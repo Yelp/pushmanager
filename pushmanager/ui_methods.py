@@ -5,6 +5,7 @@ def authorized_to_manage_request(_, request, current_user, pushmaster=False):
         return True
     return False
 
+
 def sort_pickmes(_, requests, tags_order):
     """Sort pickmes based on tags_order
 
