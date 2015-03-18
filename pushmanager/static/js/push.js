@@ -406,9 +406,14 @@ $(function() {
             'type': 'POST',
             'url': '/pickmerequest',
             'data': {'request': that.attr('request'), 'push': $('#push-info').attr('push')},
-            'success': function() {
-                that.parent().detach().appendTo('#pickme-items');
-                setTimeout('PushManager.update_status_counts()', 50);
+            'dataType': 'json',
+            'success': function(data) {
+                if(data.valid){
+                    that.parent().detach().appendTo('#pickme-items');
+                    setTimeout('PushManager.update_status_counts()', 50);
+                }else{
+                    alert(data.msg);
+                }
             },
             'error': function() { alert("Something went wrong when marking the request as pickme."); }
         });
