@@ -57,23 +57,6 @@ class PushTemplateTest(TemplateTestCase):
             'watchers': None,
             }
 
-    basic_request = {
-            'id': 0,
-            'repo': 'non-existent',
-            'branch': 'non-existent',
-            'user': 'testuser',
-            'reviewid': 0,
-            'title': 'some title',
-            'tags': None,
-            'revision': '0' * 40,
-            'state': 'requested',
-            'created': now,
-            'modified': now,
-            'description': 'nondescript',
-            'comments': 'nocomment',
-            'watchers': None,
-            }
-
     basic_push_info_items = {
             'Pushmaster': basic_push['user'],
             'Branch': basic_push['branch'],
