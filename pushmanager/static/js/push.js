@@ -74,8 +74,8 @@ $(function() {
         width: 500,
         height: 150
     });
-    PushManager.send_message_dialog = function(people) {
-        $('#send-message').attr('people', people);
+    PushManager.send_message_dialog = function(state) {
+        $('#send-message').attr('state', state);
         $('#send-message-contents').val('');
         $('#send-message-prompt').dialog('open');
     }
@@ -85,8 +85,9 @@ $(function() {
             'url': '/msg',
             'type': 'POST',
             'data': {
-                'people': that.attr('people').split(', '),
-                'message': $('#send-message-contents').val()
+                'state': that.attr('state'),
+                'message': $('#send-message-contents').val(),
+		'id': $('#push-info').attr('push')
             },
             'success': function() {
                 $('#send-message-prompt').dialog('close');
@@ -94,22 +95,12 @@ $(function() {
         });
     });
     $('.message-people').live('click', function() {
-        var contents = $(this).siblings('.item-count').text();
-
-        var people_pat = new RegExp(    // person, person (person, person), person (person), person
-            "(?:[a-z]+" +                   // A username, possibly followed by
-                "(?:\\s\\(" +               //   a space and (
-                    "(?:[a-z]+,?\\s?)+" +   //   and one or more usernames (possibly separated by comma and/or a single space)
-                "\\))?" +                   //   followed by a )
-            ",?\\s?" +                      // possibly followed by a command and space
-            ")+", "i")                           // and more of the same
-
-        var people = (people_pat.exec(contents) || [""])[0];
-        PushManager.send_message_dialog(people);
+	var state = $(this).parent().attr('section');
+	PushManager.send_message_dialog(state);
     });
     $('#message-all').live('click', function() {
-        var people = PushManager.all_involved_users();
-        PushManager.send_message_dialog(people);
+        state = "all"
+        PushManager.send_message_dialog(state);
     });
 
     $('#ping-me').live('click', function() {
@@ -275,11 +266,6 @@ $(function() {
 
     PushManager.section_involved_users = function(section) {
         var requests = $('#' + section + '-items .request-module');
-        return PushManager.requests_to_names(requests);
-    };
-
-    PushManager.all_involved_users = function() {
-        var requests = $('.items-in-push .request-module');
         return PushManager.requests_to_names(requests);
     };
 
