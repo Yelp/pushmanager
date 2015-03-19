@@ -47,7 +47,7 @@ class PushTemplateTest(TemplateTestCase):
             'user': 'testuser',
             'reviewid': 0,
             'title': 'some title',
-            'tags': None,
+            'tags': 'seagull',
             'revision': '0' * 40,
             'state': 'requested',
             'created': now,
