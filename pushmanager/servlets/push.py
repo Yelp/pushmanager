@@ -43,5 +43,6 @@ class PushServlet(RequestHandler):
             push_survey_url=push_survey_url,
             available_requests=available_requests,
             fullrepo=_repo,
-            override=override
+            override=override,
+            pickme_orders=['urgent', 'no-verify', Settings['tests_tag']['tag']]
         )
