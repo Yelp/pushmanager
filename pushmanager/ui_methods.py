@@ -17,9 +17,9 @@ def sort_pickmes(_, requests, tags_order):
     Return: sorted requests list
     """
 
-    def compare_tags(tags1, tags2):
-        tags1_list = tags1.split(',')
-        tags2_list = tags2.split(',')
+    def compare_requests(request1, request2):
+        tags1_list = request1['tags'].split(',')
+        tags2_list = request2['tags'].split(',')
 
         for tag in tags_order:
             tag_in_tags1 = tag in tags1_list
@@ -30,7 +30,8 @@ def sort_pickmes(_, requests, tags_order):
                 return -1
             else:
                 return 1
-        return 0
 
-    sorted_requests = sorted(requests, key=lambda req: req['tags'], cmp=compare_tags)
+        return cmp(request1['user'], request2['user'])
+
+    sorted_requests = sorted(requests, cmp=compare_requests)
     return sorted_requests
