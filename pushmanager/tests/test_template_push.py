@@ -37,7 +37,8 @@ class PushTemplateTest(TemplateTestCase):
             'available_requests': [],
             'fullrepo': 'not/a/repo',
             'override': False,
-            'push_survey_url': None
+            'push_survey_url': None,
+            'pickme_orders': ['urgent']
             }
 
     basic_request = {
@@ -47,7 +48,7 @@ class PushTemplateTest(TemplateTestCase):
             'user': 'testuser',
             'reviewid': 0,
             'title': 'some title',
-            'tags': None,
+            'tags': 'seagull',
             'revision': '0' * 40,
             'state': 'requested',
             'created': now,
@@ -191,6 +192,7 @@ class PushTemplateTest(TemplateTestCase):
         kwargs = dict(self.basic_kwargs)
         kwargs['push_contents'] = push_contents
         kwargs['current_user'] = 'watcher1'
+        kwargs['pickme_orders'] = ['urgent']
 
         with self.no_ui_modules():
             tree = self.render_etree(
