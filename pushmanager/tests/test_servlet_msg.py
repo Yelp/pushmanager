@@ -13,6 +13,52 @@ from pushmanager.servlets.msg import MsgServlet
 from pushmanager.testing.mocksettings import MockedSettings
 from pushmanager.testing.testservlet import ServletTestMixin
 
+request_with_no_people = [{
+        'reviewid': None, 'watchers': u'',
+        'description': u'', 'tags': u'', 'created': 1234567890.1234567,
+        'modified': 1234567899.1234568, 'comments': u'', 'repo': u'testuser',
+        'state': u'added', 'user': u'', 'branch': u'', 'conflicts': None,
+        'title': u'testing', 'id': 1, 'revision': u'0'
+        }]
+
+request_with_one_people = [{
+        'reviewid': None, 'watchers': u'',
+        'description': u'', 'tags': u'', 'created': 1234567890.1234567,
+        'modified': 1234567899.1234568, 'comments': u'', 'repo': u'testuser',
+        'state': u'added', 'user': u'testuser', 'branch': u'', 'conflicts': None,
+        'title': u'testing', 'id': 1, 'revision': u'0'
+        }]
+
+request_with_watchers = [{
+        'reviewid': None, 'watchers': u'testwatcher_1',
+        'description': u'', 'tags': u'', 'created': 1234567890.1234567,
+        'modified': 1234567899.1234568, 'comments': u'', 'repo': u'testuser',
+        'state': u'added', 'user': u'testuser', 'branch': u'', 'conflicts': None,
+        'title': u'testing', 'id': 1, 'revision': u'0'
+        }]
+
+request_with_message_all = [{
+        'reviewid': None, 'watchers': u'',
+        'description': u'', 'tags': u'', 'created': 1234567890.1234567,
+        'modified': 1234567899.1234568, 'comments': u'', 'repo': u'testuser',
+        'state': u'pickme', 'user': u'testuser_1', 'branch': u'', 'conflicts': None,
+        'title': u'testing', 'id': 1, 'revision': u'0'
+        },
+                            {
+        'reviewid': None, 'watchers': u'',
+        'description': u'', 'tags': u'', 'created': 1234567890.1234567,
+        'modified': 1234567899.1234568, 'comments': u'', 'repo': u'testuser',
+        'state': u'pickme', 'user': u'testuser_2', 'branch': u'', 'conflicts': None,
+        'title': u'testing', 'id': 1, 'revision': u'0'
+        },
+                            {
+        'reviewid': None, 'watchers': u'',
+        'description': u'', 'tags': u'', 'created': 1234567890.1234567,
+        'modified': 1234567899.1234568, 'comments': u'', 'repo': u'testuser',
+        'state': u'verified', 'user': u'testuser_3', 'branch': u'', 'conflicts': None,
+        'title': u'testing', 'id': 1, 'revision': u'0'
+        }]
+
 
 class MsgServletTest(T.TestCase, ServletTestMixin):
     @T.setup_teardown
@@ -29,8 +75,13 @@ class MsgServletTest(T.TestCase, ServletTestMixin):
     def get_handlers(self):
         return [get_servlet_urlspec(MsgServlet)]
 
-    def test_msg_servlet_no_people(self):
-        resp = self.fetch('/msg', method='POST', body='message=foo')
+    def execute_db_func_with_no_people(query, callback_fn):
+        global request_with_no_people
+        callback_fn(True, request_with_no_people)
+
+    @mock.patch('pushmanager.servlets.msg.db.execute_cb', side_effect=execute_db_func_with_no_people)
+    def test_msg_servlet_for_no_people(self, _):
+        resp = self.fetch('/msg', method='POST', body='state=added&message=foo&id=1')
         T.assert_is(resp.error, None)
         self.call_mock.assert_called_once_with(
             [
@@ -42,12 +93,13 @@ class MsgServletTest(T.TestCase, ServletTestMixin):
             ],
         )
 
-    def test_servlet_with_people(self):
-        resp = self.fetch(
-            '/msg',
-            method='POST',
-            body='message=foo&people[]=asottile&people[]=milki',
-        )
+    def execute_db_func_with_one_people(query, callback_fn):
+        global request_with_one_people
+        callback_fn(True, request_with_one_people)
+
+    @mock.patch('pushmanager.servlets.msg.db.execute_cb', side_effect=execute_db_func_with_one_people)
+    def test_msg_servlet_for_one_poeple(self, _):
+        resp = self.fetch('/msg', method='POST', body='state=added&message=foo&id=1')
         T.assert_is(resp.error, None)
         self.call_mock.assert_called_once_with(
             [
@@ -55,67 +107,42 @@ class MsgServletTest(T.TestCase, ServletTestMixin):
                 '-i',
                 mock.ANY,
                 mock.ANY,
-                '[[pushmaster testuser]] asottile, milki: foo',
+                '[[pushmaster testuser]] testuser: foo',
             ],
         )
 
-    def test_servlet_with_multiple_people(self):
-        """Test multiple names
+    def execute_db_func_with_watchers(query, callback_fn):
+        global request_with_watchers
+        callback_fn(True, request_with_watchers)
 
-        When we have lots of names, pushmanager should send multiple
-        announcements instead of a single large annoucement.
-        """
-
-        people = [
-            'aaa', 'bbb', 'ccc', 'ddd', 'eee',
-            'fff', 'ggg', 'hhh', 'iii', 'jjj',
-            'kkk', 'lll', 'mmm', 'nnn',
-        ]
-
-        name_list = ''.join(['&people[]=' + person for person in people])
-        resp = self.fetch(
-            '/msg',
-            method='POST',
-            body='message=foo' + name_list,
-        )
+    @mock.patch('pushmanager.servlets.msg.db.execute_cb', side_effect=execute_db_func_with_watchers)
+    def test_msg_servlet_for_watchers(self, _):
+        resp = self.fetch('/msg', method='POST', body='state=added&message=foo&id=1')
         T.assert_is(resp.error, None)
+        call_arguments = self.call_mock.call_args[0][0]
+        T.assert_true('/nail/sys/bin/nodebot' in call_arguments[0])
+        T.assert_true('-i' in call_arguments[1])
+        T.assert_true('testuser' in call_arguments[4])
+        T.assert_true('testwatcher_1' in call_arguments[4])
+        T.assert_true('foo' in call_arguments[4])
 
-        T.assert_equal(
-            self.call_mock.call_count,
-            3,
-            message='multiple people should be divided into groups'
-        )
+    def execute_db_func_with_message_all(query, callback_fn):
+        global request_with_message_all
+        callback_fn(True, request_with_message_all)
 
-        self.call_mock.assert_any_call(
+    @mock.patch('pushmanager.servlets.msg.db.execute_cb', side_effect=execute_db_func_with_message_all)
+    def test_msg_servlet_for_message_all(self, _):
+        resp = self.fetch('/msg', method='POST', body='state=all&message=foo&id=1')
+        T.assert_is(resp.error, None)
+        self.call_mock.assert_called_once_with(
             [
                 '/nail/sys/bin/nodebot',
                 '-i',
                 mock.ANY,
                 mock.ANY,
-                '[[pushmaster testuser]] aaa, bbb, ccc, ddd, eee',
+                '[[pushmaster testuser]] testuser_3: foo',
             ],
         )
-
-        self.call_mock.assert_any_call(
-            [
-                '/nail/sys/bin/nodebot',
-                '-i',
-                mock.ANY,
-                mock.ANY,
-                ' fff, ggg, hhh, iii, jjj',
-            ],
-        )
-
-        self.call_mock.assert_any_call(
-            [
-                '/nail/sys/bin/nodebot',
-                '-i',
-                mock.ANY,
-                mock.ANY,
-                ' kkk, lll, mmm, nnn: foo',
-            ],
-        )
-
 
 if __name__ == '__main__':
     T.run()
