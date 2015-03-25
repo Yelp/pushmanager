@@ -1,3 +1,16 @@
+0.4.2   2015-03-25
+
+ NEW FEATURES
+ * A 'copy to clipboard' button on push commands (chunkyg, #159)
+ * Pickmes now sorted by priority, e.g.: urgent, no-verify, testtag
+ (Mango-J, #166)
+
+ IMPROVEMENTS
+ * Remove hardcoded legacy motd about bb-push (fhats, #160)
+ * Remove duplicated dead template new-push.html (Mango-J, #162)
+ * Msg servlet now uses DB instead of formatted HTML to gather data on users
+ to message (chunkyg, #163)
+
 0.4.1   2015-03-11
 
  NEW FEATURES
@@ -15,7 +28,7 @@
 
  BUG FIXES
 
- * Strip whitespace surrounding whitespace from push branch name (michalczapko, #153) 
+ * Strip whitespace surrounding whitespace from push branch name (michalczapko, #153)
 
 0.4.0   2015-02-10
 
